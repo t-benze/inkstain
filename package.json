@@ -4,7 +4,17 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@fluentui/react-components": "^9.44.5",
+    "@types/koa": "^2.14.0",
+    "@types/react": "^18.2.48",
+    "@types/react-router-dom": "^5.3.3",
+    "@types/winston": "^2.4.4",
+    "koa": "^2.15.0",
+    "react": "^18.2.0",
+    "react-router-dom": "^6.21.2",
+    "winston": "^3.11.0"
+  },
   "devDependencies": {
     "@nx/js": "17.2.8",
     "@nx/workspace": "17.2.8",
