@@ -2,11 +2,10 @@ import Router from 'koa-router';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
+import logger from '../src/logger'; // Import the logger
 
-// Configure static file serving
-const staticRoot = path.join(__dirname, '../public'); // Adjust public folder path as needed
+const staticRoot = path.join(__dirname, '../public');
 
-// Helper function to list directory contents
 const listDirectoryContents = async (dirRelPath: string): Promise<any[]> => {
   const fullDirPath = path.join(staticRoot, dirRelPath);
   try {
@@ -21,32 +20,32 @@ const listDirectoryContents = async (dirRelPath: string): Promise<any[]> => {
   }
 };
 
-// Document listing endpoint
 const listDocuments = async (ctx: Router.RouterContext) => {
-  const urlPath = ctx.params[0] || ''; // Capture the slug after /list/
+  const urlPath = ctx.params[0] || '';
   const dirRelPath = path.normalize(decodeURIComponent(urlPath));
 
-  // Prevent directory traversal attacks
   if (dirRelPath.includes('..')) {
+    logger.warn(`Attempted directory traversal: ${dirRelPath}`);
     ctx.throw(400, 'Invalid directory path.');
     return;
   }
 
   try {
     ctx.body = await listDirectoryContents(dirRelPath);
+    logger.info(`Listed documents at path: ${dirRelPath}`);
     ctx.status = 200;
   } catch (err) {
+    logger.error(`Error listing documents: ${err.message}`);
     ctx.throw(404, err.message);
   }
 };
 
-// Static file serving endpoint for documents
 const getDocumentContent = async (ctx: Router.RouterContext) => {
-  const urlPath = ctx.params[0] || ''; // Capture the slug after /content/
+  const urlPath = ctx.params[0] || '';
   const filePath = path.normalize(decodeURIComponent(urlPath));
 
-  // Prevent directory traversal attacks
   if (filePath.includes('..')) {
+    logger.warn(`Attempted file access outside of root directory: ${filePath}`);
     ctx.throw(400, 'Invalid file path.');
     return;
   }
@@ -55,13 +54,14 @@ const getDocumentContent = async (ctx: Router.RouterContext) => {
 
   try {
     await send(ctx, fullPath, { root: staticRoot });
+    logger.info(`Served document content from path: ${filePath}`);
   } catch (err) {
+    logger.error(`Error serving document content: ${err.message}`);
     ctx.throw(404, 'Document not found.');
   }
 };
 
-// Export route registration function
 export const documentRoutes = (router: Router) => {
-  router.get('/documents/list/(.*)', listDocuments); // Match all slugs after /list/
-  router.get('/documents/content/(.*)', getDocumentContent); // Match all slugs after /content/
+  router.get('/documents/list/(.*)', listDocuments);
+  router.get('/documents/content/(.*)', getDocumentContent);
 };
