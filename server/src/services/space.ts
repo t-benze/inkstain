@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import settings from '../src/settings';
+import * as settings from '~/server/settings';
 
 interface Spaces {
   [name: string]: { path: string };

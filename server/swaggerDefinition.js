@@ -1,4 +1,4 @@
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const port = process.env.PORT ? Number(process.env.PORT) : 6060;
 const host = `http://${process.env.HOST}:${port}`;
 
 module.exports = {

@@ -1,7 +1,6 @@
 import Router from 'koa-router';
-import spaceService from '../service/space';
+import spaceService from '~/server/services/space';
 import fs from 'fs/promises';
-import path from 'path';
 
 /**
  * @swagger
@@ -78,8 +77,7 @@ export const createSpace = async (ctx: Router.RouterContext) => {
     try {
         await spaceService.createSpace(name, spacePath);
         // Create the directory on the filesystem
-        const fullPath = path.join(spaceService.getBasePath(), spacePath);
-        await fs.mkdir(fullPath, { recursive: true });
+        await fs.mkdir(spacePath, { recursive: true });
 
         ctx.status = 201; // Space created successfully
     } catch (error) {

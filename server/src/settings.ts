@@ -6,7 +6,7 @@ import os from 'os';
 dotenv.config();
 export const env = process.env.NODE_ENV; // 'development' or 'production'
 export const host = process.env.HOST ?? 'localhost';
-export const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+export const port = process.env.PORT ? Number(process.env.PORT) : 6060;
 
 let directories: {
   configDir: string;

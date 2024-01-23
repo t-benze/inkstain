@@ -7,20 +7,39 @@ import mount from 'koa-mount';
 import serve from 'koa-static';
 
 import { host, port } from './settings';
-
-
+import logger from './logger';
+import bodyParser from 'koa-bodyparser';
 import { documentRoutes } from './handlers/documents';
-
+import { registerSpaceRoutes } from './handlers/space';
 const app = new Koa();
-const router = new Router();
+
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  const contentLength = ctx.response.length || '-';
+  logger.http(
+    `${ctx.method} ${ctx.url} - ${ctx.status} - ${contentLength} - ${ms}ms`
+  );
+});
+
+// Middleware to handle JSON requests
+app.use(
+  bodyParser({
+    enableTypes: ['json', 'text'],
+  })
+);
+
+const router = new Router({
+  prefix: '/api/v1',
+});
 
 // Register document routes
 documentRoutes(router);
+registerSpaceRoutes(router);
 
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());
-
-
 
 const swaggerUi = require('swagger-ui-dist');
 const openApiSpecPath = path.join(__dirname, 'openapi.yml');
@@ -62,8 +81,6 @@ app.use(
 );
 
 // Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(Number(PORT), host, () => {
-  console.log(`Server running on http://${host}:${PORT}`);
+app.listen(port, host, () => {
+  console.log(`Server running on http://${host}:${port}`);
 });
-

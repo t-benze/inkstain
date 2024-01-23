@@ -7,7 +7,7 @@
     "build": {
       "executor": "@nx/esbuild:esbuild",
       "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
+      "defaultConfiguration": "development",
       "options": {
         "platform": "node",
         "outputPath": "dist/server",
@@ -64,6 +64,7 @@
       }
     },
     "apidocs": {
+      "dependsOn": ["server:build"],
       "executor": "nx:run-commands",
       "options": {
         "command": "npx swagger-jsdoc -d server/swaggerDefinition.js -o dist/server/server/src/openapi.yml  server/src/handlers/*.ts server/schema/*.yml"
