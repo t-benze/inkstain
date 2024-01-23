@@ -1,14 +1,18 @@
-import koa from 'koa';
+import Koa from 'koa';
+import Router from 'koa-router';
+import { documentRoutes } from './handlers/documents';
 
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const app = new Koa();
+const router = new Router();
 
-const app = new koa();
+// Register document routes
+documentRoutes(router);
 
-app.use(async (ctx) => {
-  ctx.body = { message: 'Hello API' };
-});
+// Apply the routes to the application
+app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(port, host, () => {
-  console.log(`[ ready ] http://${host}:${port}`);
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
