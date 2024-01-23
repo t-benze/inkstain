@@ -7,7 +7,7 @@ const { combine, timestamp, json, errors } = winston.format;
 const logger = winston.createLogger({
   transports: [
     new winston.transports.File({
-      format: combine(errors({ stack: true }), timestamp(), json()),
+      format: combine(timestamp(), json()),
       filename: path.join(directories.stateDir, 'combined.log'),
       level: process.env.NODE_ENV !== 'production' ? 'verbose' : 'http',
     }),

@@ -10,7 +10,7 @@ class SpaceService {
   private spaceFilePath: string;
 
   constructor() {
-    this.spaceFilePath = path.join(settings.directories.stateDir, 'spaces.json');
+    this.spaceFilePath = path.join(settings.directories.dataDir, 'spaces.json');
   }
 
   public async getSpaces(): Promise<Spaces> {

@@ -13,40 +13,23 @@ let directories: {
   dataDir: string;
   cacheDir: string;
   stateDir: string;
-}
-;
+};
 
 if (os.platform() === 'win32') {
   // Windows Directories
   directories = {
-    configDir:
-      process.env.APPDATA ||
-      path.join(os.homedir(), 'AppData', 'Roaming', 'inkstain'),
-    dataDir:
-      process.env.LOCALAPPDATA ||
-      path.join(os.homedir(), 'AppData', 'Local', 'inkstain'),
-    cacheDir:
-      process.env.TEMP ||
-      path.join(os.homedir(), 'AppData', 'Local', 'Temp', 'inkstain'),
-    stateDir:
-      process.env.LOCALAPPDATA ||
-      path.join(os.homedir(), 'AppData', 'Local', 'inkstain'),
+    configDir: path.join(process.env.APPDATA, 'inkstain'),
+    dataDir: path.join(process.env.LOCALAPPDATA, 'inkstain'),
+    cacheDir: path.join(process.env.TEMP, 'inkstain'),
+    stateDir: path.join(process.env.LOCALAPPDATA, 'inkstain'),
   };
 } else {
   // XDG Base Directories
   directories = {
-    configDir:
-      process.env.XDG_CONFIG_HOME ||
-      path.join(os.homedir(), '.config', 'inkstain'),
-    dataDir:
-      process.env.XDG_DATA_HOME ||
-      path.join(os.homedir(), '.local', 'share', 'inkstain'),
-    cacheDir:
-      process.env.XDG_CACHE_HOME ||
-      path.join(os.homedir(), '.cache', 'inkstain'),
-    stateDir:
-      process.env.XDG_STATE_HOME ||
-      path.join(os.homedir(), '.local', 'state', 'inkstain'),
+    configDir: path.join(os.homedir(), '.config', 'inkstain'),
+    dataDir: path.join(os.homedir(), '.local', 'share', 'inkstain'),
+    cacheDir: path.join(os.homedir(), '.cache', 'inkstain'),
+    stateDir: path.join(os.homedir(), '.local', 'state', 'inkstain'),
   };
 }
 
@@ -56,4 +39,4 @@ fs.mkdirSync(directories.dataDir, { recursive: true });
 fs.mkdirSync(directories.cacheDir, { recursive: true });
 fs.mkdirSync(directories.stateDir, { recursive: true });
 
-export { directories }  ;
+export { directories };
