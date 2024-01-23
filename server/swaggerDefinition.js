@@ -1,5 +1,7 @@
 const port = process.env.PORT ? Number(process.env.PORT) : 6060;
-const host = `http://${process.env.HOST}:${port}`;
+const host = process.env.HOST ?? 'localhost';
+
+const urlPrefix = `http://${host}:${port}`;
 
 module.exports = {
   openapi: '3.0.0',
@@ -10,7 +12,7 @@ module.exports = {
   },
   servers: [
     {
-      url: `${host}/api/v1`,
+      url: `${urlPrefix}/api/v1`,
       description: 'Local server',
     }
   ]

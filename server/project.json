@@ -42,7 +42,6 @@
       "options": {
         "buildTarget": "server:build"
       },
-      "dependsOn": ["server:apidocs"],
       "configurations": {
         "development": {
           "buildTarget": "server:build:development"
@@ -64,7 +63,6 @@
       }
     },
     "apidocs": {
-      "dependsOn": ["server:build"],
       "executor": "nx:run-commands",
       "options": {
         "command": "npx swagger-jsdoc -d server/swaggerDefinition.js -o dist/server/server/src/openapi.yml  server/src/handlers/*.ts server/schema/*.yml"
