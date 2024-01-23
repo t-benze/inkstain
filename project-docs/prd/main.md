@@ -1,5 +1,13 @@
 # InkStain
 
+InkStain is a document management tool that allows user to serve local file to the browser for viewing and edting. It also provides some built-in functions to create meta data for the documents, such as tagging and annotations. 
+
+## Principles
+
+1. It serves document from your local file system and allows you the view the document using a browser.
+2. For each type of document, it associates a special view that provides additional functionalities to augment the viewing experience. For example a. PDF: create highlights and annotation b. Image: draw markup c. Markdown: view and edit mode
+3. A generic solution to add tag, custom data and notes to your document, which can help you organize your documents and generate insights.
+
 ## User Stories
 
 - As a user, I want to serve documents from my local file system so that I can easily access and manage my files using a web browser.
