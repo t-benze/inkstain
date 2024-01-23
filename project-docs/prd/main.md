@@ -46,3 +46,26 @@ InkStain is a document management tool that allows user to serve local file to t
 5. **Security**: Robust data protection measures to ensure user data privacy and prevent unauthorized file access.
 6. **Reliability**: High system uptime with consistent and accurate document rendering.
 7. **Data Integrity**: Reliable storage and retrieval of annotations, highlights, and custom user data.
+
+## Feature - Space
+
+### User Stories
+
+- As a user, I want to create a 'Space' within InkStain to have a dedicated area where I can organize and manage a group of related documents.
+- As a user, I want to easily add documents to a 'Space' to ensure that all relevant materials are together and easily accessible.
+- As a user, I want to view all documents within a 'Space' so that I can quickly locate the files I need within the context of a specific project or subject area.
+- As a user, I want to manage the documents in a 'Space' (such as renaming, deleting, or moving files) to maintain an organized and efficient workspace.
+
+### Functional Requirements
+
+- Provide the functionality to create and name a new 'Space' as a dedicated document management area.
+- Allow users to add existing documents or new documents to a 'Space'.
+- Implement a browsing interface specific to each 'Space' that displays all contained documents.
+- Enable document management within a 'Space', including renaming, deleting, and moving files.
+
+### Non-Functional Requirements
+
+- **Expandability**: Ensure the 'Space' feature can be extended in the future for additional functionalities such as shared collaboration or advanced permissions.
+- **Data Organization**: Maintain a structured and intuitive organization of 'Spaces' and their contents, so users can effectively manage their documents.
+- **Performance**: The document management operations within a 'Space' should be swift and responsive to facilitate a smooth user experience.
+- **Isolation**: Ensure the documents and data in one 'Space' are isolated from others for clean separation of projects or topics.
