@@ -2,7 +2,7 @@ import Router from 'koa-router';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
-import logger from '../src/logger'; // Import the logger
+import logger from '~/server/logger'; // Import the logger
 
 const staticRoot = path.join(__dirname, '../public');
 
