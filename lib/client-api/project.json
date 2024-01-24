@@ -1,0 +1,38 @@
+{
+  "name": "@inkstain/client-api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/client-api/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/client-api",
+        "main": "lib/client-api/src/index.ts",
+        "tsConfig": "lib/client-api/tsconfig.lib.json",
+        "assets": ["lib/client-api/*.md"]
+      }
+    },
+    "codegen": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["server:apidocs"],
+      "options": {
+        "commands": [
+          {
+            "command": "npx openapi-generator-cli generate -i ./dist/server/server/src/openapi.yml -o lib/client-api/src/lib -g typescript-fetch"
+          }
+        ]
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs @inkstain/client-api {args.ver} {args.tag}",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    }
+  },
+  "tags": []
+}

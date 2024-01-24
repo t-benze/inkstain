@@ -29,7 +29,7 @@ const listDirectoryContents = async (dirRelPath: string): Promise<any[]> => {
  *     parameters:
  *       - in: path
  *         name: path
- *         required: false
+ *         required: true
  *         description: URL-encoded relative path to a sub-folder from the root.
  *         schema:
  *           type: string

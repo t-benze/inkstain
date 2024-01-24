@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "~/server/*": ["server/src/*"],
+      "@inkstain/client-api": ["lib/client-api/src/index.ts"],
+      "~/server/*": ["server/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]
