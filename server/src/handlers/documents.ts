@@ -2,128 +2,134 @@ import Router from 'koa-router';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
-import logger from '~/server/logger'; // Import the logger
+import spaceService from '~/server/services/spaceService';
+import logger from '~/server/logger'; // Make sure to import your configured logger
 
-const staticRoot = path.join(__dirname, '../public');
+// Helper function to get the full file path
+const getFullPath = async (
+  spaceName: string,
+  filePath: string
+): Promise<string> => {
+  const spaces = await spaceService.getSpaces();
+  const space = spaces[spaceName];
 
-const listDirectoryContents = async (dirRelPath: string): Promise<any[]> => {
-  const fullDirPath = path.join(staticRoot, dirRelPath);
-  try {
-    const files = await fs.readdir(fullDirPath, { withFileTypes: true });
-    return files.map((file) => ({
-      name: file.name,
-      type: file.isDirectory() ? 'folder' : 'file',
-      path: path.join(dirRelPath, file.name),
-    }));
-  } catch (err) {
-    throw new Error('Directory not found or inaccessible.');
+  if (!space) {
+    throw new Error(`The space '${spaceName}' does not exist.`);
   }
+
+  const resolvedPath = path.resolve(space.path, filePath);
+  if (!resolvedPath.startsWith(space.path)) {
+    throw new Error('Invalid file path. Possible directory traversal attempt.');
+  }
+  return resolvedPath;
 };
 
 /**
  * @swagger
- * /documents/list/{path}:
+ * /documents/{spaceName}/list/{path}:
  *   get:
- *     summary: Lists documents and folders.
- *     description: Recursively lists all documents and sub-folders within the specified path.
+ *     summary: List all documents within a space or sub-folder
+ *     tags: [Documents]
  *     parameters:
+ *       - in: path
+ *         name: spaceName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
  *       - in: path
  *         name: path
  *         required: true
- *         description: URL-encoded relative path to a sub-folder from the root.
  *         schema:
  *           type: string
- *           default: ''
+ *         description: |
+ *           The relative path within the space, or '~' for root.
+ *           The path should be URL-encoded.
  *     responses:
  *       200:
- *         description: A list of documents and sub-folders.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                   type:
- *                     type: string
- *                     enum: [folder, file]
- *                   path:
- *                     type: string
+ *         description: A list of documents and sub-folders within the space or sub-folder.
  *       400:
- *         description: Invalid directory path provided.
+ *         description: Invalid parameters provided.
  *       404:
- *         description: Directory not found or inaccessible.
+ *         description: Space or sub-folder not found.
  */
 const listDocuments = async (ctx: Router.RouterContext) => {
-  const urlPath = ctx.params[0] || '';
-  const dirRelPath = path.normalize(decodeURIComponent(urlPath));
+  const spaceName = ctx.params.spaceName;
+  let filePath = ctx.params.path;
 
-  if (dirRelPath.includes('..')) {
-    logger.warn(`Attempted directory traversal: ${dirRelPath}`);
-    ctx.throw(400, 'Invalid directory path.');
-    return;
+  if (filePath === '~') {
+    filePath = ''; // Translate '~' to an empty string to signify the root directory
   }
 
   try {
-    ctx.body = await listDirectoryContents(dirRelPath);
-    logger.info(`Listed documents at path: ${dirRelPath}`);
+    const fullPath = await getFullPath(spaceName, filePath);
+    const files = await fs.readdir(fullPath, { withFileTypes: true });
+    ctx.body = files.map((file) => ({
+      name: file.name,
+      type: file.isDirectory() ? 'folder' : 'file',
+      path: path.join(filePath, file.name),
+    }));
     ctx.status = 200;
-  } catch (err) {
-    logger.error(`Error listing documents: ${err.message}`);
-    ctx.throw(404, err.message);
+    logger.info(
+      `Listed documents in space '${spaceName}' at path '${filePath || '/'}'`
+    );
+  } catch (error) {
+    ctx.status = error.message.includes('does not exist') ? 404 : 400;
+    ctx.body = { message: error.message };
+    logger.error(
+      `Failed to list documents in space '${spaceName}': ${error.message}`
+    );
   }
 };
 
 /**
  * @swagger
- * /documents/content/{path}:
+ * /documents/{spaceName}/content/{path}:
  *   get:
- *     summary: Serve a document.
- *     description: Serve the binary content of the document located at the given path.
+ *     summary: Serve document content from a space
+ *     tags: [Documents]
  *     parameters:
+ *       - in: path
+ *         name: spaceName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
  *       - in: path
  *         name: path
  *         required: true
- *         description: URL-encoded relative path to the document from the root.
  *         schema:
  *           type: string
+ *         description: The relative path to the document within the space
  *     responses:
  *       200:
- *         description: Binary content of the document.
- *         content:
- *           application/octet-stream:
- *             schema:
- *               type: string
- *               format: binary
+ *         description: The content of the document.
  *       400:
- *         description: Invalid file path provided.
+ *         description: Invalid parameters provided.
  *       404:
- *         description: Document not found.
+ *         description: Space or document not found.
  */
 const getDocumentContent = async (ctx: Router.RouterContext) => {
-  const urlPath = ctx.params[0] || '';
-  const filePath = path.normalize(decodeURIComponent(urlPath));
-
-  if (filePath.includes('..')) {
-    logger.warn(`Attempted file access outside of root directory: ${filePath}`);
-    ctx.throw(400, 'Invalid file path.');
-    return;
-  }
-
-  const fullPath = path.join(staticRoot, filePath);
-
+  const { spaceName, path: filePath } = ctx.params;
   try {
-    await send(ctx, fullPath, { root: staticRoot });
-    logger.info(`Served document content from path: ${filePath}`);
-  } catch (err) {
-    logger.error(`Error serving document content: ${err.message}`);
-    ctx.throw(404, 'Document not found.');
+    const fullPath = await getFullPath(spaceName, filePath);
+    await send(ctx, fullPath);
+    // Log the successful operation
+    logger.info(
+      `Served document content from space '${spaceName}' and path '${filePath}'`
+    );
+  } catch (error) {
+    ctx.status = error.message.includes('does not exist') ? 404 : 400;
+    ctx.body = error.message;
+    // Log the error
+    logger.error(
+      `Failed to serve document content from space '${spaceName}': ${error.message}`
+    );
   }
 };
 
-export const documentRoutes = (router: Router) => {
-  router.get('/documents/list/(.*)', listDocuments);
-  router.get('/documents/content/(.*)', getDocumentContent);
+// Register routes and export
+export const registerDocumentRoutes = (router: Router) => {
+  router.get('/documents/:spaceName/list/:path*', listDocuments);
+  router.get('/documents/:spaceName/content/:path*', getDocumentContent);
 };

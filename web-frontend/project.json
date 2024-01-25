@@ -16,7 +16,7 @@
         "main": "web-frontend/src/main.tsx",
         "tsConfig": "web-frontend/tsconfig.app.json",
         "assets": ["web-frontend/src/favicon.ico", "web-frontend/src/assets"],
-        "styles": ["web-frontend/src/styles.css"],
+        "styles": [],
         "scripts": [],
         "webpackConfig": "web-frontend/webpack.config.js"
       },

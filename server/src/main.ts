@@ -9,7 +9,7 @@ import serve from 'koa-static';
 import { host, port } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
-import { documentRoutes } from './handlers/documents';
+import { registerDocumentRoutes } from './handlers/documents';
 import { registerSpaceRoutes } from './handlers/space';
 const app = new Koa();
 
@@ -35,7 +35,7 @@ const router = new Router({
 });
 
 // Register document routes
-documentRoutes(router);
+registerDocumentRoutes(router);
 registerSpaceRoutes(router);
 
 // Apply the routes to the application

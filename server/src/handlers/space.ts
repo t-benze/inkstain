@@ -1,5 +1,5 @@
 import Router from 'koa-router';
-import spaceService from '~/server/services/space';
+import spaceService from '~/server/services/spaceService';
 import fs from 'fs/promises';
 
 /**
@@ -42,12 +42,12 @@ import fs from 'fs/promises';
  *         description: Failed to get spaces.
  */
 export const getSpaces = async (ctx: Router.RouterContext) => {
-    try {
-        ctx.body = await spaceService.getSpaces();
-    } catch (error) {
-        ctx.status = 500;
-        ctx.body = 'Failed to get spaces';
-    }
+  try {
+    ctx.body = await spaceService.getSpaces();
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = 'Failed to get spaces';
+  }
 };
 
 /**
@@ -71,28 +71,26 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  *         description: Failed to create space.
  */
 export const createSpace = async (ctx: Router.RouterContext) => {
-    // Extract details from the request body
-    const { name, path: spacePath }: { name: string; path: string } = ctx.request.body;
+  // Extract details from the request body
+  const { name, path: spacePath }: { name: string; path: string } =
+    ctx.request.body;
 
-    try {
-        await spaceService.createSpace(name, spacePath);
-        // Create the directory on the filesystem
-        await fs.mkdir(spacePath, { recursive: true });
+  try {
+    await spaceService.createSpace(name, spacePath);
+    // Create the directory on the filesystem
+    await fs.mkdir(spacePath, { recursive: true });
 
-        ctx.status = 201; // Space created successfully
-    } catch (error) {
-        if (error.message.includes('already exists')) {
-            ctx.status = 400;
-            ctx.body = error.message;
-        } else {
-            ctx.status = 500;
-            ctx.body = 'Failed to create space';
-        }
+    ctx.status = 201; // Space created successfully
+  } catch (error) {
+    if (error.message.includes('already exists')) {
+      ctx.status = 400;
+      ctx.body = error.message;
+    } else {
+      ctx.status = 500;
+      ctx.body = 'Failed to create space';
     }
+  }
 };
-
-
-
 
 /**
  * @swagger
