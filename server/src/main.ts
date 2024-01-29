@@ -11,6 +11,7 @@ import logger from './logger';
 import bodyParser from 'koa-bodyparser';
 import { registerDocumentRoutes } from './handlers/documents';
 import { registerSpaceRoutes } from './handlers/space';
+import { registerPlatformRoutes } from './handlers/platform';
 const app = new Koa();
 
 app.use(async (ctx, next) => {
@@ -37,12 +38,19 @@ const router = new Router({
 // Register document routes
 registerDocumentRoutes(router);
 registerSpaceRoutes(router);
+registerPlatformRoutes(router);
 
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());
 
 const swaggerUi = require('swagger-ui-dist');
-const openApiSpecPath = path.join(__dirname, 'openapi.yml');
+const openApiSpecPath = path.join(
+  __dirname,
+  '..',
+  '..',
+  'assets',
+  'openapi.yml'
+);
 
 const indexContent = fs
   .readFileSync(

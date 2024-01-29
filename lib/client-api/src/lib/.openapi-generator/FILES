@@ -1,0 +1,11 @@
+apis/DocumentsApi.ts
+apis/PlatformApi.ts
+apis/SpacesApi.ts
+apis/index.ts
+index.ts
+models/PlatformDirectoriesPathGet200ResponseInner.ts
+models/PlatformGet200Response.ts
+models/Space.ts
+models/SpacesNamePutRequest.ts
+models/index.ts
+runtime.ts

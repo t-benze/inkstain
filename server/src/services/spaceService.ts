@@ -39,6 +39,16 @@ class SpaceService {
     }
     spaces[name] = { path: spacePath };
     await this.saveSpaces(spaces);
+    // Create the directory on the filesystem
+    await fs.mkdir(spacePath, { recursive: true });
+    // write an .inkstain file to indicate the folder is an inkstain space
+    await fs.writeFile(
+      path.join(spacePath, '.inkstain'),
+      JSON.stringify({
+        name,
+      }),
+      'utf-8'
+    );
   }
 
   public async updateSpace(name: string, newName: string): Promise<void> {
