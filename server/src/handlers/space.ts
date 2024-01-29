@@ -77,8 +77,6 @@ export const createSpace = async (ctx: Router.RouterContext) => {
 
   try {
     await spaceService.createSpace(name, spacePath);
-    // Create the directory on the filesystem
-    await fs.mkdir(spacePath, { recursive: true });
 
     ctx.status = 201; // Space created successfully
   } catch (error) {

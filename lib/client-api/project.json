@@ -20,7 +20,7 @@
       "options": {
         "commands": [
           {
-            "command": "npx openapi-generator-cli generate -i ./dist/server/server/src/openapi.yml -o lib/client-api/src/lib -g typescript-fetch"
+            "command": "npx openapi-generator-cli generate -i ./server/src/assets/openapi.yml -o lib/client-api/src/lib -g typescript-fetch"
           }
         ]
       }

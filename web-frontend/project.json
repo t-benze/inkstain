@@ -47,6 +47,7 @@
       "executor": "@nx/webpack:dev-server",
       "defaultConfiguration": "development",
       "options": {
+        "port": 6061,
         "buildTarget": "web-frontend:build",
         "hmr": true,
         "proxyConfig": "web-frontend/proxy.conf.json"

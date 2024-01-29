@@ -67,7 +67,7 @@ const listDocuments = async (ctx: Router.RouterContext) => {
     ctx.body = files.map((file) => ({
       name: file.name,
       type: file.isDirectory() ? 'folder' : 'file',
-      path: path.join(filePath, file.name),
+      path: path.join(fullPath, file.name),
     }));
     ctx.status = 200;
     logger.info(
