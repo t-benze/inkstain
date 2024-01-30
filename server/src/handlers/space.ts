@@ -9,12 +9,8 @@ import fs from 'fs/promises';
  *     Space:
  *       type: object
  *       required:
- *         - name
  *         - path
  *       properties:
- *         name:
- *           type: string
- *           description: Name of the space.
  *         path:
  *           type: string
  *           description: File system path to the space.

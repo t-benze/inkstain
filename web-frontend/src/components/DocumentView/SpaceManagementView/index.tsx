@@ -19,42 +19,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { platformApi, spacesApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
 
-interface Space {
-  id: string;
-  name: string;
-  path: string;
-}
-
-// Placeholder functions for server interactions
-const createNewSpace = async (
-  name: string,
-  location: string
-): Promise<Space> => {
-  // Implement actual server POST request to create a new space here
-  // Return the newly created space object
-  return {
-    id: Math.random().toString(36).substring(2, 9),
-    name,
-    path: location,
-  };
-};
-
-const openExistingSpace = async (space: Space): Promise<void> => {
-  // Implement actual server logic to open an existing space here
-};
-
-const importFolderAsSpace = async (folderPath: string): Promise<Space> => {
-  // Implement actual server POST request to import a folder as a space here
-  // Return the newly created/imported space object
-  return {
-    id: Math.random().toString(36).substring(2, 9),
-    name: 'Imported Folder',
-    path: folderPath,
-  };
-};
-
-const SpaceManagementPage: React.FunctionComponent = () => {
-  const [recentSpaces, setRecentSpaces] = useState<Space[]>([]); // Load from preferences or server
+export const SpaceManagementView: React.FunctionComponent = () => {
   const [newSpaceName, setNewSpaceName] = useState('');
   const [selectedDirectory, setSelectedDirectory] = useState<string | null>(
     null
@@ -73,6 +38,17 @@ const SpaceManagementPage: React.FunctionComponent = () => {
   useEffect(() => {
     setSelectedDirectory(appContext.platform.homedir);
   }, [appContext.platform]);
+
+  const {
+    data: spaces,
+    isLoading: isSpacesLoading,
+    refetch: refetchSpaces,
+  } = useQuery({
+    queryKey: ['spaces'],
+    queryFn: async () => {
+      return await spacesApi.spacesGet();
+    },
+  });
 
   const { mutate: createNewSpace } = useMutation({
     mutationKey: ['createNewSpace'],
@@ -138,7 +114,31 @@ const SpaceManagementPage: React.FunctionComponent = () => {
       <Toaster toasterId={toasterId} />
       <h1>Space Management</h1>
       <div>
-        <h2>Recent Spaces</h2>
+        <h2>Spaces</h2>
+        {isSpacesLoading ? (
+          <div>loading...</div>
+        ) : (
+          <ul>
+            {spaces ? (
+              Object.keys(spaces)?.map((spaceName) => {
+                const space = spaces[spaceName];
+                return (
+                  <li key={spaceName}>
+                    <Button
+                      onClick={() =>
+                        appContext.openSpace(spaceName, space.path)
+                      }
+                    >
+                      {spaceName}
+                    </Button>
+                  </li>
+                );
+              })
+            ) : (
+              <div>No spaces found</div>
+            )}
+          </ul>
+        )}
       </div>
       <div>
         <h2>Create New Space</h2>
@@ -167,5 +167,3 @@ const SpaceManagementPage: React.FunctionComponent = () => {
     </>
   );
 };
-
-export default SpaceManagementPage;

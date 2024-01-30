@@ -1,14 +1,13 @@
 import * as React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {
   FluentProvider,
-  makeStyles,
   webLightTheme,
-  TabList,
+  makeStyles,
 } from '@fluentui/react-components';
-import MenuBar from '~/web/components/MenuBar';
-import MainPage from '~/web/pages/MainPage';
-import SpaceManagementPage from '~/web/pages/SpaceManagementPage';
+
+import { MenuBar } from './MenuBar';
+import { MainArea } from './MainArea';
+
 import {
   QueryClientProvider,
   useQuery,
@@ -17,9 +16,67 @@ import {
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { platformApi } from '~/web/apiClient';
 import { AppContext } from './context';
+import { Document } from '../types';
+import { PrimarySidebar } from './PrimarySidebar';
 const queryClient = new QueryClient();
 
+const useStyles = makeStyles({
+  body: {
+    display: 'flex',
+    flexDirection: 'row',
+    height: '100vh',
+  },
+});
+
+const useActiveSpace = () => {
+  const [activeSpace, setActiveSpace] = React.useState<{
+    name: string;
+    path: string;
+  } | null>(null);
+  const openSpace = React.useCallback(
+    (spaceName: string, spacePath: string) => {
+      setActiveSpace({
+        name: spaceName,
+        path: spacePath,
+      });
+    },
+    [activeSpace, setActiveSpace]
+  );
+
+  return {
+    openSpace,
+    activeSpace,
+  } as const;
+};
+const useActiveDocument = () => {
+  const mapDocumentTypeToName: Record<string, string> = {
+    '@inkstain/space-management': 'Spaces',
+  };
+  const [documentsAlive, setDocumentsAlive] = React.useState<Document[]>([]);
+  const openDocument = React.useCallback(
+    (type: string, name?: string) => {
+      setDocumentsAlive((documentsAlive) => {
+        if (name === undefined) {
+          name = mapDocumentTypeToName[type] ?? type;
+        }
+        if (documentsAlive.find((document) => document.name === name))
+          return documentsAlive;
+        const newDocumentsAlive = [...documentsAlive];
+        newDocumentsAlive.push({ type, name });
+        return newDocumentsAlive;
+      });
+    },
+    [documentsAlive, setDocumentsAlive]
+  );
+
+  return {
+    openDocument,
+    documentsAlive,
+  } as const;
+};
+
 const InkStain = () => {
+  const styles = useStyles();
   const { data: platform } = useQuery({
     queryKey: ['platform'],
     queryFn: async () => {
@@ -27,17 +84,18 @@ const InkStain = () => {
     },
   });
 
-  return platform ? (
-    <AppContext.Provider value={{ platform }}>
-      <MenuBar />
+  const { openSpace, activeSpace } = useActiveSpace();
+  const { openDocument, documentsAlive } = useActiveDocument();
 
-      <Router>
-        <Routes>
-          <Route path="/" element={<MainPage />} />
-          <Route path="/space-management" element={<SpaceManagementPage />} />
-          {/* Define other routes as needed */}
-        </Routes>
-      </Router>
+  return platform ? (
+    <AppContext.Provider
+      value={{ platform, openDocument, activeSpace, openSpace, documentsAlive }}
+    >
+      <MenuBar />
+      <div className={styles.body}>
+        <PrimarySidebar />
+        <MainArea />
+      </div>
     </AppContext.Provider>
   ) : null;
 };
