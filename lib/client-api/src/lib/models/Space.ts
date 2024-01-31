@@ -20,12 +20,6 @@ import { exists, mapValues } from '../runtime';
  */
 export interface Space {
   /**
-   * Name of the space.
-   * @type {string}
-   * @memberof Space
-   */
-  name: string;
-  /**
    * File system path to the space.
    * @type {string}
    * @memberof Space
@@ -38,7 +32,6 @@ export interface Space {
  */
 export function instanceOfSpace(value: object): boolean {
   let isInstance = true;
-  isInstance = isInstance && 'name' in value;
   isInstance = isInstance && 'path' in value;
 
   return isInstance;
@@ -56,7 +49,6 @@ export function SpaceFromJSONTyped(
     return json;
   }
   return {
-    name: json['name'],
     path: json['path'],
   };
 }
@@ -69,7 +61,6 @@ export function SpaceToJSON(value?: Space | null): any {
     return null;
   }
   return {
-    name: value.name,
     path: value.path,
   };
 }

@@ -57,7 +57,13 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Space'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the space
+ *               data:
+ *                 $ref: '#/components/schemas/Space'
  *     responses:
  *       201:
  *         description: Space created successfully.

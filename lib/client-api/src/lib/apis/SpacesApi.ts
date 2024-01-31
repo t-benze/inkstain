@@ -13,12 +13,18 @@
  */
 
 import * as runtime from '../runtime';
-import type { Space, SpacesNamePutRequest } from '../models/index';
+import type {
+  Space,
+  SpacesNamePutRequest,
+  SpacesPostRequest,
+} from '../models/index';
 import {
   SpaceFromJSON,
   SpaceToJSON,
   SpacesNamePutRequestFromJSON,
   SpacesNamePutRequestToJSON,
+  SpacesPostRequestFromJSON,
+  SpacesPostRequestToJSON,
 } from '../models/index';
 
 export interface SpacesNameDeleteRequest {
@@ -30,8 +36,8 @@ export interface SpacesNamePutOperationRequest {
   spacesNamePutRequest: SpacesNamePutRequest;
 }
 
-export interface SpacesPostRequest {
-  space: Space;
+export interface SpacesPostOperationRequest {
+  spacesPostRequest: SpacesPostRequest;
 }
 
 /**
@@ -186,16 +192,16 @@ export class SpacesApi extends runtime.BaseAPI {
    * Create a new space
    */
   async spacesPostRaw(
-    requestParameters: SpacesPostRequest,
+    requestParameters: SpacesPostOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (
-      requestParameters.space === null ||
-      requestParameters.space === undefined
+      requestParameters.spacesPostRequest === null ||
+      requestParameters.spacesPostRequest === undefined
     ) {
       throw new runtime.RequiredError(
-        'space',
-        'Required parameter requestParameters.space was null or undefined when calling spacesPost.'
+        'spacesPostRequest',
+        'Required parameter requestParameters.spacesPostRequest was null or undefined when calling spacesPost.'
       );
     }
 
@@ -211,7 +217,7 @@ export class SpacesApi extends runtime.BaseAPI {
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
-        body: SpaceToJSON(requestParameters.space),
+        body: SpacesPostRequestToJSON(requestParameters.spacesPostRequest),
       },
       initOverrides
     );
@@ -223,7 +229,7 @@ export class SpacesApi extends runtime.BaseAPI {
    * Create a new space
    */
   async spacesPost(
-    requestParameters: SpacesPostRequest,
+    requestParameters: SpacesPostOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.spacesPostRaw(requestParameters, initOverrides);

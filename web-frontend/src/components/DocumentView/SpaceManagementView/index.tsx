@@ -57,9 +57,12 @@ export const SpaceManagementView: React.FunctionComponent = () => {
         throw new Error('No directory selected');
       }
       const newSpace = await spacesApi.spacesPost({
-        space: {
+        spacesPostRequest: {
           name: newSpaceName,
-          path: selectedDirectory + appContext.platform.pathSep + newSpaceName,
+          data: {
+            path:
+              selectedDirectory + appContext.platform.pathSep + newSpaceName,
+          },
         },
       });
       return newSpace;
