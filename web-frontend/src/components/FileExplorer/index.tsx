@@ -4,16 +4,21 @@ import {
   makeStyles,
   Text,
   Button,
-  Tree,
-  TreeItem,
-  TreeItemLayout,
-  Spinner,
+  TreeItemValue,
+  Tooltip,
   tokens,
 } from '@fluentui/react-components';
-import { DocumentAddRegular, FolderAddRegular } from '@fluentui/react-icons';
+import {
+  DocumentAddRegular,
+  FolderAddRegular,
+  FolderSyncRegular,
+  ArrowCollapseAllRegular,
+} from '@fluentui/react-icons';
 import { Space } from '~/web/types';
 import { documentsApi } from '~/web/apiClient';
-import { useQuery } from '@tanstack/react-query';
+import { AppContext } from '~/web/app/context';
+import { OnTreeItemClicked, FolderTree, OnOpenChange } from './FolderTree';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface FileExplorerProps {
   space: Space;
@@ -30,25 +35,108 @@ const useStyles = makeStyles({
   },
 });
 
+const getFolderPath = (
+  {
+    value,
+    itemType,
+  }: {
+    value: string;
+    itemType: string;
+  },
+  pathSep: string
+) => {
+  if (itemType === 'branch') {
+    return value;
+  }
+  const path = value;
+  if (path.lastIndexOf(pathSep) !== -1) {
+    return path.slice(0, path.lastIndexOf(pathSep));
+  }
+  return '';
+};
+
+const useSelection = () => {
+  const lastClick = React.useRef<{
+    value: string;
+    itemType: string;
+  } | null>(null);
+  const [selection, setSelection] = React.useState<Set<string>>(new Set());
+
+  const handleItemClicked = React.useCallback<OnTreeItemClicked>(
+    (data) => {
+      const value = data.value.toString();
+      if (data.event.shiftKey) {
+        // Shift is held: Select the range from the last selected item to the clicked item
+        // TODO: find the range of items between lastSelected and data.value
+        // setSelection(new Set([...selection, ...range]));
+      } else if (data.event.ctrlKey || data.event.metaKey) {
+        // Use metaKey to support Command key on macOS
+        // Ctrl or Command is held: Toggle selection of the clicked item
+        if (selection.has(value)) {
+          selection.delete(value);
+        } else {
+          selection.add(value);
+        }
+      } else {
+        // No modifier keys: Select only the clicked item (and deselect others)
+        setSelection(new Set([value]));
+      }
+      lastClick.current = {
+        value,
+        itemType: data.itemType,
+      };
+    },
+    [selection, setSelection]
+  );
+
+  return {
+    lastClick,
+    selection,
+    handleItemClicked,
+  } as const;
+};
+
 export const FileExplorer = ({ space }: FileExplorerProps) => {
   const styles = useStyles();
+  const queryClient = useQueryClient();
+  const appContext = React.useContext(AppContext);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const onFileInputChange = React.useCallback(
+  const [openItems, setOpenItems] = React.useState<Set<TreeItemValue>>(
+    new Set()
+  );
+  const { lastClick, selection, handleItemClicked } = useSelection();
+  const [addNewFolderTarget, setAddNewFolderTarget] = React.useState<
+    string | null
+  >(null);
+
+  const handleOpenChange = React.useCallback<OnOpenChange>(
+    (_, data) => {
+      console.log('on open change', data);
+      setOpenItems(data.openItems);
+    },
+    [setOpenItems]
+  );
+
+  const handleFileInputChange = React.useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-      if (!file) return;
-
-      // Optional: Implement validation checks here
-
-      // Prepare the FormData
+      if (!file) throw new Error('No file selected');
       const formData = new FormData();
       formData.append('document', file);
-
+      const folder = lastClick.current
+        ? getFolderPath(lastClick.current, appContext.platform.pathSep)
+        : '';
       try {
         await documentsApi.documentsSpaceNameAddPost({
           spaceName: space.name,
-          path: file.name,
+          path:
+            folder === ''
+              ? file.name
+              : `${folder}${appContext.platform.pathSep}${file.name}`,
           document: file,
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['documents', space.name, folder],
         });
       } catch (error) {
         console.error(error);
@@ -56,22 +144,97 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         event.target.files = null;
       }
     },
-    []
+    [space.name, lastClick, appContext.platform.pathSep, queryClient]
   );
 
-  const {
-    data: documents,
-    isLoading: isDocumentsLoading,
-    refetch: refetchDocuments,
-  } = useQuery({
-    queryKey: ['documents', space.name, '~'],
-    queryFn: async () => {
-      return await documentsApi.documentsSpaceNameListGet({
+  const handleAddFolder = React.useCallback(() => {
+    // const folder
+    const targetFolder = lastClick.current
+      ? getFolderPath(lastClick.current, appContext.platform.pathSep)
+      : '';
+    setAddNewFolderTarget(targetFolder);
+  }, [setAddNewFolderTarget, lastClick, appContext.platform.pathSep]);
+
+  const { mutate: addFolder } = useMutation({
+    mutationFn: async ({
+      targetFolder,
+      name,
+    }: {
+      targetFolder: string;
+      name: string;
+    }) => {
+      return await documentsApi.documentsSpaceNameAddFolderPost({
         spaceName: space.name,
-        path: '~',
+        path: targetFolder
+          ? targetFolder + appContext.platform.pathSep + name
+          : name,
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['documents', space.name, addNewFolderTarget || ''],
+      });
+      setAddNewFolderTarget(null);
+    },
   });
+
+  const handleSyncFolder = React.useCallback(() => {
+    if (lastClick.current) {
+      const folder = getFolderPath(
+        lastClick.current,
+        appContext.platform.pathSep
+      );
+      queryClient.invalidateQueries({
+        queryKey: ['documents', space.name, folder],
+      });
+    } else {
+      queryClient.invalidateQueries({
+        queryKey: ['documents', space.name, ''],
+      });
+    }
+  }, [lastClick, appContext.platform.pathSep, space.name, queryClient]);
+
+  const deleteFiles = React.useCallback(async () => {
+    const filesToDelete =
+      selection.size > 1
+        ? selection
+        : lastClick.current
+        ? [lastClick.current.value]
+        : [];
+    const foldersToRefresh = new Set<string>();
+    for (const file of filesToDelete) {
+      if (file.endsWith(appContext.platform.pathSep)) {
+        await documentsApi.documentsSpaceNameDeleteFolderDelete({
+          spaceName: space.name,
+          path: file,
+        });
+      } else {
+        await documentsApi.documentsSpaceNameDeleteDelete({
+          spaceName: space.name,
+          path: file,
+        });
+      }
+      foldersToRefresh.add(
+        file
+          .split(appContext.platform.pathSep)
+          .slice(0, file.endsWith(appContext.platform.pathSep) ? -2 : -1)
+          .join(appContext.platform.pathSep)
+      );
+    }
+    console.log('refresh folder, foldersToRefresh', foldersToRefresh);
+    foldersToRefresh.forEach((folder) => {
+      console.log('invalidate', folder);
+      queryClient.invalidateQueries({
+        queryKey: ['documents', space.name, folder],
+      });
+    });
+  }, [
+    selection,
+    appContext.platform.pathSep,
+    space.name,
+    lastClick,
+    queryClient,
+  ]);
 
   return (
     <div className={styles.root}>
@@ -79,47 +242,76 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         ref={fileInputRef}
         type="file"
         style={{ display: 'none' }}
-        onChange={onFileInputChange}
+        onChange={handleFileInputChange}
       />
       <div className={styles.header}>
         <Text>{space.name}</Text>
         <div>
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<DocumentAddRegular />}
-            onClick={() => {
-              fileInputRef.current?.click();
-            }}
-          />
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<FolderAddRegular />}
-            onClick={() => {
-              fileInputRef.current?.click();
-            }}
-          />
+          <Tooltip
+            content={'Add a document'}
+            relationship="label"
+            positioning={'below'}
+          >
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<DocumentAddRegular />}
+              onClick={() => {
+                fileInputRef.current?.click();
+              }}
+            />
+          </Tooltip>
+          <Tooltip
+            content={'Add a folder'}
+            relationship="label"
+            positioning={'below'}
+          >
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<FolderAddRegular />}
+              onClick={handleAddFolder}
+            />
+          </Tooltip>
+          <Tooltip
+            content={'Sync folder'}
+            relationship="label"
+            positioning={'below'}
+          >
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<FolderSyncRegular />}
+              onClick={handleSyncFolder}
+            />
+          </Tooltip>
+          <Tooltip
+            content={'Collapse all'}
+            relationship="label"
+            positioning={'below'}
+          >
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<ArrowCollapseAllRegular />}
+              onClick={() => {
+                setOpenItems(new Set());
+              }}
+            />
+          </Tooltip>
         </div>
       </div>
-      <div>
-        {isDocumentsLoading ? (
-          <Spinner>Loading documents...</Spinner>
-        ) : (
-          <Tree>
-            {documents?.map((document) => (
-              <TreeItem
-                itemType={document.type == 'folder' ? 'branch' : 'leaf'}
-                key={document.name}
-              >
-                <TreeItemLayout>
-                  <Text>{document.name}</Text>
-                </TreeItemLayout>
-              </TreeItem>
-            ))}
-          </Tree>
-        )}
-      </div>
+      <FolderTree
+        spaceName={space.name}
+        path=""
+        selection={selection}
+        openItems={openItems}
+        onOpenChange={handleOpenChange}
+        onTreeItemClicked={handleItemClicked}
+        addNewFolderTarget={addNewFolderTarget}
+        addFolder={addFolder}
+        deleteFiles={deleteFiles}
+      />
     </div>
   );
 };

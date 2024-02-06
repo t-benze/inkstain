@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { makeStyles, tokens, shorthands } from '@fluentui/react-components';
 import { AppContext } from '~/web/app/context';
-import {} from '~/web/types';
 import { FileExplorer } from '~/web/components/FileExplorer';
 const useStyles = makeStyles({
   root: {
     width: '240px',
-    backgroundColor: tokens.colorNeutralBackground4,
+    backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRight(
       tokens.strokeWidthThin,
       'solid',

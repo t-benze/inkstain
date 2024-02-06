@@ -2,7 +2,6 @@ import {
   PlatformApi,
   DocumentsApi,
   SpacesApi,
-  DefaultConfig,
   Configuration,
 } from '@inkstain/client-api';
 

@@ -24,19 +24,25 @@ export interface DocumentsSpaceNameListGet200ResponseInner {
    * @type {string}
    * @memberof DocumentsSpaceNameListGet200ResponseInner
    */
-  name?: string;
+  name: string;
   /**
    * The type of the item (file or folder).
    * @type {string}
    * @memberof DocumentsSpaceNameListGet200ResponseInner
    */
-  type?: DocumentsSpaceNameListGet200ResponseInnerTypeEnum;
+  type: DocumentsSpaceNameListGet200ResponseInnerTypeEnum;
   /**
    * The full path of the file or folder.
    * @type {string}
    * @memberof DocumentsSpaceNameListGet200ResponseInner
    */
-  path?: string;
+  path: string;
+  /**
+   * The absolute path of the file or folder.
+   * @type {string}
+   * @memberof DocumentsSpaceNameListGet200ResponseInner
+   */
+  absolutePath: string;
 }
 
 /**
@@ -56,6 +62,10 @@ export function instanceOfDocumentsSpaceNameListGet200ResponseInner(
   value: object
 ): boolean {
   let isInstance = true;
+  isInstance = isInstance && 'name' in value;
+  isInstance = isInstance && 'type' in value;
+  isInstance = isInstance && 'path' in value;
+  isInstance = isInstance && 'absolutePath' in value;
 
   return isInstance;
 }
@@ -74,9 +84,10 @@ export function DocumentsSpaceNameListGet200ResponseInnerFromJSONTyped(
     return json;
   }
   return {
-    name: !exists(json, 'name') ? undefined : json['name'],
-    type: !exists(json, 'type') ? undefined : json['type'],
-    path: !exists(json, 'path') ? undefined : json['path'],
+    name: json['name'],
+    type: json['type'],
+    path: json['path'],
+    absolutePath: json['absolutePath'],
   };
 }
 
@@ -93,5 +104,6 @@ export function DocumentsSpaceNameListGet200ResponseInnerToJSON(
     name: value.name,
     type: value.type,
     path: value.path,
+    absolutePath: value.absolutePath,
   };
 }

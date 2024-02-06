@@ -1,6 +1,6 @@
 # InkStain
 
-InkStain is a document management tool that allows user to serve local file to the browser for viewing and edting. It also provides some built-in functions to create meta data for the documents, such as tagging and annotations. 
+InkStain is a document management tool that allows user to serve local file to the browser for viewing and edting. It also provides some built-in functions to create meta data for the documents, such as tagging and annotations.
 
 ## Principles
 
@@ -69,3 +69,41 @@ InkStain is a document management tool that allows user to serve local file to t
 - **Data Organization**: Maintain a structured and intuitive organization of 'Spaces' and their contents, so users can effectively manage their documents.
 - **Performance**: The document management operations within a 'Space' should be swift and responsive to facilitate a smooth user experience.
 - **Isolation**: Ensure the documents and data in one 'Space' are isolated from others for clean separation of projects or topics.
+
+### Feature - File Explorer for 'Space'
+
+#### User Stories
+
+1. **Intuitive File Browsing**:
+
+   - As a user, I want a file explorer integrated into 'Space' to navigate through my files and folders with ease, promoting better organization of my documents.
+
+2. **File and Folder Operations**:
+
+   - As a user, I want to perform standard file operations such as copy, move, rename, and delete within the file explorer to manage my documents efficiently.
+
+3. **Folder Creation and Management**:
+   - As a user, I want to create new folders and organize files into them within 'Space' to better structure my work.
+
+#### Functional Requirements
+
+1. **Explorer Interface**:
+   - Provide a graphical file explorer as part of the 'Space' feature.
+   - Enable navigation through documents and folders within the explorer.
+2. **File Operations**:
+   - Implement file operations such as copy, paste, move, rename, and delete.
+   - Allow users to perform these operations through right-click context menus and drag-and-drop actions.
+3. **Folder Management**:
+   - Enable users to create new folders, nest folders, and organize files accordingly.
+   - Provide a clear way to navigate back and forth between parent and child folders.
+
+#### Non-Functional Requirements
+
+1. **Usability**:
+   - The file explorer should be user-friendly and easy to use, following well-established conventions for file browsing experiences.
+2. **Responsiveness**:
+   - The file explorer should load quickly and react promptly to user commands to ensure a smooth experience.
+3. **Visual Clarity**:
+   - Use clear, distinct icons and a tidy layout to represent files, folders, and operations to avoid user confusion.
+4. **Accessibility**:
+   - Support keyboard navigation and comply with accessibility standards to accommodate all users.

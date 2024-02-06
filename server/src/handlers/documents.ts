@@ -15,9 +15,6 @@ const getFullPath = async (
   spaceName: string,
   filePath: string
 ): Promise<string> => {
-  if (filePath === '~') {
-    filePath = ''; // Translate '~' to an empty string to signify the root directory
-  }
   const spaces = await spaceService.getSpaces();
   const space = spaces[spaceName];
 
@@ -73,6 +70,14 @@ const getFullPath = async (
  *                   path:
  *                     type: string
  *                     description: The full path of the file or folder.
+ *                   absolutePath:
+ *                     type: string
+ *                     description: The absolute path of the file or folder.
+ *                 required:
+ *                   - name
+ *                   - type
+ *                   - path
+ *                   - absolutePath
  *       400:
  *         description: Invalid parameters provided.
  *       404:
@@ -80,7 +85,7 @@ const getFullPath = async (
  */
 const listDocuments = async (ctx: Router.RouterContext) => {
   const spaceName = ctx.params.spaceName;
-  let filePath = ctx.query.path;
+  const filePath = ctx.query.path;
 
   try {
     const fullPath = await getFullPath(spaceName, filePath);
@@ -88,18 +93,13 @@ const listDocuments = async (ctx: Router.RouterContext) => {
     const results = files
       .filter((file) => file !== '.inkstain')
       .map(async (file) => {
-        // const stat = await fs.stat(path.join(fullPath, file, 'content'));
-        let isFile = false;
-        try {
-          await fs.stat(path.join(fullPath, file, 'content'));
-          isFile = true;
-        } catch (e) {
-          isFile = false;
-        }
+        const isFile = file.endsWith('$file');
+        file = file.replace('$file', '');
         return {
           name: file,
           type: isFile ? 'file' : 'folder',
-          path: path.join(fullPath, file),
+          path: path.join(filePath, file),
+          absolutePath: path.join(fullPath, file),
         };
       });
     ctx.status = 200;
@@ -145,17 +145,19 @@ const listDocuments = async (ctx: Router.RouterContext) => {
  */
 const getDocumentContent = async (ctx: Router.RouterContext) => {
   const { spaceName } = ctx.params;
-  const filePath = ctx.query.path;
+  const filePath = ctx.query.path + '$file';
   try {
-    const spaceRoot = await getFullPath(spaceName, '~');
+    const spaceRoot = await getFullPath(spaceName, '');
     const fileMetaStr = await fs.readFile(
       path.join(spaceRoot, filePath, 'meta.json'),
       'utf-8'
     );
+    const extension = path.extname(filePath);
     const meta = JSON.parse(fileMetaStr);
-    // const fullPath = await getFullPath(spaceName, filePath);
     ctx.response.type = meta.mimetype;
-    await send(ctx, path.join(filePath, 'content'), { root: spaceRoot });
+    await send(ctx, path.join(filePath, `content${extension}`), {
+      root: spaceRoot,
+    });
     // Log the successful operation
     logger.info(
       `Served document content from ${path.join(filePath, 'content')}`
@@ -221,17 +223,17 @@ const addDocument = async (ctx: Router.RouterContext) => {
   }
 
   try {
-    // const ext = path.extname(file.originalname);
+    const ext = path.extname(file.originalname);
     // const filename = path.basename(file.originalname, ext);
     const targetDirectoryPath = await getFullPath(
       spaceName,
-      path.join(targetPath)
+      path.join(targetPath + '$file')
     );
     // Create target directory
     await fs.mkdir(targetDirectoryPath, { recursive: true });
 
     // Write file content
-    const contentPath = path.join(targetDirectoryPath, 'content');
+    const contentPath = path.join(targetDirectoryPath, `content${ext}`);
     await fs.writeFile(contentPath, file.buffer);
 
     // Write metadata json
@@ -294,7 +296,7 @@ const deleteDocument = async (ctx: Router.RouterContext) => {
   try {
     const targetDirectoryPath = await getFullPath(
       spaceName,
-      path.join(targetPath)
+      path.join(targetPath + '$file')
     );
 
     await fs.rm(targetDirectoryPath, { recursive: true, force: true });
@@ -360,6 +362,59 @@ const addFolder = async (ctx: Router.RouterContext) => {
   }
 };
 
+/**
+ * @swagger
+ * /documents/{spaceName}/deleteFolder:
+ *   delete:
+ *     summary: Delete a folder within a space
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: spaceName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The relative path within the space where the folder should be deleted
+ *     responses:
+ *       200:
+ *         description: Folder deleted successfully.
+ *       400:
+ *         description: Invalid parameters provided.
+ *       404:
+ *         description: Space or folder not found.
+ */
+const deleteFolder = async (ctx: Router.RouterContext) => {
+  const spaceName = ctx.request.params.spaceName;
+  const targetPath = ctx.request.query.path;
+
+  if (!targetPath) {
+    ctx.status = 400;
+    ctx.body = 'Missing target path';
+    return;
+  }
+
+  try {
+    const targetDirectoryPath = await getFullPath(
+      spaceName,
+      path.join(targetPath)
+    );
+
+    await fs.rm(targetDirectoryPath, { recursive: true, force: true });
+    ctx.status = 200;
+    ctx.body = 'Folder deleted successfully';
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { message: error.message };
+    logger.error(`Failed to delete folder: ${error.message}`);
+  }
+};
+
 // Register routes and export
 export const registerDocumentRoutes = (router: Router) => {
   router.get('/documents/:spaceName/list', listDocuments);
@@ -370,5 +425,6 @@ export const registerDocumentRoutes = (router: Router) => {
     addDocument
   );
   router.post('/documents/:spaceName/addFolder', addFolder);
+  router.delete('/documents/:spaceName/deleteFolder', deleteFolder);
   router.delete('/documents/:spaceName/delete', deleteDocument);
 };

@@ -19,6 +19,11 @@ import {
   DocumentsSpaceNameListGet200ResponseInnerToJSON,
 } from '../models/index';
 
+export interface DocumentsSpaceNameAddFolderPostRequest {
+  spaceName: string;
+  path: string;
+}
+
 export interface DocumentsSpaceNameAddPostRequest {
   spaceName: string;
   path: string;
@@ -35,6 +40,11 @@ export interface DocumentsSpaceNameDeleteDeleteRequest {
   path: string;
 }
 
+export interface DocumentsSpaceNameDeleteFolderDeleteRequest {
+  spaceName: string;
+  path: string;
+}
+
 export interface DocumentsSpaceNameListGetRequest {
   spaceName: string;
   path: string;
@@ -44,6 +54,70 @@ export interface DocumentsSpaceNameListGetRequest {
  *
  */
 export class DocumentsApi extends runtime.BaseAPI {
+  /**
+   * Add a new folder within a space
+   */
+  async documentsSpaceNameAddFolderPostRaw(
+    requestParameters: DocumentsSpaceNameAddFolderPostRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceName === null ||
+      requestParameters.spaceName === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceName',
+        'Required parameter requestParameters.spaceName was null or undefined when calling documentsSpaceNameAddFolderPost.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceNameAddFolderPost.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceName}/addFolder`.replace(
+          `{${'spaceName'}}`,
+          encodeURIComponent(String(requestParameters.spaceName))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Add a new folder within a space
+   */
+  async documentsSpaceNameAddFolderPost(
+    requestParameters: DocumentsSpaceNameAddFolderPostRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.documentsSpaceNameAddFolderPostRaw(
+      requestParameters,
+      initOverrides
+    );
+  }
+
   /**
    * Add a new document to a space
    */
@@ -259,6 +333,70 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.documentsSpaceNameDeleteDeleteRaw(
+      requestParameters,
+      initOverrides
+    );
+  }
+
+  /**
+   * Delete a folder within a space
+   */
+  async documentsSpaceNameDeleteFolderDeleteRaw(
+    requestParameters: DocumentsSpaceNameDeleteFolderDeleteRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceName === null ||
+      requestParameters.spaceName === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceName',
+        'Required parameter requestParameters.spaceName was null or undefined when calling documentsSpaceNameDeleteFolderDelete.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceNameDeleteFolderDelete.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceName}/deleteFolder`.replace(
+          `{${'spaceName'}}`,
+          encodeURIComponent(String(requestParameters.spaceName))
+        ),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Delete a folder within a space
+   */
+  async documentsSpaceNameDeleteFolderDelete(
+    requestParameters: DocumentsSpaceNameDeleteFolderDeleteRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.documentsSpaceNameDeleteFolderDeleteRaw(
       requestParameters,
       initOverrides
     );
