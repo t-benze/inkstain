@@ -23,7 +23,18 @@ app.use(async (ctx, next) => {
     `${ctx.method} ${ctx.url} - ${ctx.status} - ${contentLength} - ${ms}ms`
   );
 });
-
+app.use(serve(path.join(__dirname, '../../../web-frontend')));
+app.use(async (ctx, next) => {
+  // If the request does not match a static file, serve the main HTML file
+  if (!ctx.path.startsWith('/api')) {
+    ctx.type = 'html';
+    ctx.body = fs.createReadStream(
+      path.join(__dirname, '../../../web-frontend', 'index.html')
+    );
+  } else {
+    await next();
+  }
+});
 // Middleware to handle JSON requests
 app.use(
   bodyParser({

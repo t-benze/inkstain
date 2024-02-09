@@ -18,10 +18,10 @@ let directories: {
 if (os.platform() === 'win32') {
   // Windows Directories
   directories = {
-    configDir: path.join(process.env.APPDATA, 'inkstain'),
-    dataDir: path.join(process.env.LOCALAPPDATA, 'inkstain'),
+    configDir: path.join(process.env.LOCALAPPDATA, 'inkstain', 'config'),
+    dataDir: path.join(process.env.LOCALAPPDATA, 'inkstain', 'data'),
     cacheDir: path.join(process.env.TEMP, 'inkstain'),
-    stateDir: path.join(process.env.LOCALAPPDATA, 'inkstain'),
+    stateDir: path.join(process.env.LOCALAPPDATA, 'inkstain', 'state'),
   };
 } else {
   // XDG Base Directories
