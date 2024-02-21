@@ -1,6 +1,9 @@
 import Router from 'koa-router';
-import spaceService from '~/server/services/spaceService';
-import fs from 'fs/promises';
+import spaceService, {
+  SpaceServiceError,
+  ErrorCode,
+} from '~/server/services/spaceService';
+import logger from '../logger';
 
 /**
  * @swagger
@@ -10,15 +13,18 @@ import fs from 'fs/promises';
  *       type: object
  *       required:
  *         - path
+ *         - name
+ *         - key
  *       properties:
  *         path:
  *           type: string
  *           description: File system path to the space.
- *     Spaces:
- *       type: object
- *       description: An object where keys are space names and values contain space details.
- *       additionalProperties:
- *         $ref: '#/components/schemas/Space'
+ *         name:
+ *           type: string
+ *           description: Name of the space.
+ *         key:
+ *           type: string
+ *           description: Key of the space.
  */
 
 /**
@@ -33,14 +39,20 @@ import fs from 'fs/promises';
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Spaces'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Space'
  *       500:
  *         description: Failed to get spaces.
  */
 export const getSpaces = async (ctx: Router.RouterContext) => {
   try {
-    ctx.body = await spaceService.getSpaces();
+    const data = await spaceService.loadSpaceData();
+    ctx.body = Object.keys(data)
+      .sort()
+      .map((key) => ({ ...data[key], key }));
   } catch (error) {
+    logger.error(error);
     ctx.status = 500;
     ctx.body = 'Failed to get spaces';
   }
@@ -58,12 +70,16 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - path
+ *               - name
  *             properties:
+ *               path:
+ *                 type: string
+ *                 description: File system path to the space.
  *               name:
  *                 type: string
- *                 description: Name of the space
- *               data:
- *                 $ref: '#/components/schemas/Space'
+ *                 description: Name of the space.
  *     responses:
  *       201:
  *         description: Space created successfully.
@@ -74,33 +90,32 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  */
 export const createSpace = async (ctx: Router.RouterContext) => {
   // Extract details from the request body
-  const { name, path: spacePath }: { name: string; path: string } =
-    ctx.request.body;
-
+  const data = ctx.request.body;
   try {
-    await spaceService.createSpace(name, spacePath);
-
+    await spaceService.createSpace(data);
     ctx.status = 201; // Space created successfully
   } catch (error) {
-    if (error.message.includes('already exists')) {
-      ctx.status = 400;
-      ctx.body = error.message;
-    } else {
-      ctx.status = 500;
-      ctx.body = 'Failed to create space';
+    logger.error(error.message);
+    if (error instanceof SpaceServiceError) {
+      if (error.code === ErrorCode.SPACE_ALREADY_EXISTS) {
+        ctx.status = 400;
+        ctx.body = error.message;
+        return;
+      }
     }
+    throw error;
   }
 };
 
 /**
  * @swagger
- * /spaces/{name}:
+ * /spaces/{key}:
  *   put:
  *     summary: Update an existing space
  *     tags: [Spaces]
  *     parameters:
  *       - in: path
- *         name: name
+ *         name: key
  *         required: true
  *         schema:
  *           type: string
@@ -111,12 +126,13 @@ export const createSpace = async (ctx: Router.RouterContext) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - newName
  *             properties:
- *               newName:
+ *               path:
  *                 type: string
- *                 description: New name for the space
+ *                 description: File system path to the space.
+ *               name:
+ *                 type: string
+ *                 description: Name of the space.
  *     responses:
  *       200:
  *         description: Space updated successfully.
@@ -126,11 +142,11 @@ export const createSpace = async (ctx: Router.RouterContext) => {
  *         description: Failed to update space.
  */
 export const updateSpace = async (ctx: Router.RouterContext) => {
-  const { name } = ctx.params;
-  const { newName }: { newName: string } = ctx.request.body;
+  const { key } = ctx.params;
+  const data = ctx.request.body;
 
   try {
-    await spaceService.updateSpace(name, newName);
+    await spaceService.updateSpace(key, data);
     ctx.status = 200;
     ctx.body = 'Space updated successfully';
   } catch (error) {
@@ -141,7 +157,7 @@ export const updateSpace = async (ctx: Router.RouterContext) => {
 
 /**
  * @swagger
- * /spaces/{name}:
+ * /spaces/{key}:
  *   delete:
  *     summary: Delete an existing space
  *     tags: [Spaces]
@@ -161,10 +177,10 @@ export const updateSpace = async (ctx: Router.RouterContext) => {
  *         description: Failed to delete space.
  */
 export const deleteSpace = async (ctx: Router.RouterContext) => {
-  const { name } = ctx.params;
+  const { key } = ctx.params;
 
   try {
-    await spaceService.deleteSpace(name);
+    await spaceService.deleteSpace(key);
     ctx.status = 200;
     ctx.body = 'Space deleted successfully';
   } catch (error) {
@@ -176,6 +192,6 @@ export const deleteSpace = async (ctx: Router.RouterContext) => {
 export const registerSpaceRoutes = (router: Router) => {
   router.get('/spaces', getSpaces);
   router.post('/spaces', createSpace);
-  router.put('/spaces/:name', updateSpace);
-  router.delete('/spaces/:name', deleteSpace);
+  router.put('/spaces/:key', updateSpace);
+  router.delete('/spaces/:key', deleteSpace);
 };

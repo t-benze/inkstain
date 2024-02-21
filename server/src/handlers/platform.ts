@@ -3,7 +3,8 @@ import os from 'os';
 import path from 'path';
 import logger from '~/server/logger';
 import fs from 'fs/promises';
-import * as drivelist from 'drivelist';
+import child_process from 'child_process';
+import util from 'util';
 const router = new Router();
 
 /**
@@ -40,15 +41,18 @@ const router = new Router();
  *                 - pathSep
  */
 const platformInfo = async (ctx) => {
-  const drives = await drivelist.list();
+  // const drives = await drivelist.list();
+  let drives = null;
+  const exec = util.promisify(child_process.exec);
+  if (os.platform() == 'win32') {
+    const { stdout } = await exec('wmic logicaldisk get caption');
+    drives = stdout.trim().split(/\s+/).filter(Boolean).slice(1);
+  }
   ctx.body = {
     platform: os.platform(),
     homedir: os.homedir(),
     pathSep: path.sep,
-    dirves:
-      os.platform() == 'win32'
-        ? drives.map((d) => (d.mountpoints[0] ? d.mountpoints[0].path : null))
-        : null,
+    drives,
   };
 };
 
