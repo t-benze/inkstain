@@ -47,11 +47,14 @@
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "server:build"
+        "buildTarget": "server:build:production"
       },
       "configurations": {
         "development": {
           "buildTarget": "server:build:development"
+        },
+        "test": {
+          "buildTarget": "server:build:production"
         },
         "production": {
           "buildTarget": "server:build:production"

@@ -3,7 +3,10 @@ import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
 import multer from '@koa/multer';
-import spaceService from '~/server/services/spaceService';
+import spaceService, {
+  SpaceServiceError,
+  ErrorCode as SpaceServiceErrorCode,
+} from '~/server/services/spaceService';
 import logger from '~/server/logger'; // Make sure to import your configured logger
 import type { File } from 'koa-multer';
 
@@ -12,14 +15,15 @@ const upload = multer({
 });
 // Helper function to get the full file path
 const getFullPath = async (
-  spaceName: string,
+  spaceKey: string,
   filePath: string
 ): Promise<string> => {
-  const spaces = await spaceService.getSpaces();
-  const space = spaces[spaceName];
+  const spaces = await spaceService.loadSpaceData();
+  const space = spaces[spaceKey];
 
   if (!space) {
-    throw new Error(`The space '${spaceName}' does not exist.`);
+    logger.info('spaces data' + JSON.stringify(spaces));
+    throw new Error(`The space '${spaceKey}' does not exist.`);
   }
 
   const resolvedPath = path.resolve(space.path, filePath);
@@ -31,24 +35,24 @@ const getFullPath = async (
 
 /**
  * @swagger
- * /documents/{spaceName}/list:
+ * /documents/{spaceKey}/list:
  *   get:
  *     summary: List all documents within a space or sub-folder
  *     tags: [Documents]
  *     parameters:
  *       - in: path
- *         name: spaceName
+ *         name: spaceKey
  *         required: true
  *         schema:
  *           type: string
- *         description: The name of the space
+ *         description: The key of the space
  *       - in: query
  *         name: path
  *         required: true
  *         schema:
  *           type: string
  *         description: |
- *           The relative path within the space, or '~' for root.
+ *           The relative path within the space.
  *           The path should be URL-encoded.
  *     responses:
  *       200:
@@ -84,11 +88,11 @@ const getFullPath = async (
  *         description: Space or sub-folder not found.
  */
 const listDocuments = async (ctx: Router.RouterContext) => {
-  const spaceName = ctx.params.spaceName;
+  const spaceKey = ctx.params.spaceKey;
   const filePath = ctx.query.path;
 
   try {
-    const fullPath = await getFullPath(spaceName, filePath);
+    const fullPath = await getFullPath(spaceKey, filePath);
     const files = await fs.readdir(fullPath);
     const results = files
       .filter((file) => file !== '.inkstain')
@@ -105,26 +109,29 @@ const listDocuments = async (ctx: Router.RouterContext) => {
     ctx.status = 200;
     ctx.body = await Promise.all(results);
     logger.info(
-      `Listed documents in space '${spaceName}' at path '${filePath || '/'}'`
+      `Listed documents in space '${spaceKey}' at path '${filePath || '/'}'`
     );
   } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 404 : 400;
-    ctx.body = { message: error.message };
-    logger.error(
-      `Failed to list documents in space '${spaceName}': ${error.message}`
-    );
+    if (error instanceof SpaceServiceError) {
+      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
+        ctx.status = 404;
+        ctx.body = error.message;
+        return;
+      }
+    }
+    throw error;
   }
 };
 
 /**
  * @swagger
- * /documents/{spaceName}/content:
+ * /documents/{spaceKey}/content:
  *   get:
  *     summary: Serve document content from a space
  *     tags: [Documents]
  *     parameters:
  *       - in: path
- *         name: spaceName
+ *         name: spaceKey
  *         required: true
  *         schema:
  *           type: string
@@ -144,15 +151,15 @@ const listDocuments = async (ctx: Router.RouterContext) => {
  *         description: Space or document not found.
  */
 const getDocumentContent = async (ctx: Router.RouterContext) => {
-  const { spaceName } = ctx.params;
+  const { spaceKey } = ctx.params;
   const filePath = ctx.query.path + '$file';
   try {
-    const spaceRoot = await getFullPath(spaceName, '');
+    const spaceRoot = await getFullPath(spaceKey, '');
     const fileMetaStr = await fs.readFile(
       path.join(spaceRoot, filePath, 'meta.json'),
       'utf-8'
     );
-    const extension = path.extname(filePath);
+    const extension = path.extname(ctx.query.path);
     const meta = JSON.parse(fileMetaStr);
     ctx.response.type = meta.mimetype;
     await send(ctx, path.join(filePath, `content${extension}`), {
@@ -163,24 +170,27 @@ const getDocumentContent = async (ctx: Router.RouterContext) => {
       `Served document content from ${path.join(filePath, 'content')}`
     );
   } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 404 : 400;
-    ctx.body = error.message;
-    // Log the error
-    logger.error(
-      `Failed to serve document content from space '${spaceName}': ${error.message}`
-    );
+    if (error instanceof SpaceServiceError) {
+      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
+        ctx.status = 404;
+        ctx.body = error.message;
+        return;
+      }
+    }
+    logger.error(error.message);
+    throw error;
   }
 };
 
 /**
  * @swagger
- * /documents/{spaceName}/add:
+ * /documents/{spaceKey}/add:
  *   post:
  *     summary: Add a new document to a space
  *     tags: [Documents]
  *     parameters:
  *       - in: path
- *         name: spaceName
+ *         name: spaceKey
  *         required: true
  *         schema:
  *           type: string
@@ -214,7 +224,7 @@ const getDocumentContent = async (ctx: Router.RouterContext) => {
 const addDocument = async (ctx: Router.RouterContext) => {
   const file = ctx.request.file as File; // assuming file is uploaded through a form and handled by middleware
   const targetPath = ctx.request.query.path;
-  const spaceName = ctx.request.params.spaceName;
+  const spaceKey = ctx.request.params.spaceKey;
 
   if (!file || !targetPath) {
     ctx.status = 400;
@@ -226,7 +236,7 @@ const addDocument = async (ctx: Router.RouterContext) => {
     const ext = path.extname(file.originalname);
     // const filename = path.basename(file.originalname, ext);
     const targetDirectoryPath = await getFullPath(
-      spaceName,
+      spaceKey,
       path.join(targetPath + '$file')
     );
     // Create target directory
@@ -258,13 +268,13 @@ const addDocument = async (ctx: Router.RouterContext) => {
 
 /**
  * @swagger
- * /documents/{spaceName}/delete:
+ * /documents/{spaceKey}/delete:
  *   delete:
  *     summary: Delete a document from a space
  *     tags: [Documents]
  *     parameters:
  *       - in: path
- *         name: spaceName
+ *         name: spaceKey
  *         required: true
  *         schema:
  *           type: string
@@ -284,7 +294,7 @@ const addDocument = async (ctx: Router.RouterContext) => {
  *         description: Space or document not found.
  */
 const deleteDocument = async (ctx: Router.RouterContext) => {
-  const spaceName = ctx.request.params.spaceName;
+  const spaceKey = ctx.request.params.spaceKey;
   const targetPath = ctx.request.query.path;
 
   if (!targetPath) {
@@ -295,7 +305,7 @@ const deleteDocument = async (ctx: Router.RouterContext) => {
 
   try {
     const targetDirectoryPath = await getFullPath(
-      spaceName,
+      spaceKey,
       path.join(targetPath + '$file')
     );
 
@@ -311,13 +321,13 @@ const deleteDocument = async (ctx: Router.RouterContext) => {
 
 /**
  * @swagger
- * /documents/{spaceName}/addFolder:
+ * /documents/{spaceKey}/addFolder:
  *   post:
  *     summary: Add a new folder within a space
  *     tags: [Documents]
  *     parameters:
  *       - in: path
- *         name: spaceName
+ *         name: spaceKey
  *         required: true
  *         schema:
  *           type: string
@@ -337,7 +347,7 @@ const deleteDocument = async (ctx: Router.RouterContext) => {
  *         description: Space not found.
  */
 const addFolder = async (ctx: Router.RouterContext) => {
-  const spaceName = ctx.request.params.spaceName;
+  const spaceKey = ctx.request.params.spaceKey;
   const targetPath = ctx.request.query.path;
 
   if (!targetPath) {
@@ -348,7 +358,7 @@ const addFolder = async (ctx: Router.RouterContext) => {
 
   try {
     const targetDirectoryPath = await getFullPath(
-      spaceName,
+      spaceKey,
       path.join(targetPath)
     );
 
@@ -364,13 +374,13 @@ const addFolder = async (ctx: Router.RouterContext) => {
 
 /**
  * @swagger
- * /documents/{spaceName}/deleteFolder:
+ * /documents/{spaceKey}/deleteFolder:
  *   delete:
  *     summary: Delete a folder within a space
  *     tags: [Documents]
  *     parameters:
  *       - in: path
- *         name: spaceName
+ *         name: spaceKey
  *         required: true
  *         schema:
  *           type: string
@@ -390,7 +400,7 @@ const addFolder = async (ctx: Router.RouterContext) => {
  *         description: Space or folder not found.
  */
 const deleteFolder = async (ctx: Router.RouterContext) => {
-  const spaceName = ctx.request.params.spaceName;
+  const spaceKey = ctx.request.params.spaceKey;
   const targetPath = ctx.request.query.path;
 
   if (!targetPath) {
@@ -401,7 +411,7 @@ const deleteFolder = async (ctx: Router.RouterContext) => {
 
   try {
     const targetDirectoryPath = await getFullPath(
-      spaceName,
+      spaceKey,
       path.join(targetPath)
     );
 
@@ -417,14 +427,14 @@ const deleteFolder = async (ctx: Router.RouterContext) => {
 
 // Register routes and export
 export const registerDocumentRoutes = (router: Router) => {
-  router.get('/documents/:spaceName/list', listDocuments);
-  router.get('/documents/:spaceName/content', getDocumentContent);
+  router.get('/documents/:spaceKey/list', listDocuments);
+  router.get('/documents/:spaceKey/content', getDocumentContent);
   router.post(
-    '/documents/:spaceName/add',
+    '/documents/:spaceKey/add',
     upload.single('document'),
     addDocument
   );
-  router.post('/documents/:spaceName/addFolder', addFolder);
-  router.delete('/documents/:spaceName/deleteFolder', deleteFolder);
-  router.delete('/documents/:spaceName/delete', deleteDocument);
+  router.post('/documents/:spaceKey/addFolder', addFolder);
+  router.delete('/documents/:spaceKey/deleteFolder', deleteFolder);
+  router.delete('/documents/:spaceKey/delete', deleteDocument);
 };

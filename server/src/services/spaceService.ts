@@ -1,44 +1,69 @@
 import fs from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
 import * as settings from '~/server/settings';
+import logger from '../logger';
 
-interface Spaces {
-  [name: string]: { path: string };
+interface Space {
+  key: string;
+  name: string;
+  path: string;
+}
+
+export enum ErrorCode {
+  SPACE_ALREADY_EXISTS,
+  SPACE_DOES_NOT_EXIST,
+}
+export class SpaceServiceError extends Error {
+  constructor(message: string, public code?: ErrorCode) {
+    super(message);
+    this.name = 'SpaceServiceError';
+  }
+
+  static SPACE_EXISTS = new SpaceServiceError(
+    'Space with name already exists.'
+  );
 }
 
 class SpaceService {
-  private spaceFilePath: string;
-
-  constructor() {
-    this.spaceFilePath = path.join(settings.directories.dataDir, 'spaces.json');
-  }
-
-  public async getSpaces(): Promise<Spaces> {
+  public async loadSpaceData() {
     try {
-      const data = await fs.readFile(this.spaceFilePath, 'utf-8');
-      return JSON.parse(data);
+      await fs.access(settings.spaceDataFile);
+    } catch (err) {
+      //create the space data file with empty object if it doesn't exists
+      await fs.writeFile(settings.spaceDataFile, '{}', 'utf-8');
+    }
+    try {
+      const fileContent = await fs.readFile(settings.spaceDataFile, 'utf-8');
+      const data = JSON.parse(fileContent) as { [key: string]: Space };
+      return data;
     } catch (error) {
-      if (error.code === 'ENOENT') {
-        // File not found, return an empty object
-        return {};
-      } else {
-        throw error;
-      }
+      logger.error(error.message);
+      throw error;
     }
   }
 
-  public async saveSpaces(spaces: Spaces): Promise<void> {
+  public async saveSpaceData(spaces: { [key: string]: Space }): Promise<void> {
     const data = JSON.stringify(spaces, null, 2);
-    await fs.writeFile(this.spaceFilePath, data, 'utf-8');
+    await fs.writeFile(settings.spaceDataFile, data, 'utf-8');
   }
 
-  public async createSpace(name: string, spacePath: string): Promise<void> {
-    const spaces = await this.getSpaces();
-    if (spaces[name]) {
-      throw new Error(`Space with name '${name}' already exists.`);
+  public async createSpace({ name, path: spacePath }: Space) {
+    const spaces = await this.loadSpaceData();
+    const key = crypto
+      .createHash('sha256')
+      .update(name)
+      .digest('hex')
+      .slice(0, 8);
+    if (spaces[key]) {
+      console.log('space data', JSON.stringify(spaces, null, 2));
+      throw new SpaceServiceError(
+        `Space with name ${name} already exists.`,
+        ErrorCode.SPACE_ALREADY_EXISTS
+      );
     }
-    spaces[name] = { path: spacePath };
-    await this.saveSpaces(spaces);
+    spaces[key] = { name, key, path: spacePath };
+    await this.saveSpaceData(spaces);
     // Create the directory on the filesystem
     await fs.mkdir(spacePath, { recursive: true });
     // write an .inkstain file to indicate the folder is an inkstain space
@@ -49,28 +74,35 @@ class SpaceService {
       }),
       'utf-8'
     );
+    logger.info(`Space created: ${name}`);
   }
 
-  public async updateSpace(name: string, newName: string): Promise<void> {
-    const spaces = await this.getSpaces();
-    if (!spaces[name]) {
-      throw new Error(`Space with name '${name}' does not exist.`);
+  public async updateSpace(key: string, data: Partial<Space>) {
+    const spaces = await this.loadSpaceData();
+    if (!spaces[key]) {
+      throw new SpaceServiceError(
+        'Space does not exist.',
+        ErrorCode.SPACE_DOES_NOT_EXIST
+      );
     }
-    spaces[newName] = spaces[name];
-    delete spaces[name];
-    await this.saveSpaces(spaces);
+    spaces[key] = {
+      ...spaces[key],
+      ...data,
+    };
+    await this.saveSpaceData(spaces);
   }
 
-  public async deleteSpace(name: string): Promise<void> {
-    const spaces = await this.getSpaces();
-    if (!spaces[name]) {
-      throw new Error(`Space with name '${name}' does not exist.`);
+  public async deleteSpace(key: string) {
+    const spaces = await this.loadSpaceData();
+    if (!spaces[key]) {
+      throw new SpaceServiceError(
+        'Space does not exist.',
+        ErrorCode.SPACE_DOES_NOT_EXIST
+      );
     }
-    delete spaces[name];
-    await this.saveSpaces(spaces);
+    delete spaces[key];
+    await this.saveSpaceData(spaces);
   }
-
-  // Optionally add other methods that read individual spaces, check space existence, etc.
 }
 
 const spaceService = new SpaceService();
