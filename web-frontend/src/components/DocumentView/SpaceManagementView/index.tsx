@@ -1,8 +1,6 @@
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   Button,
-  Dialog,
-  DialogTrigger,
   Input,
   Field,
   Toaster,
@@ -11,15 +9,15 @@ import {
   useToastController,
   ToastTitle,
   Spinner,
-  ToastBody,
-  ToastFooter,
 } from '@fluentui/react-components';
 import { DirectoryPickerDialog } from '~/web/components/DirectoryPickerDialog';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { platformApi, spacesApi } from '~/web/apiClient';
+import { spacesApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
+import { useTranslation } from 'react-i18next';
 
 export const SpaceManagementView: React.FunctionComponent = () => {
+  const { t } = useTranslation();
   const [newSpaceName, setNewSpaceName] = useState('');
   const [selectedDirectory, setSelectedDirectory] = useState<string | null>(
     null
@@ -39,11 +37,7 @@ export const SpaceManagementView: React.FunctionComponent = () => {
     setSelectedDirectory(appContext.platform.homedir);
   }, [appContext.platform]);
 
-  const {
-    data: spaces,
-    isLoading: isSpacesLoading,
-    refetch: refetchSpaces,
-  } = useQuery({
+  const { data: spaces, isLoading: isSpacesLoading } = useQuery({
     queryKey: ['spaces'],
     queryFn: async () => {
       return await spacesApi.spacesGet();
@@ -59,10 +53,7 @@ export const SpaceManagementView: React.FunctionComponent = () => {
       const newSpace = await spacesApi.spacesPost({
         spacesPostRequest: {
           name: newSpaceName,
-          data: {
-            path:
-              selectedDirectory + appContext.platform.pathSep + newSpaceName,
-          },
+          path: selectedDirectory + appContext.platform.pathSep + newSpaceName,
         },
       });
       return newSpace;
@@ -115,7 +106,7 @@ export const SpaceManagementView: React.FunctionComponent = () => {
   return (
     <>
       <Toaster toasterId={toasterId} />
-      <h1>Space Management</h1>
+      <h1>{t('space.space_management')}</h1>
       <div>
         <h2>Spaces</h2>
         {isSpacesLoading ? (
@@ -123,16 +114,12 @@ export const SpaceManagementView: React.FunctionComponent = () => {
         ) : (
           <ul>
             {spaces ? (
-              Object.keys(spaces)?.map((spaceName) => {
-                const space = spaces[spaceName];
+              spaces.map((space) => {
+                // const space = spaces[spaceName];
                 return (
-                  <li key={spaceName}>
-                    <Button
-                      onClick={() =>
-                        appContext.openSpace(spaceName, space.path)
-                      }
-                    >
-                      {spaceName}
+                  <li key={space.key}>
+                    <Button onClick={() => appContext.openSpace(space)}>
+                      {space.name}
                     </Button>
                   </li>
                 );

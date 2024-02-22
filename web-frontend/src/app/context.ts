@@ -7,6 +7,6 @@ export type ContextType = {
   documentsAlive: Document[];
   openDocument: (type: string, name?: string) => void;
   activeSpace: Space | null;
-  openSpace: (name: string, path: string) => void;
+  openSpace: (space: Space) => void;
 };
 export const AppContext = React.createContext<ContextType>({} as ContextType);

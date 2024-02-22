@@ -18,6 +18,7 @@ import {
   MenuPopover,
   MenuTrigger,
 } from '@fluentui/react-components';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
@@ -34,7 +35,7 @@ export type OnTreeItemClicked = (data: {
 }) => void;
 
 interface FolderTreeProps {
-  spaceName: string;
+  spaceKey: string;
   path: string;
   level?: number;
   openItems?: Set<TreeItemValue>;
@@ -60,7 +61,7 @@ const useStyles = makeStyles({
 });
 
 export const FolderTree = ({
-  spaceName,
+  spaceKey,
   path,
   openItems,
   onOpenChange,
@@ -72,15 +73,16 @@ export const FolderTree = ({
   deleteFiles,
 }: FolderTreeProps) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
   const currentFolder = path.endsWith(appContext.platform.pathSep)
     ? path.slice(0, -appContext.platform.pathSep.length)
     : path;
   const { data, isLoading } = useQuery({
-    queryKey: ['documents', spaceName, currentFolder],
+    queryKey: ['documents', spaceKey, currentFolder],
     queryFn: async () => {
-      return await documentsApi.documentsSpaceNameListGet({
-        spaceName: spaceName,
+      return await documentsApi.documentsSpaceKeyListGet({
+        spaceKey: spaceKey,
         path,
       });
     },
@@ -178,7 +180,7 @@ export const FolderTree = ({
                   addFolder={addFolder}
                   onTreeItemClicked={onTreeItemClicked}
                   selection={selection}
-                  spaceName={spaceName}
+                  spaceKey={spaceKey}
                   path={document.path + appContext.platform.pathSep}
                   level={level + 1}
                   openItems={openItems}
@@ -190,7 +192,7 @@ export const FolderTree = ({
           </MenuTrigger>
           <MenuPopover>
             <MenuList>
-              <MenuItem onClick={deleteFiles}>Delete</MenuItem>
+              <MenuItem onClick={deleteFiles}>{t('delete')}</MenuItem>
             </MenuList>
           </MenuPopover>
         </Menu>

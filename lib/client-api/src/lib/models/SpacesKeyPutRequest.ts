@@ -16,52 +16,52 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface SpacesPostRequest
+ * @interface SpacesKeyPutRequest
  */
-export interface SpacesPostRequest {
+export interface SpacesKeyPutRequest {
   /**
    * File system path to the space.
    * @type {string}
-   * @memberof SpacesPostRequest
+   * @memberof SpacesKeyPutRequest
    */
-  path: string;
+  path?: string;
   /**
    * Name of the space.
    * @type {string}
-   * @memberof SpacesPostRequest
+   * @memberof SpacesKeyPutRequest
    */
-  name: string;
+  name?: string;
 }
 
 /**
- * Check if a given object implements the SpacesPostRequest interface.
+ * Check if a given object implements the SpacesKeyPutRequest interface.
  */
-export function instanceOfSpacesPostRequest(value: object): boolean {
+export function instanceOfSpacesKeyPutRequest(value: object): boolean {
   let isInstance = true;
-  isInstance = isInstance && 'path' in value;
-  isInstance = isInstance && 'name' in value;
 
   return isInstance;
 }
 
-export function SpacesPostRequestFromJSON(json: any): SpacesPostRequest {
-  return SpacesPostRequestFromJSONTyped(json, false);
+export function SpacesKeyPutRequestFromJSON(json: any): SpacesKeyPutRequest {
+  return SpacesKeyPutRequestFromJSONTyped(json, false);
 }
 
-export function SpacesPostRequestFromJSONTyped(
+export function SpacesKeyPutRequestFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): SpacesPostRequest {
+): SpacesKeyPutRequest {
   if (json === undefined || json === null) {
     return json;
   }
   return {
-    path: json['path'],
-    name: json['name'],
+    path: !exists(json, 'path') ? undefined : json['path'],
+    name: !exists(json, 'name') ? undefined : json['name'],
   };
 }
 
-export function SpacesPostRequestToJSON(value?: SpacesPostRequest | null): any {
+export function SpacesKeyPutRequestToJSON(
+  value?: SpacesKeyPutRequest | null
+): any {
   if (value === undefined) {
     return undefined;
   }

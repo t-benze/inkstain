@@ -15,25 +15,25 @@
 import * as runtime from '../runtime';
 import type {
   Space,
-  SpacesNamePutRequest,
+  SpacesKeyPutRequest,
   SpacesPostRequest,
 } from '../models/index';
 import {
   SpaceFromJSON,
   SpaceToJSON,
-  SpacesNamePutRequestFromJSON,
-  SpacesNamePutRequestToJSON,
+  SpacesKeyPutRequestFromJSON,
+  SpacesKeyPutRequestToJSON,
   SpacesPostRequestFromJSON,
   SpacesPostRequestToJSON,
 } from '../models/index';
 
-export interface SpacesNameDeleteRequest {
-  name: string;
+export interface SpacesKeyDeleteRequest {
+  key: string;
 }
 
-export interface SpacesNamePutOperationRequest {
-  name: string;
-  spacesNamePutRequest: SpacesNamePutRequest;
+export interface SpacesKeyPutOperationRequest {
+  key: string;
+  spacesKeyPutRequest: SpacesKeyPutRequest;
 }
 
 export interface SpacesPostOperationRequest {
@@ -49,7 +49,7 @@ export class SpacesApi extends runtime.BaseAPI {
    */
   async spacesGetRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<{ [key: string]: Space }>> {
+  ): Promise<runtime.ApiResponse<Array<Space>>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -65,7 +65,7 @@ export class SpacesApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      runtime.mapValues(jsonValue, SpaceFromJSON)
+      jsonValue.map(SpaceFromJSON)
     );
   }
 
@@ -74,7 +74,7 @@ export class SpacesApi extends runtime.BaseAPI {
    */
   async spacesGet(
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<{ [key: string]: Space }> {
+  ): Promise<Array<Space>> {
     const response = await this.spacesGetRaw(initOverrides);
     return await response.value();
   }
@@ -82,17 +82,14 @@ export class SpacesApi extends runtime.BaseAPI {
   /**
    * Delete an existing space
    */
-  async spacesNameDeleteRaw(
-    requestParameters: SpacesNameDeleteRequest,
+  async spacesKeyDeleteRaw(
+    requestParameters: SpacesKeyDeleteRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
-    if (
-      requestParameters.name === null ||
-      requestParameters.name === undefined
-    ) {
+    if (requestParameters.key === null || requestParameters.key === undefined) {
       throw new runtime.RequiredError(
-        'name',
-        'Required parameter requestParameters.name was null or undefined when calling spacesNameDelete.'
+        'key',
+        'Required parameter requestParameters.key was null or undefined when calling spacesKeyDelete.'
       );
     }
 
@@ -102,9 +99,9 @@ export class SpacesApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/spaces/{name}`.replace(
-          `{${'name'}}`,
-          encodeURIComponent(String(requestParameters.name))
+        path: `/spaces/{key}`.replace(
+          `{${'key'}}`,
+          encodeURIComponent(String(requestParameters.key))
         ),
         method: 'DELETE',
         headers: headerParameters,
@@ -119,37 +116,34 @@ export class SpacesApi extends runtime.BaseAPI {
   /**
    * Delete an existing space
    */
-  async spacesNameDelete(
-    requestParameters: SpacesNameDeleteRequest,
+  async spacesKeyDelete(
+    requestParameters: SpacesKeyDeleteRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.spacesNameDeleteRaw(requestParameters, initOverrides);
+    await this.spacesKeyDeleteRaw(requestParameters, initOverrides);
   }
 
   /**
    * Update an existing space
    */
-  async spacesNamePutRaw(
-    requestParameters: SpacesNamePutOperationRequest,
+  async spacesKeyPutRaw(
+    requestParameters: SpacesKeyPutOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
-    if (
-      requestParameters.name === null ||
-      requestParameters.name === undefined
-    ) {
+    if (requestParameters.key === null || requestParameters.key === undefined) {
       throw new runtime.RequiredError(
-        'name',
-        'Required parameter requestParameters.name was null or undefined when calling spacesNamePut.'
+        'key',
+        'Required parameter requestParameters.key was null or undefined when calling spacesKeyPut.'
       );
     }
 
     if (
-      requestParameters.spacesNamePutRequest === null ||
-      requestParameters.spacesNamePutRequest === undefined
+      requestParameters.spacesKeyPutRequest === null ||
+      requestParameters.spacesKeyPutRequest === undefined
     ) {
       throw new runtime.RequiredError(
-        'spacesNamePutRequest',
-        'Required parameter requestParameters.spacesNamePutRequest was null or undefined when calling spacesNamePut.'
+        'spacesKeyPutRequest',
+        'Required parameter requestParameters.spacesKeyPutRequest was null or undefined when calling spacesKeyPut.'
       );
     }
 
@@ -161,16 +155,14 @@ export class SpacesApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/spaces/{name}`.replace(
-          `{${'name'}}`,
-          encodeURIComponent(String(requestParameters.name))
+        path: `/spaces/{key}`.replace(
+          `{${'key'}}`,
+          encodeURIComponent(String(requestParameters.key))
         ),
         method: 'PUT',
         headers: headerParameters,
         query: queryParameters,
-        body: SpacesNamePutRequestToJSON(
-          requestParameters.spacesNamePutRequest
-        ),
+        body: SpacesKeyPutRequestToJSON(requestParameters.spacesKeyPutRequest),
       },
       initOverrides
     );
@@ -181,11 +173,11 @@ export class SpacesApi extends runtime.BaseAPI {
   /**
    * Update an existing space
    */
-  async spacesNamePut(
-    requestParameters: SpacesNamePutOperationRequest,
+  async spacesKeyPut(
+    requestParameters: SpacesKeyPutOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.spacesNamePutRaw(requestParameters, initOverrides);
+    await this.spacesKeyPutRaw(requestParameters, initOverrides);
   }
 
   /**

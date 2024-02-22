@@ -9,14 +9,9 @@ import {
   DialogActions,
   DialogContent,
   Button,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuItemCheckbox,
   makeStyles,
-  shorthands,
 } from '@fluentui/react-components';
+import { useTranslation } from 'react-i18next';
 import { ChevronRightRegular } from '@fluentui/react-icons';
 import { useQuery } from '@tanstack/react-query';
 import { AppContext } from '~/web/app/context';
@@ -28,12 +23,6 @@ const useStyles = makeStyles({
   },
 });
 
-// Placeholder interface and function for fetching directories from the server
-interface DirectoryItem {
-  name: string; // The name of the directory
-  path: string; // The full path to the directory
-}
-
 interface DirectoryPickerDialogProps {
   currentDirectory: string;
   onSelectDirectory: (path: string) => void;
@@ -44,6 +33,7 @@ export const DirectoryPickerDialog: React.FunctionComponent<
   DirectoryPickerDialogProps
 > = ({ currentDirectory, onSelectDirectory, triggerButtonText }) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
   const [currentDirectoryInner, setCurrentDirectoryInner] =
     useState(currentDirectory);
@@ -51,14 +41,14 @@ export const DirectoryPickerDialog: React.FunctionComponent<
     setCurrentDirectoryInner(currentDirectory);
   }, [currentDirectory]);
 
-  const { data: directories, isLoading: isDirectoriesLoading } = useQuery({
+  const { data: directories } = useQuery({
     queryKey: [
       'directory',
       ...currentDirectoryInner.split(appContext.platform.pathSep),
     ],
     queryFn: async () => {
       console.log('fetching directories', currentDirectoryInner);
-      if (currentDirectory == '') {
+      if (currentDirectory === '') {
         return await (appContext.platform.drives ?? []).map((d) => ({
           name: d.replace('\\', ''),
           path: d,
@@ -77,7 +67,7 @@ export const DirectoryPickerDialog: React.FunctionComponent<
     .reduce((acc: { name: string; path: string }[], segment) => {
       if (acc.length === 0) {
         return [
-          appContext.platform.platform == 'win32'
+          appContext.platform.platform === 'win32'
             ? { name: 'PC', path: '' }
             : { name: segment, path: '/' + segment },
         ];
@@ -120,11 +110,11 @@ export const DirectoryPickerDialog: React.FunctionComponent<
       </DialogTrigger>
       <DialogSurface>
         <DialogBody>
-          <DialogTitle>Choose Directory</DialogTitle>
+          <DialogTitle>{t('choose_a_directory')}</DialogTitle>
           <DialogContent>
             {renderBreadcrumbs()}
             {!directories ? (
-              <div>loading...</div>
+              <div>{t('loading')}</div>
             ) : (
               <>
                 {directories.map((directory) => (
@@ -144,14 +134,14 @@ export const DirectoryPickerDialog: React.FunctionComponent<
           </DialogContent>
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary">Cancel</Button>
+              <Button appearance="secondary">{t('cancel')}</Button>
             </DialogTrigger>
             <DialogTrigger disableButtonEnhancement>
               <Button
                 appearance="primary"
                 onClick={() => onSelectDirectory(currentDirectoryInner)}
               >
-                Confirm
+                {t('confirm')}
               </Button>
             </DialogTrigger>
           </DialogActions>

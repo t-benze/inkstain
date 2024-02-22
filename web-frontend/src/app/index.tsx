@@ -18,6 +18,7 @@ import { platformApi } from '~/web/apiClient';
 import { AppContext } from './context';
 import { Document } from '../types';
 import { PrimarySidebar } from './PrimarySidebar';
+import { Space } from '../types';
 const queryClient = new QueryClient();
 
 const useStyles = makeStyles({
@@ -29,18 +30,12 @@ const useStyles = makeStyles({
 });
 
 const useActiveSpace = () => {
-  const [activeSpace, setActiveSpace] = React.useState<{
-    name: string;
-    path: string;
-  } | null>(null);
+  const [activeSpace, setActiveSpace] = React.useState<Space | null>(null);
   const openSpace = React.useCallback(
-    (spaceName: string, spacePath: string) => {
-      setActiveSpace({
-        name: spaceName,
-        path: spacePath,
-      });
+    (space: Space) => {
+      setActiveSpace(space);
     },
-    [activeSpace, setActiveSpace]
+    [setActiveSpace]
   );
 
   return {
@@ -48,10 +43,11 @@ const useActiveSpace = () => {
     activeSpace,
   } as const;
 };
+
+const mapDocumentTypeToName: Record<string, string> = {
+  '@inkstain/space-management': 'Spaces',
+};
 const useActiveDocument = () => {
-  const mapDocumentTypeToName: Record<string, string> = {
-    '@inkstain/space-management': 'Spaces',
-  };
   const [documentsAlive, setDocumentsAlive] = React.useState<Document[]>([]);
   const openDocument = React.useCallback(
     (type: string, name?: string) => {
@@ -66,7 +62,7 @@ const useActiveDocument = () => {
         return newDocumentsAlive;
       });
     },
-    [documentsAlive, setDocumentsAlive]
+    [setDocumentsAlive]
   );
 
   return {

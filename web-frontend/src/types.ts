@@ -4,6 +4,7 @@ export interface Document {
 }
 
 export interface Space {
+  key: string;
   name: string;
   path: string;
 }

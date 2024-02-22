@@ -2,5 +2,9 @@
   "/api": {
     "target": "http://localhost:6060",
     "secure": false
+  },
+  "/assets": {
+    "target": "http://localhost:6060",
+    "secure": false
   }
 }

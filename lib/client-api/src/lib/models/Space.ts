@@ -25,6 +25,18 @@ export interface Space {
    * @memberof Space
    */
   path: string;
+  /**
+   * Name of the space.
+   * @type {string}
+   * @memberof Space
+   */
+  name: string;
+  /**
+   * Key of the space.
+   * @type {string}
+   * @memberof Space
+   */
+  key: string;
 }
 
 /**
@@ -33,6 +45,8 @@ export interface Space {
 export function instanceOfSpace(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'path' in value;
+  isInstance = isInstance && 'name' in value;
+  isInstance = isInstance && 'key' in value;
 
   return isInstance;
 }
@@ -50,6 +64,8 @@ export function SpaceFromJSONTyped(
   }
   return {
     path: json['path'],
+    name: json['name'],
+    key: json['key'],
   };
 }
 
@@ -62,5 +78,7 @@ export function SpaceToJSON(value?: Space | null): any {
   }
   return {
     path: value.path,
+    name: value.name,
+    key: value.key,
   };
 }

@@ -163,7 +163,7 @@ export const updateSpace = async (ctx: Router.RouterContext) => {
  *     tags: [Spaces]
  *     parameters:
  *       - in: path
- *         name: name
+ *         name: key
  *         required: true
  *         schema:
  *           type: string

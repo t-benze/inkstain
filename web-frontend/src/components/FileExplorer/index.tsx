@@ -14,6 +14,7 @@ import {
   FolderSyncRegular,
   ArrowCollapseAllRegular,
 } from '@fluentui/react-icons';
+import { useTranslation } from 'react-i18next';
 import { Space } from '~/web/types';
 import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
@@ -99,6 +100,7 @@ const useSelection = () => {
 export const FileExplorer = ({ space }: FileExplorerProps) => {
   const styles = useStyles();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [openItems, setOpenItems] = React.useState<Set<TreeItemValue>>(
@@ -127,8 +129,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         ? getFolderPath(lastClick.current, appContext.platform.pathSep)
         : '';
       try {
-        await documentsApi.documentsSpaceNameAddPost({
-          spaceName: space.name,
+        await documentsApi.documentsSpaceKeyAddPost({
+          spaceKey: space.key,
           path:
             folder === ''
               ? file.name
@@ -136,7 +138,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           document: file,
         });
         queryClient.invalidateQueries({
-          queryKey: ['documents', space.name, folder],
+          queryKey: ['documents', space.key, folder],
         });
       } catch (error) {
         console.error(error);
@@ -144,7 +146,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         event.target.files = null;
       }
     },
-    [space.name, lastClick, appContext.platform.pathSep, queryClient]
+    [space.key, lastClick, appContext.platform.pathSep, queryClient]
   );
 
   const handleAddFolder = React.useCallback(() => {
@@ -163,8 +165,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       targetFolder: string;
       name: string;
     }) => {
-      return await documentsApi.documentsSpaceNameAddFolderPost({
-        spaceName: space.name,
+      return await documentsApi.documentsSpaceKeyAddFolderPost({
+        spaceKey: space.key,
         path: targetFolder
           ? targetFolder + appContext.platform.pathSep + name
           : name,
@@ -204,13 +206,13 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     const foldersToRefresh = new Set<string>();
     for (const file of filesToDelete) {
       if (file.endsWith(appContext.platform.pathSep)) {
-        await documentsApi.documentsSpaceNameDeleteFolderDelete({
-          spaceName: space.name,
+        await documentsApi.documentsSpaceKeyDeleteFolderDelete({
+          spaceKey: space.key,
           path: file,
         });
       } else {
-        await documentsApi.documentsSpaceNameDeleteDelete({
-          spaceName: space.name,
+        await documentsApi.documentsSpaceKeyDeleteDelete({
+          spaceKey: space.key,
           path: file,
         });
       }
@@ -225,13 +227,13 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     foldersToRefresh.forEach((folder) => {
       console.log('invalidate', folder);
       queryClient.invalidateQueries({
-        queryKey: ['documents', space.name, folder],
+        queryKey: ['documents', space.key, folder],
       });
     });
   }, [
     selection,
     appContext.platform.pathSep,
-    space.name,
+    space.key,
     lastClick,
     queryClient,
   ]);
@@ -248,7 +250,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         <Text>{space.name}</Text>
         <div>
           <Tooltip
-            content={'Add a document'}
+            content={t('file_explorer.add_a_document_tooltip')}
             relationship="label"
             positioning={'below'}
           >
@@ -262,7 +264,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
             />
           </Tooltip>
           <Tooltip
-            content={'Add a folder'}
+            content={t('file_explorer.add_a_folder_tooltip')}
             relationship="label"
             positioning={'below'}
           >
@@ -274,7 +276,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
             />
           </Tooltip>
           <Tooltip
-            content={'Sync folder'}
+            content={t('file_explorer.refresh_folder_tooltip')}
             relationship="label"
             positioning={'below'}
           >
@@ -286,7 +288,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
             />
           </Tooltip>
           <Tooltip
-            content={'Collapse all'}
+            content={t('file_explorer.collapse_all_tooltip')}
             relationship="label"
             positioning={'below'}
           >
@@ -302,7 +304,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         </div>
       </div>
       <FolderTree
-        spaceName={space.name}
+        spaceKey={space.key}
         path=""
         selection={selection}
         openItems={openItems}
