@@ -6,13 +6,15 @@ import YAML from 'js-yaml';
 import mount from 'koa-mount';
 import serve from 'koa-static';
 import send from 'koa-send';
-import swaggerUi from 'swagger-ui-dist';
 import { host, port } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
+import AJV from 'ajv';
 import { registerDocumentRoutes } from './handlers/documents';
 import { registerSpaceRoutes } from './handlers/space';
 import { registerPlatformRoutes } from './handlers/platform';
+import swaggerUi from 'swagger-ui-dist';
+import { RequestParamsError } from './handlers/common';
 const app = new Koa();
 
 app.use(async (ctx, next) => {
@@ -24,6 +26,42 @@ app.use(async (ctx, next) => {
     `${ctx.method} ${ctx.url} - ${ctx.status} - ${contentLength} - ${ms}ms`
   );
 });
+
+app.use(
+  mount('/swagger', async (ctx) => {
+    if (ctx.path === '/') {
+      // Redirect to `index.html` when path is '/'
+      ctx.redirect('/swagger/index.html');
+      return;
+    }
+    if (ctx.path === '/swagger-initializer.js') {
+      // ctx.body = indexContent;
+      const indexContent = await fs.readFile(
+        path.join(swaggerUi.getAbsoluteFSPath(), 'swagger-initializer.js')
+      );
+      ctx.body = indexContent
+        .toString()
+        .replace(
+          'https://petstore.swagger.io/v2/swagger.json',
+          `http://${host}:${port}/swagger/api-docs`
+        );
+      return;
+    }
+
+    if (ctx.path === '/api-docs') {
+      // Serve the OpenAPI spec
+      ctx.response.set('Content-Type', 'application/json');
+      const spec = await fs.readFile(openApiSpecPath, 'utf8');
+      const swaggerDocument = YAML.load(spec);
+      ctx.body = swaggerDocument;
+      return;
+    }
+
+    // Serve Swagger UI's other assets (CSS, JS, etc.) by Koa Static
+    await serve(swaggerUi.getAbsoluteFSPath())(ctx, () => Promise.resolve());
+  })
+);
+
 app.use(async (ctx, next) => {
   // If the request does not match a static file, serve the main HTML file
   if (ctx.path.startsWith('/assets')) {
@@ -47,6 +85,25 @@ app.use(
   })
 );
 
+/**
+ * common api error handling
+ */
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    if (err instanceof RequestParamsError) {
+      ctx.status = 400;
+      ctx.body = {
+        message: err.message,
+        errors: err.errors,
+      };
+    } else {
+      logger.error('Unhandled error: ' + JSON.stringify(err));
+      ctx.status = err.statusCode || err.status || 500;
+    }
+  }
+});
 const router = new Router({
   prefix: '/api/v1',
 });
@@ -59,51 +116,27 @@ registerPlatformRoutes(router);
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());
 
-const openApiSpecPath = path.join(
-  __dirname,
-  '..',
-  '..',
-  'assets',
-  'openapi.yml'
-);
+const openApiSpecPath = path.resolve(__dirname, '../../assets/openapi.yml');
 
-app.use(
-  mount('/swagger', async (ctx) => {
-    if (ctx.path === '/') {
-      // Redirect to `index.html` when path is '/'
-      ctx.redirect('/swagger/index.html');
-      return;
-    }
-    if (ctx.path === '/swagger-initializer.js') {
-      // ctx.body = indexContent;
-      const indexContent = await fs
-        .readFile(
-          path.join(swaggerUi.getAbsoluteFSPath(), 'swagger-initializer.js')
-        )
-        .toString()
-        .replace(
-          'https://petstore.swagger.io/v2/swagger.json',
-          `http://${host}:${port}/swagger/api-docs`
-        );
-      ctx.body = indexContent;
-      return;
-    }
+async function start() {
+  try {
+    const schemaContent = await fs.readFile(
+      path.resolve(__dirname, '../../assets/schema/components.yml'),
+      'utf8'
+    );
+    const validator = new AJV();
+    const schema = YAML.load(schemaContent);
+    Object.keys(schema.components.schemas).forEach((key) => {
+      validator.addSchema(schema.components.schemas[key], key);
+    });
+    app.context.validator = validator;
+  } catch (e) {
+    logger.error('Failed to load schema');
+    throw e;
+  }
+  app.listen(port, host, () => {
+    console.log(`Server running on http://${host}:${port}`);
+  });
+}
 
-    if (ctx.path === '/api-docs') {
-      // Serve the OpenAPI spec
-      ctx.response.set('Content-Type', 'application/json');
-      const spec = await fs.readFile(openApiSpecPath, 'utf8');
-      const swaggerDocument = YAML.load(spec);
-      ctx.body = swaggerDocument;
-      return;
-    }
-
-    // Serve Swagger UI's other assets (CSS, JS, etc.) by Koa Static
-    await serve(swaggerUi.getAbsoluteFSPath())(ctx, () => Promise.resolve());
-  })
-);
-
-// Start the server
-app.listen(port, host, () => {
-  console.log(`Server running on http://${host}:${port}`);
-});
+start();

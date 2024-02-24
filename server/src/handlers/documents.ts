@@ -27,9 +27,11 @@ const getFullPath = async (
   }
 
   const resolvedPath = path.resolve(space.path, filePath);
-  if (!resolvedPath.startsWith(space.path)) {
+  const relative = path.relative(space.path, resolvedPath);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error('Invalid file path. Possible directory traversal attempt.');
   }
+
   return resolvedPath;
 };
 

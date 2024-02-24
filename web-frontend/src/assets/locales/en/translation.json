@@ -1,0 +1,30 @@
+{
+  "inkstain": "InkStain",
+  "delete": "Delete",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "loading": "Loading",
+  "next": "Next",
+  "choose_a_directory": "Choose a directory",
+  "space": {
+    "recent": "Recent",
+    "start": "Start",
+    "space_name": "Space name",
+    "location": "Location",
+    "create": "Create",
+    "open_space": "Open space",
+    "open_folder": "Open folder",
+    "create_space": "Create space",
+    "select_folder": "Select folder",
+    "no_existing_space": "There's no exisitng space, please create one",
+    "creating_space": "Creating space...",
+    "create_space_success": "Create space succeeded",
+    "create_space_failed": "Create space failed"
+  },
+  "file_explorer": {
+    "add_a_document_tooltip": "Add a document",
+    "add_a_folder_tooltip": "Add a folder",
+    "refresh_folder_tooltip": "Refresh the folder",
+    "collapse_all_tooltip": "Collapse all"
+  }
+}

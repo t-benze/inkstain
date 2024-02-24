@@ -1,37 +1,17 @@
-import Router from 'koa-router';
+import Router from '@koa/router';
 import spaceService, {
   SpaceServiceError,
   ErrorCode,
 } from '~/server/services/spaceService';
 import logger from '../logger';
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Space:
- *       type: object
- *       required:
- *         - path
- *         - name
- *         - key
- *       properties:
- *         path:
- *           type: string
- *           description: File system path to the space.
- *         name:
- *           type: string
- *           description: Name of the space.
- *         key:
- *           type: string
- *           description: Key of the space.
- */
+import { RequestParamsError } from './common';
 
 /**
  * @swagger
  * /spaces:
  *   get:
  *     summary: Get all spaces
+ *     operationId: getSpaces
  *     tags: [Spaces]
  *     responses:
  *       200:
@@ -63,23 +43,21 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  * /spaces:
  *   post:
  *     summary: Create a new space
+ *     operationId: createSpace
  *     tags: [Spaces]
+ *     parameters:
+ *      - in: query
+ *        name: type
+ *        required: false
+ *        schema:
+ *          type: string
+ *          description: 'new' - new space, 'inkstain' - import existing inkstain space
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - path
- *               - name
- *             properties:
- *               path:
- *                 type: string
- *                 description: File system path to the space.
- *               name:
- *                 type: string
- *                 description: Name of the space.
+ *             $ref: '#/components/schemas/CreateSpaceRequest'
  *     responses:
  *       201:
  *         description: Space created successfully.
@@ -90,9 +68,27 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  */
 export const createSpace = async (ctx: Router.RouterContext) => {
   // Extract details from the request body
+  const type = ctx.query.type || 'new';
   const data = ctx.request.body;
+  const validate = ctx.validator.getSchema('CreateSpaceRequest');
+  if (!validate(data)) {
+    throw new RequestParamsError('Create space params error', validate.errors);
+  }
+
   try {
-    await spaceService.createSpace(data);
+    switch (type) {
+      case 'new': {
+        await spaceService.createSpace(data as { name: string; path: string });
+        break;
+      }
+      case 'inkstain': {
+        const path = (data as { path: string }).path;
+        await spaceService.importExistingInkStainSpace(path);
+        break;
+      }
+      default:
+        throw new Error('Invalid space type');
+    }
     ctx.status = 201; // Space created successfully
   } catch (error) {
     logger.error(error.message);
@@ -112,6 +108,7 @@ export const createSpace = async (ctx: Router.RouterContext) => {
  * /spaces/{key}:
  *   put:
  *     summary: Update an existing space
+ *     operationId: updateSpace
  *     tags: [Spaces]
  *     parameters:
  *       - in: path
@@ -160,6 +157,7 @@ export const updateSpace = async (ctx: Router.RouterContext) => {
  * /spaces/{key}:
  *   delete:
  *     summary: Delete an existing space
+ *     operationId: deleteSpace
  *     tags: [Spaces]
  *     parameters:
  *       - in: path

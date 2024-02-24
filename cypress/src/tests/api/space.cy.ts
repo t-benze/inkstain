@@ -34,6 +34,21 @@ describe('Spaces API', () => {
         expect(response.status).to.eq(201);
       });
     });
+
+    it('should import an existing inkstain space', () => {
+      cy.request({
+        method: 'POST',
+        url: '/api/v1/spaces?type=inkstain',
+        body: {
+          path:
+            Cypress.env('TEST_SPACE') +
+            ctx.pathSep +
+            'My Test Space For Importing',
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(201);
+      });
+    });
   });
 
   // this key is generated from the space name 'My Test Space'
