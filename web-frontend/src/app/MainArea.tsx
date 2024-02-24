@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { TabList, Tab, makeStyles } from '@fluentui/react-components';
-import type {
-  SelectTabData,
-  SelectTabEvent,
-  TabValue,
-} from '@fluentui/react-components';
+import type { SelectTabData, SelectTabEvent } from '@fluentui/react-components';
 import { DocumentView } from '~/web/components/DocumentView';
 import { Document } from '../types';
 import { AppContext } from './context';
@@ -14,9 +10,11 @@ interface MainAreaProps {
 }
 
 const useStyles = makeStyles({
-  root: {},
+  root: { width: '100%' },
   panelArea: {},
-  panel: {},
+  panel: {
+    width: '100%',
+  },
 });
 
 const TabPanel = ({
@@ -75,18 +73,16 @@ export const MainArea = ({}: MainAreaProps) => {
         })}
       </TabList>
 
-      <div className={styles.panel}>
-        {documentsAlive.map((document) => {
-          return (
-            <TabPanel
-              type={document.type}
-              name={document.name}
-              key={document.name}
-              isActive={document.name === activeDocument?.name}
-            />
-          );
-        })}
-      </div>
+      {documentsAlive.map((document) => {
+        return (
+          <TabPanel
+            type={document.type}
+            name={document.name}
+            key={document.name}
+            isActive={document.name === activeDocument?.name}
+          />
+        );
+      })}
     </div>
   );
 };

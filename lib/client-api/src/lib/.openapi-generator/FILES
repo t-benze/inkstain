@@ -3,11 +3,11 @@ apis/PlatformApi.ts
 apis/SpacesApi.ts
 apis/index.ts
 index.ts
+models/CreateSpaceRequest.ts
 models/DocumentsSpaceKeyListGet200ResponseInner.ts
 models/PlatformDirectoriesPathGet200ResponseInner.ts
 models/PlatformGet200Response.ts
 models/Space.ts
-models/SpacesKeyPutRequest.ts
-models/SpacesPostRequest.ts
+models/UpdateSpaceRequest.ts
 models/index.ts
 runtime.ts

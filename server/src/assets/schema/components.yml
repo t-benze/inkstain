@@ -1,0 +1,32 @@
+components:
+  schemas:
+    Space:
+      type: object
+      required:
+        - path
+        - name
+        - key
+      properties:
+        path:
+          type: string
+          description: File system path to the space.
+        name:
+          type: string
+          description: Name of the space.
+        key:
+          type: string
+          description: Key of the space.
+    CreateSpaceRequest:
+      type: object
+      required:
+        - path
+      properties:
+        name:
+          type: string
+          description: Name of the space.
+          minLength: 1
+          maxLength: 100
+        path:
+          type: string
+          description: Key of the space.
+          minLength: 1

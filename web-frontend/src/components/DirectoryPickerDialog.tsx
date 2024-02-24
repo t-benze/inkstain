@@ -10,7 +10,10 @@ import {
   DialogContent,
   Button,
   makeStyles,
+  shorthands,
+  tokens,
 } from '@fluentui/react-components';
+import { DialogOpenChangeEventHandler } from '@fluentui/react-dialog';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightRegular } from '@fluentui/react-icons';
 import { useQuery } from '@tanstack/react-query';
@@ -21,17 +24,32 @@ const useStyles = makeStyles({
   breadcrumbs: {
     // ...shorthands.marginBlock('0', '0'),
   },
+  list: {
+    ...shorthands.border(
+      tokens.strokeWidthThin,
+      'solid',
+      tokens.colorNeutralStroke3
+    ),
+  },
 });
 
 interface DirectoryPickerDialogProps {
+  open: boolean;
+  onOpenChange: DialogOpenChangeEventHandler;
   currentDirectory: string;
   onSelectDirectory: (path: string) => void;
-  triggerButtonText: string;
+  confirmText?: string;
 }
 
 export const DirectoryPickerDialog: React.FunctionComponent<
   DirectoryPickerDialogProps
-> = ({ currentDirectory, onSelectDirectory, triggerButtonText }) => {
+> = ({
+  confirmText,
+  currentDirectory,
+  onSelectDirectory,
+  open,
+  onOpenChange,
+}) => {
   const styles = useStyles();
   const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
@@ -104,33 +122,32 @@ export const DirectoryPickerDialog: React.FunctionComponent<
   );
 
   return (
-    <Dialog>
-      <DialogTrigger>
-        <Button>{triggerButtonText}</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogSurface>
         <DialogBody>
           <DialogTitle>{t('choose_a_directory')}</DialogTitle>
           <DialogContent>
             {renderBreadcrumbs()}
-            {!directories ? (
-              <div>{t('loading')}</div>
-            ) : (
-              <>
-                {directories.map((directory) => (
-                  <div key={directory.path}>
-                    <Button
-                      appearance="subtle"
-                      name={directory.name}
-                      value={directory.path}
-                      onClick={() => setCurrentDirectoryInner(directory.path)}
-                    >
-                      {directory.name}
-                    </Button>
-                  </div>
-                ))}
-              </>
-            )}
+            <div className={styles.list}>
+              {!directories ? (
+                <div>{t('loading')}</div>
+              ) : (
+                <>
+                  {directories.map((directory) => (
+                    <div key={directory.path}>
+                      <Button
+                        appearance="subtle"
+                        name={directory.name}
+                        value={directory.path}
+                        onClick={() => setCurrentDirectoryInner(directory.path)}
+                      >
+                        {directory.name}
+                      </Button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </DialogContent>
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>
@@ -141,7 +158,7 @@ export const DirectoryPickerDialog: React.FunctionComponent<
                 appearance="primary"
                 onClick={() => onSelectDirectory(currentDirectoryInner)}
               >
-                {t('confirm')}
+                {confirmText ?? t('confirm')}
               </Button>
             </DialogTrigger>
           </DialogActions>

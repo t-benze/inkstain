@@ -14,30 +14,31 @@
 
 import * as runtime from '../runtime';
 import type {
+  CreateSpaceRequest,
   Space,
-  SpacesKeyPutRequest,
-  SpacesPostRequest,
+  UpdateSpaceRequest,
 } from '../models/index';
 import {
+  CreateSpaceRequestFromJSON,
+  CreateSpaceRequestToJSON,
   SpaceFromJSON,
   SpaceToJSON,
-  SpacesKeyPutRequestFromJSON,
-  SpacesKeyPutRequestToJSON,
-  SpacesPostRequestFromJSON,
-  SpacesPostRequestToJSON,
+  UpdateSpaceRequestFromJSON,
+  UpdateSpaceRequestToJSON,
 } from '../models/index';
 
-export interface SpacesKeyDeleteRequest {
+export interface CreateSpaceOperationRequest {
+  createSpaceRequest: CreateSpaceRequest;
+  type?: string;
+}
+
+export interface DeleteSpaceRequest {
   key: string;
 }
 
-export interface SpacesKeyPutOperationRequest {
+export interface UpdateSpaceOperationRequest {
   key: string;
-  spacesKeyPutRequest: SpacesKeyPutRequest;
-}
-
-export interface SpacesPostOperationRequest {
-  spacesPostRequest: SpacesPostRequest;
+  updateSpaceRequest: UpdateSpaceRequest;
 }
 
 /**
@@ -45,51 +46,67 @@ export interface SpacesPostOperationRequest {
  */
 export class SpacesApi extends runtime.BaseAPI {
   /**
-   * Get all spaces
+   * Create a new space
    */
-  async spacesGetRaw(
+  async createSpaceRaw(
+    requestParameters: CreateSpaceOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<Array<Space>>> {
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.createSpaceRequest === null ||
+      requestParameters.createSpaceRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'createSpaceRequest',
+        'Required parameter requestParameters.createSpaceRequest was null or undefined when calling createSpace.'
+      );
+    }
+
     const queryParameters: any = {};
 
+    if (requestParameters.type !== undefined) {
+      queryParameters['type'] = requestParameters.type;
+    }
+
     const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
 
     const response = await this.request(
       {
         path: `/spaces`,
-        method: 'GET',
+        method: 'POST',
         headers: headerParameters,
         query: queryParameters,
+        body: CreateSpaceRequestToJSON(requestParameters.createSpaceRequest),
       },
       initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(SpaceFromJSON)
-    );
+    return new runtime.VoidApiResponse(response);
   }
 
   /**
-   * Get all spaces
+   * Create a new space
    */
-  async spacesGet(
+  async createSpace(
+    requestParameters: CreateSpaceOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<Array<Space>> {
-    const response = await this.spacesGetRaw(initOverrides);
-    return await response.value();
+  ): Promise<void> {
+    await this.createSpaceRaw(requestParameters, initOverrides);
   }
 
   /**
    * Delete an existing space
    */
-  async spacesKeyDeleteRaw(
-    requestParameters: SpacesKeyDeleteRequest,
+  async deleteSpaceRaw(
+    requestParameters: DeleteSpaceRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (requestParameters.key === null || requestParameters.key === undefined) {
       throw new runtime.RequiredError(
         'key',
-        'Required parameter requestParameters.key was null or undefined when calling spacesKeyDelete.'
+        'Required parameter requestParameters.key was null or undefined when calling deleteSpace.'
       );
     }
 
@@ -116,34 +133,69 @@ export class SpacesApi extends runtime.BaseAPI {
   /**
    * Delete an existing space
    */
-  async spacesKeyDelete(
-    requestParameters: SpacesKeyDeleteRequest,
+  async deleteSpace(
+    requestParameters: DeleteSpaceRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.spacesKeyDeleteRaw(requestParameters, initOverrides);
+    await this.deleteSpaceRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Get all spaces
+   */
+  async getSpacesRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Array<Space>>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/spaces`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(SpaceFromJSON)
+    );
+  }
+
+  /**
+   * Get all spaces
+   */
+  async getSpaces(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Array<Space>> {
+    const response = await this.getSpacesRaw(initOverrides);
+    return await response.value();
   }
 
   /**
    * Update an existing space
    */
-  async spacesKeyPutRaw(
-    requestParameters: SpacesKeyPutOperationRequest,
+  async updateSpaceRaw(
+    requestParameters: UpdateSpaceOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (requestParameters.key === null || requestParameters.key === undefined) {
       throw new runtime.RequiredError(
         'key',
-        'Required parameter requestParameters.key was null or undefined when calling spacesKeyPut.'
+        'Required parameter requestParameters.key was null or undefined when calling updateSpace.'
       );
     }
 
     if (
-      requestParameters.spacesKeyPutRequest === null ||
-      requestParameters.spacesKeyPutRequest === undefined
+      requestParameters.updateSpaceRequest === null ||
+      requestParameters.updateSpaceRequest === undefined
     ) {
       throw new runtime.RequiredError(
-        'spacesKeyPutRequest',
-        'Required parameter requestParameters.spacesKeyPutRequest was null or undefined when calling spacesKeyPut.'
+        'updateSpaceRequest',
+        'Required parameter requestParameters.updateSpaceRequest was null or undefined when calling updateSpace.'
       );
     }
 
@@ -162,7 +214,7 @@ export class SpacesApi extends runtime.BaseAPI {
         method: 'PUT',
         headers: headerParameters,
         query: queryParameters,
-        body: SpacesKeyPutRequestToJSON(requestParameters.spacesKeyPutRequest),
+        body: UpdateSpaceRequestToJSON(requestParameters.updateSpaceRequest),
       },
       initOverrides
     );
@@ -173,57 +225,10 @@ export class SpacesApi extends runtime.BaseAPI {
   /**
    * Update an existing space
    */
-  async spacesKeyPut(
-    requestParameters: SpacesKeyPutOperationRequest,
+  async updateSpace(
+    requestParameters: UpdateSpaceOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.spacesKeyPutRaw(requestParameters, initOverrides);
-  }
-
-  /**
-   * Create a new space
-   */
-  async spacesPostRaw(
-    requestParameters: SpacesPostOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<void>> {
-    if (
-      requestParameters.spacesPostRequest === null ||
-      requestParameters.spacesPostRequest === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'spacesPostRequest',
-        'Required parameter requestParameters.spacesPostRequest was null or undefined when calling spacesPost.'
-      );
-    }
-
-    const queryParameters: any = {};
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters['Content-Type'] = 'application/json';
-
-    const response = await this.request(
-      {
-        path: `/spaces`,
-        method: 'POST',
-        headers: headerParameters,
-        query: queryParameters,
-        body: SpacesPostRequestToJSON(requestParameters.spacesPostRequest),
-      },
-      initOverrides
-    );
-
-    return new runtime.VoidApiResponse(response);
-  }
-
-  /**
-   * Create a new space
-   */
-  async spacesPost(
-    requestParameters: SpacesPostOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<void> {
-    await this.spacesPostRaw(requestParameters, initOverrides);
+    await this.updateSpaceRaw(requestParameters, initOverrides);
   }
 }

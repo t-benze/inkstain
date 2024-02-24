@@ -19,6 +19,8 @@ import { AppContext } from './context';
 import { Document } from '../types';
 import { PrimarySidebar } from './PrimarySidebar';
 import { Space } from '../types';
+import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet';
 const queryClient = new QueryClient();
 
 const useStyles = makeStyles({
@@ -83,6 +85,12 @@ const InkStain = () => {
   const { openSpace, activeSpace } = useActiveSpace();
   const { openDocument, documentsAlive } = useActiveDocument();
 
+  React.useEffect(() => {
+    if (!activeSpace) {
+      openDocument('@inkstain/space-management');
+    }
+  }, [activeSpace, openDocument]);
+
   return platform ? (
     <AppContext.Provider
       value={{ platform, openDocument, activeSpace, openSpace, documentsAlive }}
@@ -97,9 +105,13 @@ const InkStain = () => {
 };
 
 const App: React.FunctionComponent = () => {
+  const { t } = useTranslation();
   return (
     <FluentProvider theme={webLightTheme}>
       <QueryClientProvider client={queryClient}>
+        <Helmet>
+          <title>{t('inkstain')}</title>
+        </Helmet>
         <InkStain />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

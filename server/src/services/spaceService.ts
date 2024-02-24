@@ -11,8 +11,9 @@ interface Space {
 }
 
 export enum ErrorCode {
-  SPACE_ALREADY_EXISTS,
+  SPACE_ALREADY_EXISTS = 1,
   SPACE_DOES_NOT_EXIST,
+  IMPORT_INVALID_SPACE,
 }
 export class SpaceServiceError extends Error {
   constructor(message: string, public code?: ErrorCode) {
@@ -23,6 +24,10 @@ export class SpaceServiceError extends Error {
   static SPACE_EXISTS = new SpaceServiceError(
     'Space with name already exists.'
   );
+}
+
+function hashName(name: string) {
+  return crypto.createHash('sha256').update(name).digest('hex').slice(0, 8);
 }
 
 class SpaceService {
@@ -48,13 +53,15 @@ class SpaceService {
     await fs.writeFile(settings.spaceDataFile, data, 'utf-8');
   }
 
-  public async createSpace({ name, path: spacePath }: Space) {
+  public async createSpace({
+    name,
+    path: spacePath,
+  }: {
+    name: string;
+    path: string;
+  }) {
     const spaces = await this.loadSpaceData();
-    const key = crypto
-      .createHash('sha256')
-      .update(name)
-      .digest('hex')
-      .slice(0, 8);
+    const key = hashName(name);
     if (spaces[key]) {
       console.log('space data', JSON.stringify(spaces, null, 2));
       throw new SpaceServiceError(
@@ -75,6 +82,32 @@ class SpaceService {
       'utf-8'
     );
     logger.info(`Space created: ${name}`);
+  }
+
+  public async importExistingInkStainSpace(spacePath: string) {
+    const inkstainFile = path.join(spacePath, '.inkstain');
+    try {
+      await fs.access(inkstainFile);
+    } catch (err) {
+      throw new SpaceServiceError(
+        'The directory is not an inkstain space.',
+        ErrorCode.IMPORT_INVALID_SPACE
+      );
+    }
+    const fileContent = await fs.readFile(inkstainFile, 'utf-8');
+    const metaData = JSON.parse(fileContent);
+    const spaceName = metaData.name;
+    const key = hashName(spaceName);
+    const spaces = await this.loadSpaceData();
+    if (spaces[key]) {
+      throw new SpaceServiceError(
+        `Space with name ${spaceName} already exists.`,
+        ErrorCode.SPACE_ALREADY_EXISTS
+      );
+    }
+    spaces[key] = { name: spaceName, key, path: spacePath };
+    await this.saveSpaceData(spaces);
+    logger.info(`Space imported: ${spaceName}, path: ${spacePath}`);
   }
 
   public async updateSpace(key: string, data: Partial<Space>) {
