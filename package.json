@@ -4,9 +4,10 @@
   "license": "MIT",
   "scripts": {
     "prepare": "husky install",
-    "build": "npx nx run-many -t build",
-    "start": "node dist/server/main.js",
-    "cypress:open": "cypress open"
+    "build": "nx run-many -t build",
+    "start": "nx run server:serve:production",
+    "cypress:dev": "cypress open --project ./cypress --config baseUrl=http://localhost:6061",
+    "cypress:test": "nx run cypress:e2e:test"
   },
   "private": true,
   "dependencies": {

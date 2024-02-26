@@ -11,7 +11,7 @@ const runtimePath =
     ? process.env.LOCALAPPDATA
     : path.join(os.homedir(), '.local');
 const runtimeDataFolder = path.join(runtimePath, 'inkstain', 'data');
-const baseUrl = 'http://localhost:6060';
+// const baseUrl = 'http://localhost:6060';
 
 async function copyDirectory(source, destination) {
   await fs.mkdir(destination, { recursive: true });
@@ -40,13 +40,15 @@ export default defineConfig({
     html: false,
     json: true,
   },
+  viewportWidth: 1440,
+  viewportHeight: 1024,
   env: {
     TEST_SPACE: testSpacePath,
     RUNTIME_DATA_FOLDER: runtimeDataFolder,
   },
   e2e: {
     ...nxE2EPreset(__filename, { cypressDir: 'src' }),
-    baseUrl,
+    baseUrl: 'http://localhost:6060',
     setupNodeEvents(on, config) {
       on('before:run', async () => {
         try {
@@ -77,7 +79,7 @@ export default defineConfig({
 
       on('task', {
         async 'platform:get'() {
-          const response = await fetch(baseUrl + '/api/v1/platform');
+          const response = await fetch(config.baseUrl + '/api/v1/platform');
           return response.json();
         },
         async 'spaces:seed'() {
@@ -100,7 +102,7 @@ export default defineConfig({
             'utf-8'
           );
           const createSpaceResponse = await fetch(
-            baseUrl + '/api/v1/spaces?type=inkstain',
+            config.baseUrl + '/api/v1/spaces?type=inkstain',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

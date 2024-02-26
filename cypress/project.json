@@ -6,10 +6,12 @@
   "targets": {
     "e2e": {
       "executor": "@nx/cypress:cypress",
+      "defaultConfiguration": "test",
       "options": {
         "cypressConfig": "cypress/cypress.config.ts",
         "testingType": "e2e",
-        "devServerTarget": "server:serve:test"
+        "devServerTarget": "server:serve:test",
+        "baseUrl": "http://localhost:6062"
       }
     },
     "lint": {

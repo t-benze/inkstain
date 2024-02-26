@@ -85,20 +85,23 @@ const SpaceNameDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogSurface>
-        <DialogTitle>{t('space.input_spance_name')}</DialogTitle>
+        <DialogTitle>{t('space.input_space_name')}</DialogTitle>
         <DialogBody>
-          <Field label={t('space.name')}>
-            <Input
-              value={spaceName}
-              onChange={(_, data) => onSpaceNameChange(data.value)}
-            />
-          </Field>
+          <Input
+            data-test="createSpace-nameInput"
+            value={spaceName}
+            onChange={(_, data) => onSpaceNameChange(data.value)}
+          />
         </DialogBody>
         <DialogActions>
           <DialogTrigger>
             <Button appearance="secondary">{t('cancel')}</Button>
           </DialogTrigger>
-          <Button appearance="primary" onClick={onConfirm}>
+          <Button
+            data-test="createSpace-confirmBtn"
+            appearance="primary"
+            onClick={onConfirm}
+          >
             {t('confirm')}
           </Button>
         </DialogActions>
@@ -215,6 +218,7 @@ export const SpaceManagementView = () => {
       <Title2>{t('space.start')}</Title2>
       <div className={styles.start}>
         <Button
+          data-test="createSpaceBtn"
           appearance="transparent"
           size="large"
           icon={<FormNewRegular />}
@@ -226,6 +230,7 @@ export const SpaceManagementView = () => {
           {t('space.create_space')}
         </Button>
         <Button
+          data-test="openFolderBtn"
           appearance="transparent"
           size="large"
           icon={<FolderOpenRegular />}
@@ -237,14 +242,18 @@ export const SpaceManagementView = () => {
           {t('space.open_folder')}
         </Button>
       </div>
-      <Title2>{t('space.recent')}</Title2>
+      <Title2>{t('space.open_space')}</Title2>
       <div className={styles.recent}></div>
       {isSpacesLoading ? (
         <div>{t('loading')}</div>
       ) : spaces && spaces.length > 0 ? (
         spaces.map((space) => {
           return (
-            <div key={space.key} className={styles.recentSpace}>
+            <div
+              data-test={`recent-space-${space.key}`}
+              key={space.key}
+              className={styles.recentSpace}
+            >
               <Button
                 appearance="transparent"
                 size="large"
@@ -267,8 +276,6 @@ export const SpaceManagementView = () => {
             setOpenSpaceNameDialog(true);
           } else {
             createNewSpace('inkstain');
-            // open a directory as space
-            console.log(' open directroy as space', path);
           }
         }}
         onOpenChange={(_, data) => {

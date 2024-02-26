@@ -1,5 +1,7 @@
 {
   "inkstain": "InkStain",
+  "file": "File",
+  "settings": "Settings",
   "delete": "Delete",
   "confirm": "Confirm",
   "cancel": "Cancel",
@@ -7,9 +9,11 @@
   "next": "Next",
   "choose_a_directory": "Choose a directory",
   "space": {
+    "_": "Space",
+    "input_space_name": "Input the space name",
     "recent": "Recent",
     "start": "Start",
-    "space_name": "Space name",
+    "name": "Space name",
     "location": "Location",
     "create": "Create",
     "open_space": "Open space",

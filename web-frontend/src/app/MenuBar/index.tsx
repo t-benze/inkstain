@@ -10,6 +10,7 @@ import {
   tokens,
   shorthands,
 } from '@fluentui/react-components';
+import { useTranslation } from 'react-i18next';
 import { AppContext } from '~/web/app/context';
 
 const useStyles = makeStyles({
@@ -29,6 +30,7 @@ const useStyles = makeStyles({
 
 export const MenuBar = () => {
   const styles = useStyles();
+  const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const { openDocument } = React.useContext(AppContext);
 
@@ -45,14 +47,24 @@ export const MenuBar = () => {
     <div className={styles.root}>
       <Menu>
         <MenuTrigger>
-          <Button appearance="subtle" size="small">
-            File
+          <Button data-test="menubar-file" appearance="subtle" size="small">
+            {t('file')}
           </Button>
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem onClick={openSpaceManagementPage}>Spaces</MenuItem>
-            <MenuItem onClick={toggleSettingsDialog}>Settings</MenuItem>
+            <MenuItem
+              data-test="menuItem-space"
+              onClick={openSpaceManagementPage}
+            >
+              {t('space._')}
+            </MenuItem>
+            <MenuItem
+              data-test="menuItem-settings"
+              onClick={toggleSettingsDialog}
+            >
+              {t('settings')}
+            </MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>

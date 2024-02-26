@@ -1,6 +1,4 @@
 /// <reference types="cypress" />
-
-// ***********************************************
 // This example commands.ts shows you how to
 // create various custom commands and overwrite
 // existing commands.
@@ -14,13 +12,28 @@
 declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Chainable<Subject> {
-    login(email: string, password: string): void;
+    openApp(): void;
+    getBySel(selector: string, options?: object): Chainable<Subject>;
+    getBySelContains(selector: string, options?: object): Chainable<Subject>;
+    getBySelStartsWith(selector: string, options?: object): Chainable<Subject>;
+    getBySelEndsWith(selector: string, options?: object): Chainable<Subject>;
   }
 }
 
-// -- This is a parent command --
-Cypress.Commands.add('login', (email, password) => {
-  console.log('Custom command example: Login', email, password);
+Cypress.Commands.add('openApp', () => {
+  cy.visit(Cypress.config('baseUrl'));
+});
+Cypress.Commands.add('getBySel', (selector, options) => {
+  return cy.get(`[data-test=${selector}]`, options);
+});
+Cypress.Commands.add('getBySelContains', (selector, options) => {
+  return cy.get(`[data-test*=${selector}]`, options);
+});
+Cypress.Commands.add('getBySelStartsWith', (selector, options) => {
+  return cy.get(`[data-test^=${selector}]`, options);
+});
+Cypress.Commands.add('getBySelEndsWith', (selector, options) => {
+  return cy.get(`[data-test$=${selector}]`, options);
 });
 //
 // -- This is a child command --

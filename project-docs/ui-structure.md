@@ -28,12 +28,13 @@ The main area mainly consist of a Tab Container for viewing and editing the open
 - Document Tabs: Tabs for each opened document.
 - Viewer/Editor: Space adapts to display the viewer or editor suitable for the document type.
 
-#### Space Management Page
+#### Space Management
 
 A page for managing 'Spaces', where users can organize groups of related documents:
 
 - 'Spaces' List: Shows existing 'Spaces', with options like open, edit, and delete.
 - Create 'Space' Button: Initiates the creation of a new 'Space', prompting the user to provide a name.
+- Open 'Folder' Button: Open an existing folder that is a inkstain space.
 
 #### Settings Page
 

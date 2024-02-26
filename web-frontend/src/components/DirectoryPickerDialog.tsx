@@ -65,11 +65,10 @@ export const DirectoryPickerDialog: React.FunctionComponent<
       ...currentDirectoryInner.split(appContext.platform.pathSep),
     ],
     queryFn: async () => {
-      console.log('fetching directories', currentDirectoryInner);
-      if (currentDirectory === '') {
-        return await (appContext.platform.drives ?? []).map((d) => ({
+      if (currentDirectoryInner === '') {
+        return (appContext.platform.drives ?? []).map((d) => ({
           name: d.replace('\\', ''),
-          path: d,
+          path: d + appContext.platform.pathSep,
         }));
       }
       return await platformApi.platformDirectoriesPathGet({
@@ -84,11 +83,15 @@ export const DirectoryPickerDialog: React.FunctionComponent<
     .filter(Boolean)
     .reduce((acc: { name: string; path: string }[], segment) => {
       if (acc.length === 0) {
-        return [
-          appContext.platform.platform === 'win32'
-            ? { name: 'PC', path: '' }
-            : { name: segment, path: '/' + segment },
-        ];
+        return appContext.platform.platform === 'win32'
+          ? [
+              { name: 'PC', path: '' },
+              {
+                name: segment,
+                path: `${segment}${appContext.platform.pathSep}`,
+              },
+            ]
+          : [{ name: segment, path: '/' + segment }];
       } else {
         return [
           ...acc,
@@ -122,9 +125,9 @@ export const DirectoryPickerDialog: React.FunctionComponent<
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog data-open={open} open={open} onOpenChange={onOpenChange}>
       <DialogSurface>
-        <DialogBody>
+        <DialogBody data-test="direcotryPickerDialog">
           <DialogTitle>{t('choose_a_directory')}</DialogTitle>
           <DialogContent>
             {renderBreadcrumbs()}
@@ -155,6 +158,7 @@ export const DirectoryPickerDialog: React.FunctionComponent<
             </DialogTrigger>
             <DialogTrigger disableButtonEnhancement>
               <Button
+                data-test="directoryPickerDialog-confirmBtn"
                 appearance="primary"
                 onClick={() => onSelectDirectory(currentDirectoryInner)}
               >

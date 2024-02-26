@@ -1,9 +1,7 @@
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-dotenv.config();
 export const env =
   (process.env.NODE_ENV as 'development' | 'production' | 'test') ??
   'production';
