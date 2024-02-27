@@ -82,9 +82,14 @@ export default defineConfig({
           const response = await fetch(config.baseUrl + '/api/v1/platform');
           return response.json();
         },
-        async 'spaces:seed'() {
+        async seedTestSpaceForDocument() {
           const name = 'My Test Space For Document';
           const targetPath = path.join(testSpacePath, name);
+          try {
+            await fs.rmdir(targetPath, { recursive: true });
+          } catch (e) {
+            /* empty */
+          }
 
           await copyDirectory(
             path.join(__dirname, 'src', 'fixtures', 'test-space'),
@@ -112,10 +117,13 @@ export default defineConfig({
             }
           );
 
-          if (createSpaceResponse.status !== 201)
+          if (
+            createSpaceResponse.status !== 201 &&
+            createSpaceResponse.status !== 400
+          )
             throw new Error('Failed to import test space');
 
-          return null;
+          return Promise.resolve(null);
         },
       });
     },

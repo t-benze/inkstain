@@ -13,7 +13,7 @@ describe('Space Management UI', () => {
   context('Recent Spaces List', () => {
     it('should display a list of recent spaces', () => {
       // Check for the existence of a 'Spaces' list container, assuming a class `.space-list`
-      cy.getBySelStartsWith('recent-space').as('spaceList');
+      cy.getBySelStartsWith('recentSpaceBtn').as('spaceList');
       expect(cy.get('@spaceList')).to.exist;
     });
   });
@@ -57,6 +57,14 @@ describe('Space Management UI', () => {
       expect(cy.getBySel('direcotryPickerDialog')).to.exist;
       cy.getBySel('directoryPickerDialog-confirmBtn').click();
       cy.wait('@openFolder');
+    });
+  });
+
+  context('Open Space', () => {
+    it('should open an exising test space', () => {
+      cy.getBySel('recentSpaceBtn-a116538b').click();
+      cy.getBySel('fileExplorer').as('fileExplorer');
+      cy.get('@fileExplorer').should('have.attr', 'data-space-key', 'a116538b');
     });
   });
 });

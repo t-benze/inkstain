@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { TabList, Tab, makeStyles } from '@fluentui/react-components';
+import {
+  TabList,
+  Tab,
+  makeStyles,
+  tokens,
+  shorthands,
+} from '@fluentui/react-components';
 import type { SelectTabData, SelectTabEvent } from '@fluentui/react-components';
 import { DocumentView } from '~/web/components/DocumentView';
 import { Document } from '../types';
@@ -11,6 +17,14 @@ interface MainAreaProps {
 
 const useStyles = makeStyles({
   root: { width: '100%' },
+  tabList: {
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRight(
+      tokens.strokeWidthThin,
+      'solid',
+      tokens.colorNeutralStroke1
+    ),
+  },
   panelArea: {},
   panel: {
     width: '100%',
@@ -38,7 +52,7 @@ const TabPanel = ({
   );
 };
 
-export const MainArea = ({}: MainAreaProps) => {
+export const MainArea = () => {
   const { documentsAlive } = React.useContext(AppContext);
   const [activeDocument, setActiveDocument] = React.useState<Document | null>(
     documentsAlive[0] ? documentsAlive[0] : null
@@ -63,7 +77,12 @@ export const MainArea = ({}: MainAreaProps) => {
 
   return (
     <div className={styles.root}>
-      <TabList onTabSelect={onTabSelect} size="small" appearance="subtle">
+      <TabList
+        className={styles.tabList}
+        onTabSelect={onTabSelect}
+        size="small"
+        appearance="subtle"
+      >
         {documentsAlive.map((document) => {
           return (
             <Tab key={document.name} value={document.name}>

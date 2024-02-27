@@ -113,7 +113,6 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
 
   const handleOpenChange = React.useCallback<OnOpenChange>(
     (_, data) => {
-      console.log('on open change', data);
       setOpenItems(data.openItems);
     },
     [setOpenItems]
@@ -174,7 +173,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ['documents', space.name, addNewFolderTarget || ''],
+        queryKey: ['documents', space.key, addNewFolderTarget || ''],
       });
       setAddNewFolderTarget(null);
     },
@@ -187,14 +186,14 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         appContext.platform.pathSep
       );
       queryClient.invalidateQueries({
-        queryKey: ['documents', space.name, folder],
+        queryKey: ['documents', space.key, folder],
       });
     } else {
       queryClient.invalidateQueries({
-        queryKey: ['documents', space.name, ''],
+        queryKey: ['documents', space.key, ''],
       });
     }
-  }, [lastClick, appContext.platform.pathSep, space.name, queryClient]);
+  }, [lastClick, appContext.platform.pathSep, space.key, queryClient]);
 
   const deleteFiles = React.useCallback(async () => {
     const filesToDelete =
@@ -223,9 +222,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           .join(appContext.platform.pathSep)
       );
     }
-    console.log('refresh folder, foldersToRefresh', foldersToRefresh);
     foldersToRefresh.forEach((folder) => {
-      console.log('invalidate', folder);
       queryClient.invalidateQueries({
         queryKey: ['documents', space.key, folder],
       });
@@ -237,71 +234,79 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     lastClick,
     queryClient,
   ]);
-
   return (
-    <div className={styles.root}>
+    <div
+      data-test="fileExplorer"
+      data-space-key={space.key}
+      className={styles.root}
+    >
       <input
+        data-test="fileExplorer-fileInput"
         ref={fileInputRef}
         type="file"
         style={{ display: 'none' }}
         onChange={handleFileInputChange}
       />
       <div className={styles.header}>
-        <Text>{space.name}</Text>
-        <div>
-          <Tooltip
-            content={t('file_explorer.add_a_document_tooltip')}
-            relationship="label"
-            positioning={'below'}
-          >
-            <Button
-              appearance="subtle"
-              size="small"
-              icon={<DocumentAddRegular />}
-              onClick={() => {
-                fileInputRef.current?.click();
-              }}
-            />
-          </Tooltip>
-          <Tooltip
-            content={t('file_explorer.add_a_folder_tooltip')}
-            relationship="label"
-            positioning={'below'}
-          >
-            <Button
-              appearance="subtle"
-              size="small"
-              icon={<FolderAddRegular />}
-              onClick={handleAddFolder}
-            />
-          </Tooltip>
-          <Tooltip
-            content={t('file_explorer.refresh_folder_tooltip')}
-            relationship="label"
-            positioning={'below'}
-          >
-            <Button
-              appearance="subtle"
-              size="small"
-              icon={<FolderSyncRegular />}
-              onClick={handleSyncFolder}
-            />
-          </Tooltip>
-          <Tooltip
-            content={t('file_explorer.collapse_all_tooltip')}
-            relationship="label"
-            positioning={'below'}
-          >
-            <Button
-              appearance="subtle"
-              size="small"
-              icon={<ArrowCollapseAllRegular />}
-              onClick={() => {
-                setOpenItems(new Set());
-              }}
-            />
-          </Tooltip>
-        </div>
+        <Text wrap={false} truncate={true}>
+          {space.name}
+        </Text>
+        <Tooltip
+          content={t('file_explorer.add_a_document_tooltip')}
+          relationship="label"
+          positioning={'below'}
+        >
+          <Button
+            data-test="fileExplorer-addDocumentBtn"
+            appearance="subtle"
+            size="small"
+            icon={<DocumentAddRegular />}
+            onClick={() => {
+              fileInputRef.current?.click();
+            }}
+          />
+        </Tooltip>
+        <Tooltip
+          content={t('file_explorer.add_a_folder_tooltip')}
+          relationship="label"
+          positioning={'below'}
+        >
+          <Button
+            data-test="fileExplorer-addFolderBtn"
+            appearance="subtle"
+            size="small"
+            icon={<FolderAddRegular />}
+            onClick={handleAddFolder}
+          />
+        </Tooltip>
+        <Tooltip
+          content={t('file_explorer.refresh_folder_tooltip')}
+          relationship="label"
+          positioning={'below'}
+        >
+          <Button
+            data-test="fileExplorer-refreshFolderBtn"
+            appearance="subtle"
+            size="small"
+            icon={<FolderSyncRegular />}
+            onClick={handleSyncFolder}
+          />
+        </Tooltip>
+        <Tooltip
+          content={t('file_explorer.collapse_all_tooltip')}
+          relationship="label"
+          positioning={'below'}
+        >
+          <Button
+            data-test="fileExplorer-collapseAllBtn"
+            appearance="subtle"
+            size="small"
+            icon={<ArrowCollapseAllRegular />}
+            onClick={() => {
+              setOpenItems(new Set());
+            }}
+          />
+        </Tooltip>
       </div>
       <FolderTree
         spaceKey={space.key}

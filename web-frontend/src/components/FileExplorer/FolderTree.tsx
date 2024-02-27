@@ -100,6 +100,7 @@ export const FolderTree = ({
     <Spinner></Spinner>
   ) : (
     <Tree
+      data-test={level === 0 ? 'fileExplorer-folderTree' : undefined}
       aria-label="File folder tree"
       openItems={openItems}
       onOpenChange={onOpenChange}
@@ -112,6 +113,7 @@ export const FolderTree = ({
         >
           <TreeItemLayout>
             <Input
+              data-test="fileExplorer-newFolderNameInput"
               size="small"
               ref={newFolderInputRef}
               value={newFolderName}
@@ -135,68 +137,79 @@ export const FolderTree = ({
           </TreeItemLayout>
         </TreeItem>
       ) : null}
-      {data?.map((document) => (
-        <Menu openOnContext positioning="below-end">
-          <MenuTrigger disableButtonEnhancement>
-            <TreeItem
-              onContextMenu={(e) => {
-                e.stopPropagation();
-                onTreeItemClicked &&
-                  onTreeItemClicked({
-                    event: e,
-                    value: document.path,
-                    itemType: document.type === 'folder' ? 'branch' : 'leaf',
-                  });
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onTreeItemClicked &&
-                  onTreeItemClicked({
-                    event: e,
-                    value: document.path,
-                    itemType: document.type === 'folder' ? 'branch' : 'leaf',
-                  });
-              }}
-              key={document.path}
-              itemType={document.type === 'folder' ? 'branch' : 'leaf'}
-              value={
-                document.path +
-                (document.type === 'folder' ? appContext.platform.pathSep : '')
-              }
-            >
-              <TreeItemLayout
-                className={mergeClasses(
-                  styles.itemLayout,
-                  selection.has(document.path) ? styles.itemSelected : undefined
-                )}
-                main={{ style: { width: '100%' } }}
+      {data?.map((document) => {
+        const value =
+          document.path +
+          (document.type === 'folder' ? appContext.platform.pathSep : '');
+        const itemType = document.type === 'folder' ? 'branch' : 'leaf';
+        return (
+          <Menu key={value} openOnContext positioning="below-end">
+            <MenuTrigger disableButtonEnhancement>
+              <TreeItem
+                onContextMenu={(e) => {
+                  e.stopPropagation();
+                  onTreeItemClicked &&
+                    onTreeItemClicked({
+                      event: e,
+                      value: value,
+                      itemType,
+                    });
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTreeItemClicked &&
+                    onTreeItemClicked({
+                      event: e,
+                      value: value,
+                      itemType,
+                    });
+                }}
+                itemType={itemType}
+                value={value}
               >
-                <Text wrap={false} truncate={true} className={styles.itemText}>
-                  {document.name}
-                </Text>
-              </TreeItemLayout>
-              {document.type === 'folder' && (
-                <FolderTree
-                  addFolder={addFolder}
-                  onTreeItemClicked={onTreeItemClicked}
-                  selection={selection}
-                  spaceKey={spaceKey}
-                  path={document.path + appContext.platform.pathSep}
-                  level={level + 1}
-                  openItems={openItems}
-                  addNewFolderTarget={addNewFolderTarget}
-                  deleteFiles={deleteFiles}
-                />
-              )}
-            </TreeItem>
-          </MenuTrigger>
-          <MenuPopover>
-            <MenuList>
-              <MenuItem onClick={deleteFiles}>{t('delete')}</MenuItem>
-            </MenuList>
-          </MenuPopover>
-        </Menu>
-      ))}
+                <TreeItemLayout
+                  className={mergeClasses(
+                    styles.itemLayout,
+                    selection.has(value) ? styles.itemSelected : undefined
+                  )}
+                  main={{ style: { width: '100%' } }}
+                >
+                  <Text
+                    wrap={false}
+                    truncate={true}
+                    className={styles.itemText}
+                  >
+                    {document.name}
+                  </Text>
+                </TreeItemLayout>
+                {document.type === 'folder' && (
+                  <FolderTree
+                    addFolder={addFolder}
+                    onTreeItemClicked={onTreeItemClicked}
+                    selection={selection}
+                    spaceKey={spaceKey}
+                    path={document.path + appContext.platform.pathSep}
+                    level={level + 1}
+                    openItems={openItems}
+                    addNewFolderTarget={addNewFolderTarget}
+                    deleteFiles={deleteFiles}
+                  />
+                )}
+              </TreeItem>
+            </MenuTrigger>
+            <MenuPopover>
+              <MenuList>
+                <MenuItem
+                  data-test="fileExplorer-contextDelete"
+                  onClick={deleteFiles}
+                >
+                  {t('delete')}
+                </MenuItem>
+              </MenuList>
+            </MenuPopover>
+          </Menu>
+        );
+      })}
     </Tree>
   );
 };

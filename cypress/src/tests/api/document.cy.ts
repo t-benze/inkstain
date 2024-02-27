@@ -10,7 +10,7 @@ describe('Documents API', () => {
         ctx.pathSep = response.pathSep;
       }
     );
-    cy.task('spaces:seed').then(() => {
+    cy.task('seedTestSpaceForDocument').then(() => {
       done();
     });
   });

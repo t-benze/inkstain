@@ -249,12 +249,9 @@ export const SpaceManagementView = () => {
       ) : spaces && spaces.length > 0 ? (
         spaces.map((space) => {
           return (
-            <div
-              data-test={`recent-space-${space.key}`}
-              key={space.key}
-              className={styles.recentSpace}
-            >
+            <div key={space.key} className={styles.recentSpace}>
               <Button
+                data-test={`recentSpaceBtn-${space.key}`}
                 appearance="transparent"
                 size="large"
                 onClick={() => appContext.openSpace(space)}
