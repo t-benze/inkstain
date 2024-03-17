@@ -57,18 +57,18 @@ const getFolderPath = (
 };
 
 const useSelection = () => {
-  const lastClick = React.useRef<{
+  const lastSelect = React.useRef<{
     value: string;
     itemType: string;
   } | null>(null);
   const [selection, setSelection] = React.useState<Set<string>>(new Set());
 
-  const handleItemClicked = React.useCallback<OnTreeItemClicked>(
+  // TODO: support multi-select properly
+  const handleSelected = React.useCallback<OnTreeItemClicked>(
     (data) => {
       const value = data.value.toString();
       if (data.event.shiftKey) {
         // Shift is held: Select the range from the last selected item to the clicked item
-        // TODO: find the range of items between lastSelected and data.value
         // setSelection(new Set([...selection, ...range]));
       } else if (data.event.ctrlKey || data.event.metaKey) {
         // Use metaKey to support Command key on macOS
@@ -82,7 +82,7 @@ const useSelection = () => {
         // No modifier keys: Select only the clicked item (and deselect others)
         setSelection(new Set([value]));
       }
-      lastClick.current = {
+      lastSelect.current = {
         value,
         itemType: data.itemType,
       };
@@ -91,9 +91,9 @@ const useSelection = () => {
   );
 
   return {
-    lastClick,
+    lastSelect,
     selection,
-    handleItemClicked,
+    handleSelected,
   } as const;
 };
 
@@ -106,11 +106,26 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   const [openItems, setOpenItems] = React.useState<Set<TreeItemValue>>(
     new Set()
   );
-  const { lastClick, selection, handleItemClicked } = useSelection();
+  const { lastSelect, selection, handleSelected } = useSelection();
   const [addNewFolderTarget, setAddNewFolderTarget] = React.useState<
     string | null
   >(null);
 
+  const handleTreeItemClicked = React.useCallback<OnTreeItemClicked>(
+    (e) => {
+      handleSelected(e);
+      if (e.itemType === 'leaf') {
+        appContext.openDocument(e.value.toString());
+      }
+    },
+    [handleSelected, appContext]
+  );
+  const handleTreeItemDoubleClicked = React.useCallback<OnTreeItemClicked>(
+    (e) => {
+      handleSelected(e);
+    },
+    [handleSelected]
+  );
   const handleOpenChange = React.useCallback<OnOpenChange>(
     (_, data) => {
       setOpenItems(data.openItems);
@@ -124,11 +139,11 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       if (!file) throw new Error('No file selected');
       const formData = new FormData();
       formData.append('document', file);
-      const folder = lastClick.current
-        ? getFolderPath(lastClick.current, appContext.platform.pathSep)
+      const folder = lastSelect.current
+        ? getFolderPath(lastSelect.current, appContext.platform.pathSep)
         : '';
       try {
-        await documentsApi.documentsSpaceKeyAddPost({
+        await documentsApi.addDocument({
           spaceKey: space.key,
           path:
             folder === ''
@@ -145,16 +160,16 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         event.target.files = null;
       }
     },
-    [space.key, lastClick, appContext.platform.pathSep, queryClient]
+    [space.key, lastSelect, appContext.platform.pathSep, queryClient]
   );
 
   const handleAddFolder = React.useCallback(() => {
     // const folder
-    const targetFolder = lastClick.current
-      ? getFolderPath(lastClick.current, appContext.platform.pathSep)
+    const targetFolder = lastSelect.current
+      ? getFolderPath(lastSelect.current, appContext.platform.pathSep)
       : '';
     setAddNewFolderTarget(targetFolder);
-  }, [setAddNewFolderTarget, lastClick, appContext.platform.pathSep]);
+  }, [setAddNewFolderTarget, lastSelect, appContext.platform.pathSep]);
 
   const { mutate: addFolder } = useMutation({
     mutationFn: async ({
@@ -164,7 +179,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       targetFolder: string;
       name: string;
     }) => {
-      return await documentsApi.documentsSpaceKeyAddFolderPost({
+      return await documentsApi.addFolder({
         spaceKey: space.key,
         path: targetFolder
           ? targetFolder + appContext.platform.pathSep + name
@@ -180,9 +195,9 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   });
 
   const handleSyncFolder = React.useCallback(() => {
-    if (lastClick.current) {
+    if (lastSelect.current) {
       const folder = getFolderPath(
-        lastClick.current,
+        lastSelect.current,
         appContext.platform.pathSep
       );
       queryClient.invalidateQueries({
@@ -193,24 +208,24 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         queryKey: ['documents', space.key, ''],
       });
     }
-  }, [lastClick, appContext.platform.pathSep, space.key, queryClient]);
+  }, [lastSelect, appContext.platform.pathSep, space.key, queryClient]);
 
   const deleteFiles = React.useCallback(async () => {
     const filesToDelete =
       selection.size > 1
         ? selection
-        : lastClick.current
-        ? [lastClick.current.value]
+        : lastSelect.current
+        ? [lastSelect.current.value]
         : [];
     const foldersToRefresh = new Set<string>();
     for (const file of filesToDelete) {
       if (file.endsWith(appContext.platform.pathSep)) {
-        await documentsApi.documentsSpaceKeyDeleteFolderDelete({
+        await documentsApi.deleteFolder({
           spaceKey: space.key,
           path: file,
         });
       } else {
-        await documentsApi.documentsSpaceKeyDeleteDelete({
+        await documentsApi.deleteDocument({
           spaceKey: space.key,
           path: file,
         });
@@ -231,7 +246,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     selection,
     appContext.platform.pathSep,
     space.key,
-    lastClick,
+    lastSelect,
     queryClient,
   ]);
   return (
@@ -314,7 +329,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         selection={selection}
         openItems={openItems}
         onOpenChange={handleOpenChange}
-        onTreeItemClicked={handleItemClicked}
+        onTreeItemClicked={handleTreeItemClicked}
+        onTreeItemDoubleClicked={handleTreeItemDoubleClicked}
         addNewFolderTarget={addNewFolderTarget}
         addFolder={addFolder}
         deleteFiles={deleteFiles}

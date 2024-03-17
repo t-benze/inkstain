@@ -1,8 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './CreateSpaceOperationType';
 export * from './CreateSpaceRequest';
-export * from './DocumentsSpaceKeyListGet200ResponseInner';
-export * from './PlatformDirectoriesPathGet200ResponseInner';
-export * from './PlatformGet200Response';
+export * from './ListDirectories200ResponseInner';
+export * from './ListDocuments200ResponseInner';
+export * from './PlatformInfo200Response';
 export * from './Space';
 export * from './UpdateSpaceRequest';

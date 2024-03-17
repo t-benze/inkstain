@@ -14,11 +14,14 @@
 
 import * as runtime from '../runtime';
 import type {
+  CreateSpaceOperationType,
   CreateSpaceRequest,
   Space,
   UpdateSpaceRequest,
 } from '../models/index';
 import {
+  CreateSpaceOperationTypeFromJSON,
+  CreateSpaceOperationTypeToJSON,
   CreateSpaceRequestFromJSON,
   CreateSpaceRequestToJSON,
   SpaceFromJSON,
@@ -29,7 +32,7 @@ import {
 
 export interface CreateSpaceOperationRequest {
   createSpaceRequest: CreateSpaceRequest;
-  type?: string;
+  type?: CreateSpaceOperationType;
 }
 
 export interface DeleteSpaceRequest {

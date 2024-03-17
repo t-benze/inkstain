@@ -14,6 +14,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
+    "types": ["cypress", "node"],
     "paths": {
       "@inkstain/client-api": ["lib/client-api/src/index.ts"],
       "~/server/*": ["server/src/*"],

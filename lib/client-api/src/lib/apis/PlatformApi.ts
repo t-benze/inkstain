@@ -14,17 +14,17 @@
 
 import * as runtime from '../runtime';
 import type {
-  PlatformDirectoriesPathGet200ResponseInner,
-  PlatformGet200Response,
+  ListDirectories200ResponseInner,
+  PlatformInfo200Response,
 } from '../models/index';
 import {
-  PlatformDirectoriesPathGet200ResponseInnerFromJSON,
-  PlatformDirectoriesPathGet200ResponseInnerToJSON,
-  PlatformGet200ResponseFromJSON,
-  PlatformGet200ResponseToJSON,
+  ListDirectories200ResponseInnerFromJSON,
+  ListDirectories200ResponseInnerToJSON,
+  PlatformInfo200ResponseFromJSON,
+  PlatformInfo200ResponseToJSON,
 } from '../models/index';
 
-export interface PlatformDirectoriesPathGetRequest {
+export interface ListDirectoriesRequest {
   path: string;
 }
 
@@ -36,19 +36,17 @@ export class PlatformApi extends runtime.BaseAPI {
    * This endpoint returns a list of directories in the specified path.
    * List directories of a specified path
    */
-  async platformDirectoriesPathGetRaw(
-    requestParameters: PlatformDirectoriesPathGetRequest,
+  async listDirectoriesRaw(
+    requestParameters: ListDirectoriesRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<
-    runtime.ApiResponse<Array<PlatformDirectoriesPathGet200ResponseInner>>
-  > {
+  ): Promise<runtime.ApiResponse<Array<ListDirectories200ResponseInner>>> {
     if (
       requestParameters.path === null ||
       requestParameters.path === undefined
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling platformDirectoriesPathGet.'
+        'Required parameter requestParameters.path was null or undefined when calling listDirectories.'
       );
     }
 
@@ -70,7 +68,7 @@ export class PlatformApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(PlatformDirectoriesPathGet200ResponseInnerFromJSON)
+      jsonValue.map(ListDirectories200ResponseInnerFromJSON)
     );
   }
 
@@ -78,11 +76,11 @@ export class PlatformApi extends runtime.BaseAPI {
    * This endpoint returns a list of directories in the specified path.
    * List directories of a specified path
    */
-  async platformDirectoriesPathGet(
-    requestParameters: PlatformDirectoriesPathGetRequest,
+  async listDirectories(
+    requestParameters: ListDirectoriesRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<Array<PlatformDirectoriesPathGet200ResponseInner>> {
-    const response = await this.platformDirectoriesPathGetRaw(
+  ): Promise<Array<ListDirectories200ResponseInner>> {
+    const response = await this.listDirectoriesRaw(
       requestParameters,
       initOverrides
     );
@@ -93,9 +91,9 @@ export class PlatformApi extends runtime.BaseAPI {
    * This endpoint returns the platform and home directory information of the server.
    * Get platform information
    */
-  async platformGetRaw(
+  async platformInfoRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<PlatformGet200Response>> {
+  ): Promise<runtime.ApiResponse<PlatformInfo200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -111,7 +109,7 @@ export class PlatformApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      PlatformGet200ResponseFromJSON(jsonValue)
+      PlatformInfo200ResponseFromJSON(jsonValue)
     );
   }
 
@@ -119,10 +117,10 @@ export class PlatformApi extends runtime.BaseAPI {
    * This endpoint returns the platform and home directory information of the server.
    * Get platform information
    */
-  async platformGet(
+  async platformInfo(
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<PlatformGet200Response> {
-    const response = await this.platformGetRaw(initOverrides);
+  ): Promise<PlatformInfo200Response> {
+    const response = await this.platformInfoRaw(initOverrides);
     return await response.value();
   }
 }

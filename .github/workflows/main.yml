@@ -35,8 +35,10 @@ jobs:
         with:
           name: build
           path: dist
+      - name: component test
+        run: npx nx run cypress:component
       - name: e2e test
-        run: npm run cypress:test
+        run: npx nx run cypress:e2e
 
   cypress-run-windows:
     runs-on: windows-latest
@@ -51,5 +53,7 @@ jobs:
         with:
           name: build
           path: dist
+      - name: component test
+        run: npx nx run cypress:component
       - name: e2e test
-        run: npm run cypress:test
+        run: npx nx run cypress:e2e

@@ -15,7 +15,7 @@ import { AppContext } from '~/web/app/context';
 
 const useStyles = makeStyles({
   root: {
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderBottom(
       tokens.strokeWidthThin,
       'solid',

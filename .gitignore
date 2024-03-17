@@ -6,6 +6,8 @@ tmp
 /out-tsc
 /cypress/results
 /cypress/testSpace
+/cypress/screenshots
+
 
 # dependencies
 node_modules
@@ -27,7 +29,8 @@ node_modules
 !.vscode/extensions.json
 
 # misc
-/.sass-cache
+/.eslintcache
+.sass-cache
 /connect.lock
 /coverage
 /libpeerconnection.log

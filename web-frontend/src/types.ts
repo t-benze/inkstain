@@ -8,3 +8,5 @@ export interface Space {
   name: string;
   path: string;
 }
+
+export type SystemDocumentType = '@inkstain/space-management';

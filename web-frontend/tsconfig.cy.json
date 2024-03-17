@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist/out-tsc",
+    "module": "commonjs",
+    "types": [
+      "cypress",
+      "node",
+      "@nx/react/typings/cssmodule.d.ts",
+      "@nx/react/typings/image.d.ts"
+    ]
+  },
+  "include": [
+    "../cypress/cypress.d.ts",
+    "jest.config.ts",
+    "src/**/*.test.ts",
+    "src/**/*.cy.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.cy.tsx",
+    "src/**/*.test.js",
+    "src/**/*.cy.js",
+    "src/**/*.test.jsx",
+    "src/**/*.cy.jsx",
+    "src/**/*.d.ts"
+  ]
+}

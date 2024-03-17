@@ -2,13 +2,19 @@
   "name": "cypress",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "cypress/src",
+  "sourceRoot": "cypress",
   "targets": {
+    "e2eDev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx cypress open --e2e --config baseUrl=http://localhost:6061"
+      }
+    },
     "e2e": {
       "executor": "@nx/cypress:cypress",
       "defaultConfiguration": "test",
       "options": {
-        "cypressConfig": "cypress/cypress.config.ts",
+        "cypressConfig": "cypress.config.ts",
         "testingType": "e2e",
         "devServerTarget": "server:serve:test",
         "baseUrl": "http://localhost:6062"
@@ -17,6 +23,20 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"]
+    },
+    "component": {
+      "executor": "@nx/cypress:cypress",
+      "defaultConfiguration": "test",
+      "options": {
+        "cypressConfig": "cypress.config.ts",
+        "testingType": "component"
+      }
+    },
+    "componentDev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx cypress open --component"
+      }
     }
   },
   "implicitDependencies": ["web-frontend", "server"],

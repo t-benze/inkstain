@@ -50,8 +50,7 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  *        name: type
  *        required: false
  *        schema:
- *          type: string
- *          description: 'new' - new space, 'inkstain' - import existing inkstain space
+ *          $ref: '#/components/schemas/CreateSpaceOperationType'
  *     requestBody:
  *       required: true
  *       content:

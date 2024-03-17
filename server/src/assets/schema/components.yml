@@ -16,6 +16,11 @@ components:
         key:
           type: string
           description: Key of the space.
+    CreateSpaceOperationType:
+      type: string
+      enum:
+        - new
+        - inkstain
     CreateSpaceRequest:
       type: object
       required:

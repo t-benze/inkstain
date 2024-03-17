@@ -8,6 +8,7 @@
   "loading": "Loading",
   "next": "Next",
   "choose_a_directory": "Choose a directory",
+  "error_unsupported_file_type": "This document type ({{type}}) is not supported by InkStain",
   "space": {
     "_": "Space",
     "input_space_name": "Input the space name",
@@ -30,5 +31,14 @@
     "add_a_folder_tooltip": "Add a folder",
     "refresh_folder_tooltip": "Refresh the folder",
     "collapse_all_tooltip": "Collapse all"
+  },
+  "pdfview": {
+    "prevPageBtnTooltip": "Previous page",
+    "nextPageBtnTooltip": "Next page",
+    "zoomInBtnTooltip": "Zoom in",
+    "zoomOutBtnTooltip": "Zoom out",
+    "fitWidthBtnTooltip": "Fit width",
+    "fitHeightBtnTooltip": "Fit height",
+    "resetScaleBtnTooltip": "Reset scale"
   }
 }

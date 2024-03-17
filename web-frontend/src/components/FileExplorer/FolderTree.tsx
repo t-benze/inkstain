@@ -42,6 +42,7 @@ interface FolderTreeProps {
   onOpenChange?: OnOpenChange;
   selection: Set<TreeItemValue>;
   onTreeItemClicked?: OnTreeItemClicked;
+  onTreeItemDoubleClicked?: OnTreeItemClicked;
   addNewFolderTarget: string | null;
   addFolder: (params: { targetFolder: string; name: string }) => void;
   deleteFiles: () => void;
@@ -68,6 +69,7 @@ export const FolderTree = ({
   level = 0,
   selection,
   onTreeItemClicked,
+  onTreeItemDoubleClicked,
   addNewFolderTarget,
   addFolder,
   deleteFiles,
@@ -81,7 +83,7 @@ export const FolderTree = ({
   const { data, isLoading } = useQuery({
     queryKey: ['documents', spaceKey, currentFolder],
     queryFn: async () => {
-      return await documentsApi.documentsSpaceKeyListGet({
+      return await documentsApi.listDocuments({
         spaceKey: spaceKey,
         path,
       });
@@ -146,10 +148,20 @@ export const FolderTree = ({
           <Menu key={value} openOnContext positioning="below-end">
             <MenuTrigger disableButtonEnhancement>
               <TreeItem
+                data-test={`fileExplorer-${document.type}`}
                 onContextMenu={(e) => {
                   e.stopPropagation();
                   onTreeItemClicked &&
                     onTreeItemClicked({
+                      event: e,
+                      value: value,
+                      itemType,
+                    });
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  onTreeItemDoubleClicked &&
+                    onTreeItemDoubleClicked({
                       event: e,
                       value: value,
                       itemType,

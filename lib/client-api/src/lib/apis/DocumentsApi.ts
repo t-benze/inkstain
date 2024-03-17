@@ -13,39 +13,39 @@
  */
 
 import * as runtime from '../runtime';
-import type { DocumentsSpaceKeyListGet200ResponseInner } from '../models/index';
+import type { ListDocuments200ResponseInner } from '../models/index';
 import {
-  DocumentsSpaceKeyListGet200ResponseInnerFromJSON,
-  DocumentsSpaceKeyListGet200ResponseInnerToJSON,
+  ListDocuments200ResponseInnerFromJSON,
+  ListDocuments200ResponseInnerToJSON,
 } from '../models/index';
 
-export interface DocumentsSpaceKeyAddFolderPostRequest {
-  spaceKey: string;
-  path: string;
-}
-
-export interface DocumentsSpaceKeyAddPostRequest {
+export interface AddDocumentRequest {
   spaceKey: string;
   path: string;
   document: Blob;
 }
 
-export interface DocumentsSpaceKeyContentGetRequest {
+export interface AddFolderRequest {
   spaceKey: string;
   path: string;
 }
 
-export interface DocumentsSpaceKeyDeleteDeleteRequest {
+export interface DeleteDocumentRequest {
   spaceKey: string;
   path: string;
 }
 
-export interface DocumentsSpaceKeyDeleteFolderDeleteRequest {
+export interface DeleteFolderRequest {
   spaceKey: string;
   path: string;
 }
 
-export interface DocumentsSpaceKeyListGetRequest {
+export interface GetDocumentContentRequest {
+  spaceKey: string;
+  path: string;
+}
+
+export interface ListDocumentsRequest {
   spaceKey: string;
   path: string;
 }
@@ -55,74 +55,10 @@ export interface DocumentsSpaceKeyListGetRequest {
  */
 export class DocumentsApi extends runtime.BaseAPI {
   /**
-   * Add a new folder within a space
-   */
-  async documentsSpaceKeyAddFolderPostRaw(
-    requestParameters: DocumentsSpaceKeyAddFolderPostRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<void>> {
-    if (
-      requestParameters.spaceKey === null ||
-      requestParameters.spaceKey === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling documentsSpaceKeyAddFolderPost.'
-      );
-    }
-
-    if (
-      requestParameters.path === null ||
-      requestParameters.path === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'path',
-        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceKeyAddFolderPost.'
-      );
-    }
-
-    const queryParameters: any = {};
-
-    if (requestParameters.path !== undefined) {
-      queryParameters['path'] = requestParameters.path;
-    }
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    const response = await this.request(
-      {
-        path: `/documents/{spaceKey}/addFolder`.replace(
-          `{${'spaceKey'}}`,
-          encodeURIComponent(String(requestParameters.spaceKey))
-        ),
-        method: 'POST',
-        headers: headerParameters,
-        query: queryParameters,
-      },
-      initOverrides
-    );
-
-    return new runtime.VoidApiResponse(response);
-  }
-
-  /**
-   * Add a new folder within a space
-   */
-  async documentsSpaceKeyAddFolderPost(
-    requestParameters: DocumentsSpaceKeyAddFolderPostRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<void> {
-    await this.documentsSpaceKeyAddFolderPostRaw(
-      requestParameters,
-      initOverrides
-    );
-  }
-
-  /**
    * Add a new document to a space
    */
-  async documentsSpaceKeyAddPostRaw(
-    requestParameters: DocumentsSpaceKeyAddPostRequest,
+  async addDocumentRaw(
+    requestParameters: AddDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (
@@ -131,7 +67,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling documentsSpaceKeyAddPost.'
+        'Required parameter requestParameters.spaceKey was null or undefined when calling addDocument.'
       );
     }
 
@@ -141,7 +77,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceKeyAddPost.'
+        'Required parameter requestParameters.path was null or undefined when calling addDocument.'
       );
     }
 
@@ -151,7 +87,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'document',
-        'Required parameter requestParameters.document was null or undefined when calling documentsSpaceKeyAddPost.'
+        'Required parameter requestParameters.document was null or undefined when calling addDocument.'
       );
     }
 
@@ -203,18 +139,18 @@ export class DocumentsApi extends runtime.BaseAPI {
   /**
    * Add a new document to a space
    */
-  async documentsSpaceKeyAddPost(
-    requestParameters: DocumentsSpaceKeyAddPostRequest,
+  async addDocument(
+    requestParameters: AddDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.documentsSpaceKeyAddPostRaw(requestParameters, initOverrides);
+    await this.addDocumentRaw(requestParameters, initOverrides);
   }
 
   /**
-   * Serve document content from a space
+   * Add a new folder within a space
    */
-  async documentsSpaceKeyContentGetRaw(
-    requestParameters: DocumentsSpaceKeyContentGetRequest,
+  async addFolderRaw(
+    requestParameters: AddFolderRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (
@@ -223,7 +159,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling documentsSpaceKeyContentGet.'
+        'Required parameter requestParameters.spaceKey was null or undefined when calling addFolder.'
       );
     }
 
@@ -233,7 +169,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceKeyContentGet.'
+        'Required parameter requestParameters.path was null or undefined when calling addFolder.'
       );
     }
 
@@ -247,11 +183,11 @@ export class DocumentsApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/documents/{spaceKey}/content`.replace(
+        path: `/documents/{spaceKey}/addFolder`.replace(
           `{${'spaceKey'}}`,
           encodeURIComponent(String(requestParameters.spaceKey))
         ),
-        method: 'GET',
+        method: 'POST',
         headers: headerParameters,
         query: queryParameters,
       },
@@ -262,20 +198,20 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
-   * Serve document content from a space
+   * Add a new folder within a space
    */
-  async documentsSpaceKeyContentGet(
-    requestParameters: DocumentsSpaceKeyContentGetRequest,
+  async addFolder(
+    requestParameters: AddFolderRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.documentsSpaceKeyContentGetRaw(requestParameters, initOverrides);
+    await this.addFolderRaw(requestParameters, initOverrides);
   }
 
   /**
    * Delete a document from a space
    */
-  async documentsSpaceKeyDeleteDeleteRaw(
-    requestParameters: DocumentsSpaceKeyDeleteDeleteRequest,
+  async deleteDocumentRaw(
+    requestParameters: DeleteDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (
@@ -284,7 +220,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling documentsSpaceKeyDeleteDelete.'
+        'Required parameter requestParameters.spaceKey was null or undefined when calling deleteDocument.'
       );
     }
 
@@ -294,7 +230,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceKeyDeleteDelete.'
+        'Required parameter requestParameters.path was null or undefined when calling deleteDocument.'
       );
     }
 
@@ -325,21 +261,18 @@ export class DocumentsApi extends runtime.BaseAPI {
   /**
    * Delete a document from a space
    */
-  async documentsSpaceKeyDeleteDelete(
-    requestParameters: DocumentsSpaceKeyDeleteDeleteRequest,
+  async deleteDocument(
+    requestParameters: DeleteDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.documentsSpaceKeyDeleteDeleteRaw(
-      requestParameters,
-      initOverrides
-    );
+    await this.deleteDocumentRaw(requestParameters, initOverrides);
   }
 
   /**
    * Delete a folder within a space
    */
-  async documentsSpaceKeyDeleteFolderDeleteRaw(
-    requestParameters: DocumentsSpaceKeyDeleteFolderDeleteRequest,
+  async deleteFolderRaw(
+    requestParameters: DeleteFolderRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (
@@ -348,7 +281,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling documentsSpaceKeyDeleteFolderDelete.'
+        'Required parameter requestParameters.spaceKey was null or undefined when calling deleteFolder.'
       );
     }
 
@@ -358,7 +291,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceKeyDeleteFolderDelete.'
+        'Required parameter requestParameters.path was null or undefined when calling deleteFolder.'
       );
     }
 
@@ -389,32 +322,27 @@ export class DocumentsApi extends runtime.BaseAPI {
   /**
    * Delete a folder within a space
    */
-  async documentsSpaceKeyDeleteFolderDelete(
-    requestParameters: DocumentsSpaceKeyDeleteFolderDeleteRequest,
+  async deleteFolder(
+    requestParameters: DeleteFolderRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
-    await this.documentsSpaceKeyDeleteFolderDeleteRaw(
-      requestParameters,
-      initOverrides
-    );
+    await this.deleteFolderRaw(requestParameters, initOverrides);
   }
 
   /**
-   * List all documents within a space or sub-folder
+   * Serve document content from a space
    */
-  async documentsSpaceKeyListGetRaw(
-    requestParameters: DocumentsSpaceKeyListGetRequest,
+  async getDocumentContentRaw(
+    requestParameters: GetDocumentContentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<
-    runtime.ApiResponse<Array<DocumentsSpaceKeyListGet200ResponseInner>>
-  > {
+  ): Promise<runtime.ApiResponse<Blob>> {
     if (
       requestParameters.spaceKey === null ||
       requestParameters.spaceKey === undefined
     ) {
       throw new runtime.RequiredError(
         'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling documentsSpaceKeyListGet.'
+        'Required parameter requestParameters.spaceKey was null or undefined when calling getDocumentContent.'
       );
     }
 
@@ -424,7 +352,72 @@ export class DocumentsApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling documentsSpaceKeyListGet.'
+        'Required parameter requestParameters.path was null or undefined when calling getDocumentContent.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/content`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.BlobApiResponse(response);
+  }
+
+  /**
+   * Serve document content from a space
+   */
+  async getDocumentContent(
+    requestParameters: GetDocumentContentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Blob> {
+    const response = await this.getDocumentContentRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * List all documents within a space or sub-folder
+   */
+  async listDocumentsRaw(
+    requestParameters: ListDocumentsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Array<ListDocuments200ResponseInner>>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling listDocuments.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling listDocuments.'
       );
     }
 
@@ -450,18 +443,18 @@ export class DocumentsApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(DocumentsSpaceKeyListGet200ResponseInnerFromJSON)
+      jsonValue.map(ListDocuments200ResponseInnerFromJSON)
     );
   }
 
   /**
    * List all documents within a space or sub-folder
    */
-  async documentsSpaceKeyListGet(
-    requestParameters: DocumentsSpaceKeyListGetRequest,
+  async listDocuments(
+    requestParameters: ListDocumentsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<Array<DocumentsSpaceKeyListGet200ResponseInner>> {
-    const response = await this.documentsSpaceKeyListGetRaw(
+  ): Promise<Array<ListDocuments200ResponseInner>> {
+    const response = await this.listDocumentsRaw(
       requestParameters,
       initOverrides
     );

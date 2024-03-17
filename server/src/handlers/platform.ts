@@ -1,7 +1,6 @@
 import Router from 'koa-router';
 import os from 'os';
 import path from 'path';
-import logger from '~/server/logger';
 import fs from 'fs/promises';
 import child_process from 'child_process';
 import util from 'util';
@@ -12,6 +11,7 @@ const router = new Router();
  * /platform:
  *   get:
  *     summary: Get platform information
+ *     operationId: platformInfo
  *     tags: [Platform]
  *     description: This endpoint returns the platform and home directory information of the server.
  *     responses:
@@ -60,6 +60,7 @@ const platformInfo = async (ctx) => {
  * @swagger
  * /platform/directories/{path}:
  *   get:
+ *     operationId: listDirectories
  *     summary: List directories of a specified path
  *     description: This endpoint returns a list of directories in the specified path.
  *     tags: [Platform]

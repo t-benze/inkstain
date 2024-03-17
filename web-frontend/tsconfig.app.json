@@ -4,20 +4,19 @@
     "outDir": "../dist/out-tsc",
     "types": [
       "node",
-
       "@nx/react/typings/cssmodule.d.ts",
       "@nx/react/typings/image.d.ts"
     ]
   },
   "exclude": [
     "jest.config.ts",
-    "src/**/*.spec.ts",
+    "src/**/*.cy.ts",
     "src/**/*.test.ts",
-    "src/**/*.spec.tsx",
+    "src/**/*.cy.tsx",
     "src/**/*.test.tsx",
-    "src/**/*.spec.js",
+    "src/**/*.cy.js",
     "src/**/*.test.js",
-    "src/**/*.spec.jsx",
+    "src/**/*.cy.jsx",
     "src/**/*.test.jsx"
   ],
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]

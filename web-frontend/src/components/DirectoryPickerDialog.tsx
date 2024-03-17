@@ -71,7 +71,7 @@ export const DirectoryPickerDialog: React.FunctionComponent<
           path: d + appContext.platform.pathSep,
         }));
       }
-      return await platformApi.platformDirectoriesPathGet({
+      return await platformApi.listDirectories({
         path: currentDirectoryInner,
       });
     },

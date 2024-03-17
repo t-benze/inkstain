@@ -41,6 +41,7 @@ const getFullPath = async (
  *   get:
  *     summary: List all documents within a space or sub-folder
  *     tags: [Documents]
+ *     operationId: listDocuments
  *     parameters:
  *       - in: path
  *         name: spaceKey
@@ -131,6 +132,7 @@ const listDocuments = async (ctx: Router.RouterContext) => {
  *   get:
  *     summary: Serve document content from a space
  *     tags: [Documents]
+ *     operationId: getDocumentContent
  *     parameters:
  *       - in: path
  *         name: spaceKey
@@ -147,6 +149,11 @@ const listDocuments = async (ctx: Router.RouterContext) => {
  *     responses:
  *       200:
  *         description: The content of the document.
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
  *       400:
  *         description: Invalid parameters provided.
  *       404:
@@ -190,6 +197,7 @@ const getDocumentContent = async (ctx: Router.RouterContext) => {
  *   post:
  *     summary: Add a new document to a space
  *     tags: [Documents]
+ *     operationId: addDocument
  *     parameters:
  *       - in: path
  *         name: spaceKey
@@ -273,6 +281,7 @@ const addDocument = async (ctx: Router.RouterContext) => {
  * /documents/{spaceKey}/delete:
  *   delete:
  *     summary: Delete a document from a space
+ *     operationId: deleteDocument
  *     tags: [Documents]
  *     parameters:
  *       - in: path
@@ -326,6 +335,7 @@ const deleteDocument = async (ctx: Router.RouterContext) => {
  * /documents/{spaceKey}/addFolder:
  *   post:
  *     summary: Add a new folder within a space
+ *     operationId: addFolder
  *     tags: [Documents]
  *     parameters:
  *       - in: path
@@ -379,6 +389,7 @@ const addFolder = async (ctx: Router.RouterContext) => {
  * /documents/{spaceKey}/deleteFolder:
  *   delete:
  *     summary: Delete a folder within a space
+ *     operationId: deleteFolder
  *     tags: [Documents]
  *     parameters:
  *       - in: path

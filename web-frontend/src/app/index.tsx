@@ -7,6 +7,7 @@ import {
 
 import { MenuBar } from './MenuBar';
 import { MainArea } from './MainArea';
+import { SystemDocumentType, Document } from '~/web/types';
 
 import {
   QueryClientProvider,
@@ -14,30 +15,45 @@ import {
   QueryClient,
 } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { platformApi } from '~/web/apiClient';
+import { platformApi, spacesApi } from '~/web/apiClient';
 import { AppContext } from './context';
-import { Document } from '../types';
 import { PrimarySidebar } from './PrimarySidebar';
 import { Space } from '../types';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 const queryClient = new QueryClient();
-
 const useStyles = makeStyles({
+  root: {
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+  },
   body: {
     display: 'flex',
     flexDirection: 'row',
-    height: '100vh',
+    flexGrow: 1,
   },
 });
 
-const useActiveSpace = () => {
+const useSpace = () => {
   const [activeSpace, setActiveSpace] = React.useState<Space | null>(null);
   const openSpace = React.useCallback(
     (space: Space) => {
-      setActiveSpace(space);
+      if (activeSpace) {
+        if (activeSpace.key === space.key) {
+          return;
+        } else {
+          //TODO: open new at a different tab
+          window.open(
+            `${window.location.origin}/?space=${space.key}`,
+            `inkstain-${space.key}`
+          );
+        }
+      } else {
+        setActiveSpace(space);
+      }
     },
-    [setActiveSpace]
+    [setActiveSpace, activeSpace]
   );
 
   return {
@@ -46,21 +62,34 @@ const useActiveSpace = () => {
   } as const;
 };
 
-const mapDocumentTypeToName: Record<string, string> = {
-  '@inkstain/space-management': 'Spaces',
-};
-const useActiveDocument = () => {
+const useDocuments = () => {
   const [documentsAlive, setDocumentsAlive] = React.useState<Document[]>([]);
-  const openDocument = React.useCallback(
-    (type: string, name?: string) => {
+  const openSystemDocument = React.useCallback(
+    (type: SystemDocumentType) => {
       setDocumentsAlive((documentsAlive) => {
-        if (name === undefined) {
-          name = mapDocumentTypeToName[type] ?? type;
-        }
+        // const name = mapDocumentTypeToName[type] ?? type;
+        if (documentsAlive.find((document) => document.name === type))
+          return documentsAlive;
+        const newDocumentsAlive = [...documentsAlive];
+        newDocumentsAlive.push({ type, name: type });
+        // if (mainAreaRef.current) {
+        //   mainAreaRef.current.setActiveDocument({ type, name: type });
+        // }
+        return newDocumentsAlive;
+      });
+    },
+    [setDocumentsAlive]
+  );
+  const openDocument = React.useCallback(
+    (name: string) => {
+      setDocumentsAlive((documentsAlive) => {
+        const documentType = name.split('.').pop();
+        if (!documentType)
+          throw new Error('Document type not recognized: ' + name);
         if (documentsAlive.find((document) => document.name === name))
           return documentsAlive;
         const newDocumentsAlive = [...documentsAlive];
-        newDocumentsAlive.push({ type, name });
+        newDocumentsAlive.push({ type: documentType, name });
         return newDocumentsAlive;
       });
     },
@@ -68,6 +97,7 @@ const useActiveDocument = () => {
   );
 
   return {
+    openSystemDocument,
     openDocument,
     documentsAlive,
   } as const;
@@ -78,27 +108,72 @@ const InkStain = () => {
   const { data: platform } = useQuery({
     queryKey: ['platform'],
     queryFn: async () => {
-      return await platformApi.platformGet();
+      return await platformApi.platformInfo();
+    },
+  });
+  const { data: spaces } = useQuery({
+    queryKey: ['spaces'],
+    queryFn: async () => {
+      return await spacesApi.getSpaces();
     },
   });
 
-  const { openSpace, activeSpace } = useActiveSpace();
-  const { openDocument, documentsAlive } = useActiveDocument();
+  const { openSpace, activeSpace } = useSpace();
+  const { openSystemDocument, openDocument, documentsAlive } = useDocuments();
+  const [activeDocument, setActiveDocument] = React.useState<string | null>(
+    documentsAlive[0] ? documentsAlive[0].name : null
+  );
 
   React.useEffect(() => {
     if (!activeSpace) {
-      openDocument('@inkstain/space-management');
+      if (window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const spaceKey = searchParams.get('space');
+        if (spaceKey && spaces) {
+          const space = spaces.find((space) => space.key === spaceKey);
+          if (space) {
+            openSpace(space);
+          }
+        }
+      } else {
+        openSystemDocument('@inkstain/space-management');
+      }
     }
-  }, [activeSpace, openDocument]);
+  }, [spaces, openSpace, activeSpace, openSystemDocument]);
+
+  React.useEffect(() => {
+    if (activeDocument === null && documentsAlive.length > 0) {
+      setActiveDocument(documentsAlive[0].name);
+    }
+  }, [documentsAlive, activeDocument]);
+
+  const handleOpenDocument = React.useCallback(
+    (name: string) => {
+      openDocument(name);
+      setActiveDocument(name);
+    },
+    [openDocument, setActiveDocument]
+  );
 
   return platform ? (
     <AppContext.Provider
-      value={{ platform, openDocument, activeSpace, openSpace, documentsAlive }}
+      value={{
+        platform,
+        openSystemDocument,
+        openDocument: handleOpenDocument,
+        activeSpace,
+        openSpace,
+        documentsAlive,
+        activeDocument,
+        setActiveDocument,
+      }}
     >
-      <MenuBar />
-      <div className={styles.body}>
-        <PrimarySidebar />
-        <MainArea />
+      <div className={styles.root}>
+        <MenuBar />
+        <div className={styles.body}>
+          <PrimarySidebar />
+          <MainArea />
+        </div>
       </div>
     </AppContext.Provider>
   ) : null;

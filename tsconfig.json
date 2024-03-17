@@ -1,0 +1,20 @@
+{
+  // this is for cypress to recognize this as a typescript project
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "commonjs",
+    "sourceMap": false,
+    "esModuleInterop": true
+  },
+  "include": [
+    "cypress/**/*.ts",
+    "cypress/**/*.tsx",
+    "cypress/**/*.js",
+    "cypress/**/*.cy.ts",
+    "cypress/**/*.cy.tsx",
+    "cypress/**/*.cy.js",
+    "cypress/**/*.cy.jsx",
+    "cypress/**/*.d.ts"
+  ]
+}

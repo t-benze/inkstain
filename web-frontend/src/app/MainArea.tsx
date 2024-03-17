@@ -8,26 +8,27 @@ import {
 } from '@fluentui/react-components';
 import type { SelectTabData, SelectTabEvent } from '@fluentui/react-components';
 import { DocumentView } from '~/web/components/DocumentView';
-import { Document } from '../types';
 import { AppContext } from './context';
 
-interface MainAreaProps {
-  //   documentsAlive: Document[];
+export interface MainAreaHandle {
+  setActiveDocument: (name: string) => void;
 }
 
 const useStyles = makeStyles({
   root: { width: '100%' },
   tabList: {
     backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRight(
+    ...shorthands.borderBottom(
       tokens.strokeWidthThin,
       'solid',
       tokens.colorNeutralStroke1
     ),
+    height: '32px',
   },
-  panelArea: {},
   panel: {
     width: '100%',
+    height: 'calc(100% - 32px)',
+    ...shorthands.overflow('hidden'),
   },
 });
 
@@ -53,27 +54,16 @@ const TabPanel = ({
 };
 
 export const MainArea = () => {
-  const { documentsAlive } = React.useContext(AppContext);
-  const [activeDocument, setActiveDocument] = React.useState<Document | null>(
-    documentsAlive[0] ? documentsAlive[0] : null
-  );
+  const { documentsAlive, setActiveDocument, activeDocument } =
+    React.useContext(AppContext);
   const styles = useStyles();
 
-  React.useEffect(() => {
-    if (activeDocument === null && documentsAlive.length > 0) {
-      setActiveDocument(documentsAlive[0]);
-    }
-  }, [documentsAlive, activeDocument]);
-
   const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
-    setActiveDocument(
-      documentsAlive.find((document) => document.name === data.value) ?? null
-    );
+    const document = documentsAlive.find((doc) => doc.name === data.value);
+    if (document) {
+      setActiveDocument(document.name);
+    }
   };
-
-  if (documentsAlive.length === 0) {
-    return <div>Welcome to InkStain</div>;
-  }
 
   return (
     <div className={styles.root}>
@@ -98,7 +88,7 @@ export const MainArea = () => {
             type={document.type}
             name={document.name}
             key={document.name}
-            isActive={document.name === activeDocument?.name}
+            isActive={document.name === activeDocument}
           />
         );
       })}
