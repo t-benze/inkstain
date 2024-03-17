@@ -100,8 +100,8 @@ const listDocuments = async (ctx: Router.RouterContext) => {
     const results = files
       .filter((file) => file !== '.inkstain')
       .map(async (file) => {
-        const isFile = file.endsWith('$file');
-        file = file.replace('$file', '');
+        const isFile = file.endsWith('.ink');
+        file = file.replace('.ink', '');
         return {
           name: file,
           type: isFile ? 'file' : 'folder',
@@ -161,7 +161,7 @@ const listDocuments = async (ctx: Router.RouterContext) => {
  */
 const getDocumentContent = async (ctx: Router.RouterContext) => {
   const { spaceKey } = ctx.params;
-  const filePath = ctx.query.path + '$file';
+  const filePath = ctx.query.path + '.ink';
   try {
     const spaceRoot = await getFullPath(spaceKey, '');
     const fileMetaStr = await fs.readFile(
@@ -247,7 +247,7 @@ const addDocument = async (ctx: Router.RouterContext) => {
     // const filename = path.basename(file.originalname, ext);
     const targetDirectoryPath = await getFullPath(
       spaceKey,
-      path.join(targetPath + '$file')
+      path.join(targetPath + '.ink')
     );
     // Create target directory
     await fs.mkdir(targetDirectoryPath, { recursive: true });
@@ -317,7 +317,7 @@ const deleteDocument = async (ctx: Router.RouterContext) => {
   try {
     const targetDirectoryPath = await getFullPath(
       spaceKey,
-      path.join(targetPath + '$file')
+      path.join(targetPath + '.ink')
     );
 
     await fs.rm(targetDirectoryPath, { recursive: true, force: true });

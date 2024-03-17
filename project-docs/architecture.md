@@ -4,13 +4,13 @@ The InkStain project aims to provide a software solution that allows users to se
 
 # Problem Analysis
 
-One of the main challenges is storing metadata and user-generated content, like annotations, in a manner that is both manageable on a local file system and conducive to syncing with cloud storage services. To address this, we will implement a novel file-based storage approach. The solution encapsulates each document within its own directory, with a `$file` suffix, containing both the original document and a JSON file to store associated data. This structure preserves the integrity of the original document and facilitates easy syncing with cloud services.
+One of the main challenges is storing metadata and user-generated content, like annotations, in a manner that is both manageable on a local file system and conducive to syncing with cloud storage services. To address this, we will implement a novel file-based storage approach. The solution encapsulates each document within its own directory, with a `.ink` suffix, containing both the original document and a JSON file to store associated data. This structure preserves the integrity of the original document and facilitates easy syncing with cloud services.
 
 An example file `test.txt` under the folder 'test folder' as below:
 
 ```
 > test folder
-  > test.txt$file
+  > test.txt.ink
     > content.txt
     > meta.json
 ```
@@ -18,9 +18,6 @@ An example file `test.txt` under the folder 'test folder' as below:
 # Terminology
 
 - **Document**: Any file that contains information for viewing, such as PDFs, images or Markdown files.
-- **InkStain Folder**: A directory with a `.inkstain` extension devised to encapsulate a document and its associated metadata and annotations.
-- **InkStain File**: The JSON file within an InkStain Folder that houses metadata, annotations, tags, and notes relevant to the document.
-- **Monorepo**: A single repository containing multiple code projects, often using a tool like NX to manage relationships and dependencies.
 
 # Tech Stack
 

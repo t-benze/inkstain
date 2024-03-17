@@ -3,6 +3,8 @@ import {
   FluentProvider,
   webLightTheme,
   makeStyles,
+  tokens,
+  shorthands,
 } from '@fluentui/react-components';
 
 import { MenuBar } from './MenuBar';
@@ -25,13 +27,26 @@ const queryClient = new QueryClient();
 const useStyles = makeStyles({
   root: {
     height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
+    overflowY: 'hidden',
+  },
+  menubar: {
+    height: `30px`,
+    boxSizing: 'border-box',
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderBottom(
+      tokens.strokeWidthThin,
+      'solid',
+      tokens.colorNeutralStroke1
+    ),
+    ...shorthands.padding(
+      tokens.spacingVerticalXXS,
+      tokens.spacingHorizontalNone
+    ),
   },
   body: {
+    height: `calc(100vh - 30px)`,
     display: 'flex',
     flexDirection: 'row',
-    flexGrow: 1,
   },
 });
 
@@ -169,7 +184,9 @@ const InkStain = () => {
       }}
     >
       <div className={styles.root}>
-        <MenuBar />
+        <div className={styles.menubar}>
+          <MenuBar />
+        </div>
         <div className={styles.body}>
           <PrimarySidebar />
           <MainArea />

@@ -133,9 +133,9 @@ describe('PDF Viewer', () => {
     });
     it('should be able to scale the page ', () => {
       cy.get('@scrollview');
-      cy.getBySel('pdfViewer-fitWidthBtn').click();
       cy.getBySel('pdfViewer-scene').then(($scene) => {
         const sceneWidth = $scene[0].clientWidth;
+        cy.getBySel('pdfViewer-fitWidthBtn').click();
         cy.getBySel('pdfViewer-canvas').then(($canvas) => {
           cy.wrap($canvas[0].offsetWidth).should(
             'be.within',
