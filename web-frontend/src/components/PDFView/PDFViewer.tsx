@@ -1,15 +1,19 @@
 import 'pdfjs-dist/webpack.mjs';
 import * as React from 'react';
 import { tokens, makeStyles, shorthands } from '@fluentui/react-components';
-import { useLayoutEffect, useEffect, useState, useRef } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
+import { useLayoutEffect, useState } from 'react';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { PDFToolbar } from './PDFToolbar';
 import { PDFPage } from './PDFPage';
 import { PDFPageScrollView } from './PDFPageScrollView';
+import { usePDFDocument } from './hooks';
 import './viewer.css';
 
-interface PDFViewerProps {
+export interface PDFViewHandle {
+  goToPage: (pageNum: number) => void;
+}
+
+export interface PDFViewerProps {
   url: string;
   onDocumentLoadSuccess?: (document: PDFDocumentProxy) => void;
   onDocumentLoadFailure?: (error: Error) => void;
@@ -38,24 +42,21 @@ const useStyles = makeStyles({
 const DEFAULT_SCALE = window.devicePixelRatio || 1;
 const SCALE_STEPS = [
   0.1, 0.25, 0.5, 0.75, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7, 8,
-].map((step) => step * DEFAULT_SCALE);
+];
 
-export const PDFViewer = React.forwardRef(
+export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
   (
-    {
-      url,
-      onDocumentLoadSuccess,
-      onDocumentLoadFailure,
-      initialPage = 1,
-    }: PDFViewerProps,
+    { url, onDocumentLoadSuccess, onDocumentLoadFailure, initialPage = 1 },
     ref
   ) => {
     const styles = useStyles();
-    const [pdfDocument, setPDFDocument] = useState<PDFDocumentProxy | null>(
-      null
-    );
-    const loadingTaskRef = useRef<PDFDocumentLoadingTask | null>(null);
-    const [currentPageNumber, setCurrentPageNumber] = useState<number>(0);
+    const pdfDocument = usePDFDocument({
+      url,
+      onDocumentLoadSuccess,
+      onDocumentLoadFailure,
+    });
+    const [currentPageNumber, setCurrentPageNumber] =
+      useState<number>(initialPage);
     const [scale, setScale] = useState<number>(DEFAULT_SCALE);
     const [defaultViewportWidth, setDefaultViewportWidth] = useState<number>(0);
     const [defaultViewportHeight, setDefaultViewportHeight] =
@@ -64,33 +65,6 @@ export const PDFViewer = React.forwardRef(
     const onEnableScrollChange = React.useCallback((enable: boolean) => {
       setEnableScroll(enable);
     }, []);
-
-    useEffect(() => {
-      if (!loadingTaskRef.current) {
-        loadingTaskRef.current = pdfjsLib.getDocument(url);
-      }
-      loadingTaskRef.current.promise
-        .then((loadedPdfDocument) => {
-          if (!pdfDocument) {
-            setPDFDocument(loadedPdfDocument);
-            onDocumentLoadSuccess?.(loadedPdfDocument);
-          }
-          loadedPdfDocument.getMetadata().then((metadata) => {
-            console.log('loaded document meta', metadata);
-          });
-          setCurrentPageNumber(initialPage);
-        })
-        .catch((error: Error) => {
-          onDocumentLoadFailure?.(error);
-        });
-    }, [
-      url,
-      pdfDocument,
-      loadingTaskRef,
-      onDocumentLoadFailure,
-      onDocumentLoadSuccess,
-      initialPage,
-    ]);
 
     const onScaleChange = React.useCallback((newScale: number) => {
       setScale(newScale);
@@ -148,6 +122,14 @@ export const PDFViewer = React.forwardRef(
       ]
     );
 
+    React.useImperativeHandle(ref, () => {
+      return {
+        goToPage: (pageNum: number) => {
+          setCurrentPageNumber(pageNum);
+        },
+      };
+    });
+
     return (
       <div className={styles.root}>
         <PDFToolbar
@@ -190,6 +172,12 @@ export const PDFViewer = React.forwardRef(
                 scale={scale}
                 onRenderCompleted={handleRenderPageCompleted}
                 document={pdfDocument}
+                style={{
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  marginTop: 'auto',
+                  marginBottom: 'auto',
+                }}
               />
             </div>
           )

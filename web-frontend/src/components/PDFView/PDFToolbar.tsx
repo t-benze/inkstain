@@ -174,12 +174,6 @@ export const PDFToolbar = ({
             data-test="pdfViewer-fitWidthBtn"
             icon={<AutoFitWidthRegular />}
             onClick={() => {
-              console.log(
-                'scale change',
-                initScale * (sceneWidth / initViewportWidth),
-                initViewportWidth,
-                sceneWidth
-              );
               onScaleChange(initScale * (sceneWidth / initViewportWidth));
             }}
           />
@@ -195,7 +189,6 @@ export const PDFToolbar = ({
             data-test="pdfViewer-fitHeightBtn"
             icon={<AutoFitHeightRegular />}
             onClick={() => {
-              console.log('fit height', sceneHeight, initViewportHeight);
               onScaleChange(initScale * (sceneHeight / initViewportHeight));
             }}
           />

@@ -8,18 +8,24 @@ export const PDFPageScrollView = React.forwardRef(
     {
       document,
       scale,
-      currentPageNumber,
+      currentPageNumber = 1,
       onRenderCompleted,
       onPageChange,
+      enableTextLayer = true,
+      onPageClick,
+      virtualizerLength = 5,
     }: {
+      virtualizerLength?: number;
+      enableTextLayer?: boolean;
       document: PDFDocumentProxy;
-      currentPageNumber: number;
+      currentPageNumber?: number;
       scale: number;
       onRenderCompleted?: (
         pageNumber: number,
         viewport: { width: number; height: number }
       ) => void;
       onPageChange?: (pageNum: number) => void;
+      onPageClick?: (pageNum: number) => void;
     },
     ref
   ) => {
@@ -89,7 +95,7 @@ export const PDFPageScrollView = React.forwardRef(
             overflowY: 'scroll',
           },
         }}
-        virtualizerLength={totalPages}
+        virtualizerLength={virtualizerLength}
         scrollViewRef={scrollViewRef}
       >
         {(index: number) => {
@@ -103,7 +109,13 @@ export const PDFPageScrollView = React.forwardRef(
               pageNumber={index + 1}
               scale={scale}
               onRenderCompleted={onRenderCompleted}
-              style={{ marginBottom: `${pageGap}px` }}
+              style={{
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                marginBottom: `${pageGap}px`,
+              }}
+              enableTextLayer={enableTextLayer}
+              onClick={onPageClick}
             />
           );
         }}

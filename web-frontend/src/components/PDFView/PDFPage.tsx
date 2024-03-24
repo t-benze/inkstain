@@ -1,24 +1,16 @@
 import {
   PDFDocumentProxy,
   RenderTask,
-  PDFPageProxy,
   TextLayerRenderTask,
   renderTextLayer,
+  RenderingCancelledException,
 } from 'pdfjs-dist';
 import * as React from 'react';
-import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
-// import {
-//   normalizeUnicode,
-//   renderTextLayer,
-//   updateTextLayer,
-//   TextContent,
-// } from 'pdfjs-dist';
-// import { TextContent } from 'pdfjs-dist/types/display/api';
+import { makeStyles } from '@fluentui/react-components';
 
 const useStyles = makeStyles({
   root: {
     position: 'relative',
-    ...shorthands.margin('auto'),
   },
   textLayer: {
     position: 'absolute',
@@ -39,6 +31,8 @@ export const PDFPage = ({
   ariaSetSize,
   ariaPosinset,
   style,
+  enableTextLayer = true,
+  onClick,
 }: {
   document: PDFDocumentProxy;
   pageNumber: number;
@@ -51,6 +45,8 @@ export const PDFPage = ({
   ariaSetSize?: number;
   ariaPosinset?: number;
   style?: object;
+  enableTextLayer?: boolean;
+  onClick?: (pageNum: number) => void;
 }) => {
   const styles = useStyles();
   const pageRef = React.useRef<HTMLDivElement>(null);
@@ -95,21 +91,28 @@ export const PDFPage = ({
       try {
         await renderTaskRef.current.promise;
         onRenderCompleted?.(pageNumber, viewport);
-        if (!textLayerRef.current) throw new Error('text layer ref not found');
-        const readableStream = pdfPage.streamTextContent({
-          includeMarkedContent: true,
-          disableNormalization: true,
-        });
-        textRenderTaskRef.current = renderTextLayer({
-          textContentSource: readableStream,
-          container: textLayerRef.current,
-          viewport,
-          textDivs: textDivsRef.current,
-          textDivProperties: textDivPropertiesRef.current,
-          textContentItemsStr: textContentItemsStrRef.current,
-        });
+        if (enableTextLayer) {
+          if (!textLayerRef.current)
+            throw new Error('text layer ref not found');
+          const readableStream = pdfPage.streamTextContent({
+            includeMarkedContent: true,
+            disableNormalization: true,
+          });
+          textRenderTaskRef.current = renderTextLayer({
+            textContentSource: readableStream,
+            container: textLayerRef.current,
+            viewport,
+            textDivs: textDivsRef.current,
+            textDivProperties: textDivPropertiesRef.current,
+            textContentItemsStr: textContentItemsStrRef.current,
+          });
+        }
       } catch (e) {
-        console.error('error rendering page', e);
+        if (e instanceof RenderingCancelledException) {
+          console.log('Rendering cancelled, page number: ', pageNumber);
+        } else {
+          throw e;
+        }
       }
     });
     return () => {
@@ -120,10 +123,19 @@ export const PDFPage = ({
         textRenderTaskRef.current.cancel();
       }
     };
-  }, [document, pageNumber, scale, onRenderCompleted]);
+  }, [enableTextLayer, document, pageNumber, scale, onRenderCompleted]);
 
   return (
-    <div role={role} ref={pageRef} className={styles.root} style={style}>
+    <div
+      role={role}
+      ref={pageRef}
+      className={styles.root}
+      style={style}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick?.(pageNumber);
+      }}
+    >
       <canvas
         aria-posinset={ariaPosinset}
         aria-setsize={ariaSetSize}
@@ -131,7 +143,9 @@ export const PDFPage = ({
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
-      <div ref={textLayerRef} className={`${styles.textLayer} textLayer`} />
+      {enableTextLayer ? (
+        <div ref={textLayerRef} className={`${styles.textLayer} textLayer`} />
+      ) : null}
     </div>
   );
 };
