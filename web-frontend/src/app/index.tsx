@@ -82,14 +82,10 @@ const useDocuments = () => {
   const openSystemDocument = React.useCallback(
     (type: SystemDocumentType) => {
       setDocumentsAlive((documentsAlive) => {
-        // const name = mapDocumentTypeToName[type] ?? type;
         if (documentsAlive.find((document) => document.name === type))
           return documentsAlive;
         const newDocumentsAlive = [...documentsAlive];
         newDocumentsAlive.push({ type, name: type });
-        // if (mainAreaRef.current) {
-        //   mainAreaRef.current.setActiveDocument({ type, name: type });
-        // }
         return newDocumentsAlive;
       });
     },
@@ -138,6 +134,7 @@ const InkStain = () => {
   const [activeDocument, setActiveDocument] = React.useState<string | null>(
     documentsAlive[0] ? documentsAlive[0].name : null
   );
+  const activeDocumentViewRef = React.useRef<unknown>(null);
 
   React.useEffect(() => {
     if (!activeSpace) {
@@ -170,6 +167,13 @@ const InkStain = () => {
     [openDocument, setActiveDocument]
   );
 
+  const setActiveDocumentViewRef = React.useCallback(
+    (documentViewRef: unknown) => {
+      activeDocumentViewRef.current = documentViewRef;
+    },
+    []
+  );
+
   return platform ? (
     <AppContext.Provider
       value={{
@@ -181,6 +185,8 @@ const InkStain = () => {
         documentsAlive,
         activeDocument,
         setActiveDocument,
+        setActiveDocumentViewRef,
+        activeDocumentViewRef,
       }}
     >
       <div className={styles.root}>

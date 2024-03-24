@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
   shorthands,
   makeStyles,
-  Text,
   Button,
   TreeItemValue,
   Tooltip,
@@ -20,6 +19,7 @@ import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
 import { OnTreeItemClicked, FolderTree, OnOpenChange } from './FolderTree';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { PrimarySidebarAccordionItem } from '~/web/components/PrimarySidebarAccordionItem';
 
 interface FileExplorerProps {
   space: Space;
@@ -28,11 +28,6 @@ interface FileExplorerProps {
 const useStyles = makeStyles({
   root: {
     ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalS),
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    ...shorthands.padding(tokens.spacingVerticalXS),
   },
 });
 
@@ -249,7 +244,67 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     lastSelect,
     queryClient,
   ]);
-  return (
+  const headerButtons = (
+    <>
+      <Tooltip
+        content={t('file_explorer.add_a_document_tooltip')}
+        relationship="label"
+        positioning={'below'}
+      >
+        <Button
+          data-test="fileExplorer-addDocumentBtn"
+          appearance="subtle"
+          size="small"
+          icon={<DocumentAddRegular />}
+          onClick={() => {
+            fileInputRef.current?.click();
+          }}
+        />
+      </Tooltip>
+      <Tooltip
+        content={t('file_explorer.add_a_folder_tooltip')}
+        relationship="label"
+        positioning={'below'}
+      >
+        <Button
+          data-test="fileExplorer-addFolderBtn"
+          appearance="subtle"
+          size="small"
+          icon={<FolderAddRegular />}
+          onClick={handleAddFolder}
+        />
+      </Tooltip>
+      <Tooltip
+        content={t('file_explorer.refresh_folder_tooltip')}
+        relationship="label"
+        positioning={'below'}
+      >
+        <Button
+          data-test="fileExplorer-refreshFolderBtn"
+          appearance="subtle"
+          size="small"
+          icon={<FolderSyncRegular />}
+          onClick={handleSyncFolder}
+        />
+      </Tooltip>
+      <Tooltip
+        content={t('file_explorer.collapse_all_tooltip')}
+        relationship="label"
+        positioning={'below'}
+      >
+        <Button
+          data-test="fileExplorer-collapseAllBtn"
+          appearance="subtle"
+          size="small"
+          icon={<ArrowCollapseAllRegular />}
+          onClick={() => {
+            setOpenItems(new Set());
+          }}
+        />
+      </Tooltip>
+    </>
+  );
+  const panel = (
     <div
       data-test="fileExplorer"
       data-space-key={space.key}
@@ -262,67 +317,6 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         style={{ display: 'none' }}
         onChange={handleFileInputChange}
       />
-      <div className={styles.header}>
-        <Text wrap={false} truncate={true}>
-          {space.name}
-        </Text>
-        <Tooltip
-          content={t('file_explorer.add_a_document_tooltip')}
-          relationship="label"
-          positioning={'below'}
-        >
-          <Button
-            data-test="fileExplorer-addDocumentBtn"
-            appearance="subtle"
-            size="small"
-            icon={<DocumentAddRegular />}
-            onClick={() => {
-              fileInputRef.current?.click();
-            }}
-          />
-        </Tooltip>
-        <Tooltip
-          content={t('file_explorer.add_a_folder_tooltip')}
-          relationship="label"
-          positioning={'below'}
-        >
-          <Button
-            data-test="fileExplorer-addFolderBtn"
-            appearance="subtle"
-            size="small"
-            icon={<FolderAddRegular />}
-            onClick={handleAddFolder}
-          />
-        </Tooltip>
-        <Tooltip
-          content={t('file_explorer.refresh_folder_tooltip')}
-          relationship="label"
-          positioning={'below'}
-        >
-          <Button
-            data-test="fileExplorer-refreshFolderBtn"
-            appearance="subtle"
-            size="small"
-            icon={<FolderSyncRegular />}
-            onClick={handleSyncFolder}
-          />
-        </Tooltip>
-        <Tooltip
-          content={t('file_explorer.collapse_all_tooltip')}
-          relationship="label"
-          positioning={'below'}
-        >
-          <Button
-            data-test="fileExplorer-collapseAllBtn"
-            appearance="subtle"
-            size="small"
-            icon={<ArrowCollapseAllRegular />}
-            onClick={() => {
-              setOpenItems(new Set());
-            }}
-          />
-        </Tooltip>
-      </div>
       <FolderTree
         spaceKey={space.key}
         path=""
@@ -336,5 +330,12 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         deleteFiles={deleteFiles}
       />
     </div>
+  );
+  return (
+    <PrimarySidebarAccordionItem
+      headerText={t('file_explorer._')}
+      headerButtons={headerButtons}
+      panel={panel}
+    />
   );
 };

@@ -27,6 +27,7 @@
     "create_space_failed": "Create space failed"
   },
   "file_explorer": {
+    "_": "File explorer",
     "add_a_document_tooltip": "Add a document",
     "add_a_folder_tooltip": "Add a folder",
     "refresh_folder_tooltip": "Refresh the folder",
@@ -39,6 +40,9 @@
     "zoomOutBtnTooltip": "Zoom out",
     "fitWidthBtnTooltip": "Fit width",
     "fitHeightBtnTooltip": "Fit height",
-    "resetScaleBtnTooltip": "Reset scale"
+    "resetScaleBtnTooltip": "Reset scale",
+    "thumbnail": "Thumbnail",
+    "outline": "Outline",
+    "no_outline": "No outline in the document"
   }
 }

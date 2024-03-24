@@ -11,5 +11,7 @@ export type ContextType = {
   openSpace: (space: Space) => void;
   activeDocument: string | null;
   setActiveDocument: (name: string) => void;
+  setActiveDocumentViewRef: (view: unknown) => void;
+  activeDocumentViewRef: React.MutableRefObject<unknown>;
 };
 export const AppContext = React.createContext<ContextType>({} as ContextType);

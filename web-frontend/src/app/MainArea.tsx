@@ -42,13 +42,12 @@ const TabPanel = ({
   isActive: boolean;
 }) => {
   const styles = useStyles();
-
   return (
     <div
       className={styles.panel}
       style={{ display: isActive ? 'block' : 'none' }}
     >
-      <DocumentView type={type} name={name} />
+      <DocumentView type={type} name={name} isActive={isActive} />
     </div>
   );
 };

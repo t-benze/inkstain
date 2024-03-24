@@ -177,3 +177,11 @@ This design document outlines the user stories, functional, and non-functional r
 #### Non-Functional Requirements:
 
 1. **Fast Rendering**: Ensuring quick load times and smooth interaction, even for content-rich PDFs.
+
+#### Feature - PDF Outline
+
+Shows the outline of the active pdf document in the primary sidebar.
+
+#### Feature - PDF Thumbnail
+
+Shows the thumbnail of the active pdf document in the primary sidebar.
