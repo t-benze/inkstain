@@ -1,8 +1,7 @@
 import {
   PDFDocumentProxy,
   RenderTask,
-  TextLayerRenderTask,
-  renderTextLayer,
+  // TextLayerRenderTask,
   RenderingCancelledException,
 } from 'pdfjs-dist';
 import * as React from 'react';
@@ -31,7 +30,7 @@ export const PDFPage = ({
   ariaSetSize,
   ariaPosinset,
   style,
-  enableTextLayer = true,
+  enableTextLayer = false,
   onClick,
 }: {
   document: PDFDocumentProxy;
@@ -52,13 +51,14 @@ export const PDFPage = ({
   const pageRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const renderTaskRef = React.useRef<RenderTask | null>(null);
-  const textLayerRef = React.useRef<HTMLDivElement>(null);
-  const textRenderTaskRef = React.useRef<TextLayerRenderTask | null>(null);
-  const textDivsRef = React.useRef<HTMLDivElement[]>([]);
-  const textDivPropertiesRef = React.useRef<WeakMap<HTMLElement, object>>(
-    new WeakMap()
-  );
-  const textContentItemsStrRef = React.useRef<string[]>([]);
+  // const textLayerRef = React.useRef<HTMLDivElement>(null);
+  // const textRenderTaskRef = React.useRef<TextLayerRenderTask | null>(null);
+  // const textDivsRef = React.useRef<HTMLDivElement[]>([]);
+  // const textDivPropertiesRef = React.useRef<WeakMap<HTMLElement, object>>(
+  //   new WeakMap()
+  // );
+  // const textContentItemsStrRef = React.useRef<string[]>([]);
+  // const isTextLayerRendered = React.useRef(false);
 
   React.useEffect(() => {
     document.getPage(pageNumber).then(async (pdfPage) => {
@@ -91,22 +91,41 @@ export const PDFPage = ({
       try {
         await renderTaskRef.current.promise;
         onRenderCompleted?.(pageNumber, viewport);
-        if (enableTextLayer) {
-          if (!textLayerRef.current)
-            throw new Error('text layer ref not found');
-          const readableStream = pdfPage.streamTextContent({
-            includeMarkedContent: true,
-            disableNormalization: true,
-          });
-          textRenderTaskRef.current = renderTextLayer({
-            textContentSource: readableStream,
-            container: textLayerRef.current,
-            viewport,
-            textDivs: textDivsRef.current,
-            textDivProperties: textDivPropertiesRef.current,
-            textContentItemsStr: textContentItemsStrRef.current,
-          });
-        }
+        // if (enableTextLayer) {
+        //   if (!textLayerRef.current)
+        //     throw new Error('text layer ref not found');
+        //   const readableStream = pdfPage.streamTextContent({
+        //     includeMarkedContent: true,
+        //     disableNormalization: true,
+        //   });
+        //   // const isOffscreenCanvasSupported =
+        //   //   typeof OffscreenCanvas !== 'undefined';
+        //   const isOffscreenCanvasSupported = false;
+        //   if (!isTextLayerRendered.current) {
+        //     textRenderTaskRef.current = renderTextLayer({
+        //       container: textLayerRef.current,
+        //       viewport,
+        //       textDivs: textDivsRef.current,
+        //       textDivProperties: textDivPropertiesRef.current,
+        //       textContentItemsStr: textContentItemsStrRef.current,
+        //       textContentSource: readableStream,
+        //       isOffscreenCanvasSupported,
+        //     });
+        //     textRenderTaskRef.current.promise.then(() => {
+        //       isTextLayerRendered.current = true;
+        //     });
+        //   } else {
+        //     // with the current implementation, the re-rendering can only be triggered by the changing of scale.
+        //     updateTextLayer({
+        //       container: textLayerRef.current,
+        //       viewport,
+        //       textDivs: textDivsRef.current,
+        //       textDivProperties: textDivPropertiesRef.current,
+        //       isOffscreenCanvasSupported,
+        //       mustRescale: true,
+        //     });
+        // }
+        // }
       } catch (e) {
         if (e instanceof RenderingCancelledException) {
           console.log('Rendering cancelled, page number: ', pageNumber);
@@ -119,9 +138,9 @@ export const PDFPage = ({
       if (renderTaskRef.current) {
         renderTaskRef.current.cancel();
       }
-      if (textRenderTaskRef.current) {
-        textRenderTaskRef.current.cancel();
-      }
+      // if (textRenderTaskRef.current) {
+      //   textRenderTaskRef.current.cancel();
+      // }
     };
   }, [enableTextLayer, document, pageNumber, scale, onRenderCompleted]);
 
@@ -143,9 +162,9 @@ export const PDFPage = ({
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
-      {enableTextLayer ? (
+      {/* {enableTextLayer ? (
         <div ref={textLayerRef} className={`${styles.textLayer} textLayer`} />
-      ) : null}
+      ) : null} */}
     </div>
   );
 };

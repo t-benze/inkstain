@@ -37,12 +37,14 @@ const useStyles = makeStyles({
 
 /**
  * The size of a pdf page is measured in points, and 1 point is equal to 1/72 of an inch.
- * Therefore to convert the size of a page to pixel values, it needs to be scaled by the device pixel ratio.
+ * Because we want the visual dimension of the pdf canvas to be consistent across devices,and we can
+ * only set the scale of the pdf rendering, need to mulitply the scale by the device pixel ratio, i.e.,
+ * to have a larger scale on a high resolution device.
  */
 const DEFAULT_SCALE = window.devicePixelRatio || 1;
 const SCALE_STEPS = [
   0.1, 0.25, 0.5, 0.75, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7, 8,
-];
+].map((step) => step * DEFAULT_SCALE);
 
 export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
   (

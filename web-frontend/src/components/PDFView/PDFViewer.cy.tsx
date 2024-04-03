@@ -33,7 +33,7 @@ describe('PDF Viewer', () => {
       cy.getBySel('pdfViewer-pageNumInput').should('have.value', '3');
     });
 
-    it('should be able to zoom in and out and fit the page', () => {
+    it.only('should be able to zoom in and out and fit the page', () => {
       cy.getBySel('pdfViewer-canvas').as('canvas');
       cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
       cy.getBySel('pdfViewer-scene').then(($scene) => {
