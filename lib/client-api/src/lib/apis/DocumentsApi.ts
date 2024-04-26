@@ -13,16 +13,30 @@
  */
 
 import * as runtime from '../runtime';
-import type { ListDocuments200ResponseInner } from '../models/index';
+import type {
+  AddDocumentTagsRequest,
+  ListDocuments200ResponseInner,
+  RemoveDocumentTagsRequest,
+} from '../models/index';
 import {
+  AddDocumentTagsRequestFromJSON,
+  AddDocumentTagsRequestToJSON,
   ListDocuments200ResponseInnerFromJSON,
   ListDocuments200ResponseInnerToJSON,
+  RemoveDocumentTagsRequestFromJSON,
+  RemoveDocumentTagsRequestToJSON,
 } from '../models/index';
 
 export interface AddDocumentRequest {
   spaceKey: string;
   path: string;
   document: Blob;
+}
+
+export interface AddDocumentTagsOperationRequest {
+  spaceKey: string;
+  path: string;
+  addDocumentTagsRequest: AddDocumentTagsRequest;
 }
 
 export interface AddFolderRequest {
@@ -45,9 +59,20 @@ export interface GetDocumentContentRequest {
   path: string;
 }
 
+export interface GetDocumentTagsRequest {
+  spaceKey: string;
+  path: string;
+}
+
 export interface ListDocumentsRequest {
   spaceKey: string;
   path: string;
+}
+
+export interface RemoveDocumentTagsOperationRequest {
+  spaceKey: string;
+  path: string;
+  removeDocumentTagsRequest: RemoveDocumentTagsRequest;
 }
 
 /**
@@ -144,6 +169,82 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.addDocumentRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Add tags to a document in a specific space
+   */
+  async addDocumentTagsRaw(
+    requestParameters: AddDocumentTagsOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling addDocumentTags.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling addDocumentTags.'
+      );
+    }
+
+    if (
+      requestParameters.addDocumentTagsRequest === null ||
+      requestParameters.addDocumentTagsRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'addDocumentTagsRequest',
+        'Required parameter requestParameters.addDocumentTagsRequest was null or undefined when calling addDocumentTags.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/tags`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: AddDocumentTagsRequestToJSON(
+          requestParameters.addDocumentTagsRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Add tags to a document in a specific space
+   */
+  async addDocumentTags(
+    requestParameters: AddDocumentTagsOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.addDocumentTagsRaw(requestParameters, initOverrides);
   }
 
   /**
@@ -395,6 +496,71 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
+   * Retrieve tags of a document in a specific space
+   */
+  async getDocumentTagsRaw(
+    requestParameters: GetDocumentTagsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Array<string>>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling getDocumentTags.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling getDocumentTags.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/tags`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse<any>(response);
+  }
+
+  /**
+   * Retrieve tags of a document in a specific space
+   */
+  async getDocumentTags(
+    requestParameters: GetDocumentTagsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Array<string>> {
+    const response = await this.getDocumentTagsRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
    * List all documents within a space or sub-folder
    */
   async listDocumentsRaw(
@@ -459,5 +625,81 @@ export class DocumentsApi extends runtime.BaseAPI {
       initOverrides
     );
     return await response.value();
+  }
+
+  /**
+   * Remove tags from a document in a specific space
+   */
+  async removeDocumentTagsRaw(
+    requestParameters: RemoveDocumentTagsOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling removeDocumentTags.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling removeDocumentTags.'
+      );
+    }
+
+    if (
+      requestParameters.removeDocumentTagsRequest === null ||
+      requestParameters.removeDocumentTagsRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'removeDocumentTagsRequest',
+        'Required parameter requestParameters.removeDocumentTagsRequest was null or undefined when calling removeDocumentTags.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/tags`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+        body: RemoveDocumentTagsRequestToJSON(
+          requestParameters.removeDocumentTagsRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Remove tags from a document in a specific space
+   */
+  async removeDocumentTags(
+    requestParameters: RemoveDocumentTagsOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.removeDocumentTagsRaw(requestParameters, initOverrides);
   }
 }

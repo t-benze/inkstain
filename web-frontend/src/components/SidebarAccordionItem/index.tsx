@@ -33,7 +33,7 @@ const useClasses = makeStyles({
     ),
   },
 });
-export const PrimarySidebarAccordionItem = ({
+export const SidebarAccordionItem = ({
   headerText,
   headerButtons,
   panel,

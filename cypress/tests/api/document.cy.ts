@@ -1,6 +1,7 @@
 describe('Documents API', () => {
   const spaceKey = 'a116538b';
   const folderPath = 'test folder';
+  // let testDocumentPath = '';
 
   const ctx = {} as { homedir: string; pathSep: string };
   before((done) => {
@@ -8,6 +9,7 @@ describe('Documents API', () => {
       (response: { homedir: string; pathSep: string }) => {
         ctx.homedir = response.homedir;
         ctx.pathSep = response.pathSep;
+        // testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
       }
     );
     cy.task('seedTestSpaceForDocument').then(() => {
@@ -105,6 +107,57 @@ describe('Documents API', () => {
         )}`
       ).then((response) => {
         expect(response.status).to.eq(200);
+      });
+    });
+  });
+
+  context(`POST /documents/${spaceKey}/tags`, () => {
+    it('should add tags to a document in a space', () => {
+      const tagsToAdd = ['finance', 'report'];
+      const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
+      cy.request({
+        method: 'POST',
+        url: `/api/v1/documents/${spaceKey}/tags?path=${encodeURIComponent(
+          testDocumentPath
+        )}`,
+        body: {
+          tags: tagsToAdd,
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(200);
+      });
+    });
+  });
+
+  context(`DELETE /documents/${spaceKey}/tags`, () => {
+    it('should remove tags from a document in a space', () => {
+      const tagsToRemove = ['report'];
+      const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
+      cy.request({
+        method: 'DELETE',
+        url: `/api/v1/documents/${spaceKey}/tags?path=${encodeURIComponent(
+          testDocumentPath
+        )}`,
+        body: {
+          tags: tagsToRemove,
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(200);
+      });
+    });
+  });
+
+  context(`GET /documents/${spaceKey}/tags`, () => {
+    it('should retrieve tags of a document in a space', () => {
+      const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
+      cy.request(
+        `GET`,
+        `/api/v1/documents/${spaceKey}/tags?path=${encodeURIComponent(
+          testDocumentPath
+        )}`
+      ).then((response) => {
+        expect(response.status).to.eq(200);
+        expect(response.body).to.include('finance');
       });
     });
   });

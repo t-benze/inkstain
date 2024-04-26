@@ -43,6 +43,10 @@ Dependencies:
 - **react-router-dom**: Declarative routing for React applications, facilitating navigation between components.
 - **i18next**: i18n framework.
 
+## Testing
+
+This project uses cypress for e2e testing (both api and ui) and UI component testing.
+
 ## Project Utilities
 
 - **NX**: Tooling to support a monorepo structure, improve build times, and manage the linking of library dependencies in an Integrated Repos manner.

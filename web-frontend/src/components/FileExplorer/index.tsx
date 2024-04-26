@@ -19,7 +19,7 @@ import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
 import { OnTreeItemClicked, FolderTree, OnOpenChange } from './FolderTree';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { PrimarySidebarAccordionItem } from '~/web/components/PrimarySidebarAccordionItem';
+import { SidebarAccordionItem } from '~/web/components/SidebarAccordionItem';
 
 interface FileExplorerProps {
   space: Space;
@@ -332,7 +332,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     </div>
   );
   return (
-    <PrimarySidebarAccordionItem
+    <SidebarAccordionItem
       headerText={t('file_explorer._')}
       headerButtons={headerButtons}
       panel={panel}

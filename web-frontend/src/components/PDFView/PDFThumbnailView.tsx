@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useDocument } from '~/web/hooks/useDocument';
 import { usePDFDocument } from './hooks';
 import { PDFPageScrollView } from './PDFPageScrollView';
-import { PrimarySidebarAccordionItem } from '../PrimarySidebarAccordionItem';
+import { SidebarAccordionItem } from '../SidebarAccordionItem';
 import { AppContext } from '~/web/app/context';
 import { PDFViewHandle } from './PDFViewer';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +30,7 @@ export const PDFThumbnailView = ({
   }, [pdfDocument, width]);
 
   return (
-    <PrimarySidebarAccordionItem
+    <SidebarAccordionItem
       headerText={t('pdfview.thumbnail')}
       panel={
         desiredScale === -1 || pdfDocument === null ? null : (

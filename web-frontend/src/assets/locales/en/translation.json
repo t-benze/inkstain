@@ -2,6 +2,7 @@
   "inkstain": "InkStain",
   "file": "File",
   "settings": "Settings",
+  "add": "Add",
   "delete": "Delete",
   "confirm": "Confirm",
   "cancel": "Cancel",
@@ -9,6 +10,7 @@
   "next": "Next",
   "choose_a_directory": "Choose a directory",
   "error_unsupported_file_type": "This document type ({{type}}) is not supported by InkStain",
+  "document_tags": "Tags",
   "space": {
     "_": "Space",
     "input_space_name": "Input the space name",

@@ -20,6 +20,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { platformApi, spacesApi } from '~/web/apiClient';
 import { AppContext } from './context';
 import { PrimarySidebar } from './PrimarySidebar';
+import { SecondarySidebar } from './SecondarySidebar';
 import { Space } from '../types';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
@@ -196,6 +197,7 @@ const InkStain = () => {
         <div className={styles.body}>
           <PrimarySidebar />
           <MainArea />
+          <SecondarySidebar />
         </div>
       </div>
     </AppContext.Provider>

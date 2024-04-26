@@ -9,14 +9,13 @@ import {
   mergeClasses,
 } from '@fluentui/react-components';
 import { AppContext } from '~/web/app/context';
-import { FileExplorer } from '~/web/components/FileExplorer';
-import { PDFThumbnailView, PDFOutlineView } from '~/web/components/PDFView';
+import { DocumentTagView } from '~/web/components/DocumentTagView';
 
 const useClasses = makeStyles({
   root: {
     minWidth: '300px',
     backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRight(
+    ...shorthands.borderLeft(
       tokens.strokeWidthThin,
       'solid',
       tokens.colorNeutralStroke1
@@ -39,45 +38,26 @@ const useClasses = makeStyles({
   },
 });
 
-const NoSpaceSelected = () => {
-  return <div>No space selected</div>;
-};
-
-export const PrimarySidebar = () => {
+export const SecondarySidebar = () => {
   const classes = useClasses();
-  const { activeSpace, activeDocument, documentsAlive } =
-    React.useContext(AppContext);
+  const { activeDocument, documentsAlive } = React.useContext(AppContext);
 
   const document = activeDocument
-    ? documentsAlive.find((doc) => doc.name === activeDocument)
+    ? documentsAlive.find((doc) => doc.name === activeDocument) ?? null
     : null;
   const [openItems, setOpenItems] = React.useState(['file-explorer']);
   const handleToggle: AccordionToggleEventHandler<string> = (event, data) => {
     setOpenItems(data.openItems);
   };
-
-  if (!activeSpace) {
-    return (
-      <div className={classes.root}>
-        <NoSpaceSelected />
-      </div>
-    );
-  }
-  const accordions = [
-    { value: 'file-explorer', view: <FileExplorer space={activeSpace} /> },
-  ];
-  if (document && document.type === 'pdf') {
+  const accordions = [] as { value: string; view: React.ReactNode }[];
+  if (document) {
     accordions.push({
-      value: 'pdf-thumbnail',
-      view: <PDFThumbnailView width={150} name={document.name} />,
-    });
-    accordions.push({
-      value: 'pdf-outline',
-      view: <PDFOutlineView name={document.name} />,
+      value: 'document-tag-view',
+      view: <DocumentTagView document={document} />,
     });
   }
   return (
-    <div data-test="primarySidebar" className={classes.root}>
+    <div data-test="secondarySidebar" className={classes.root}>
       <Accordion
         className={classes.accordion}
         openItems={openItems}
@@ -86,6 +66,7 @@ export const PrimarySidebar = () => {
         {accordions.map((accordion) => {
           return (
             <AccordionItem
+              key={accordion.value}
               value={accordion.value}
               className={mergeClasses(
                 classes.accordionItem,

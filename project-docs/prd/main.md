@@ -185,3 +185,58 @@ Shows the outline of the active pdf document in the primary sidebar.
 #### Feature - PDF Thumbnail
 
 Shows the thumbnail of the active pdf document in the primary sidebar.
+
+## Feature: Document Tagging
+
+### Purpose
+
+The document tagging feature allows users to categorize their documents efficiently by adding tags, assisting in organization and retrieval processes.
+
+### User Stories
+
+- **US1: Add Tags to a Document**
+  - As a user, I want to add tags to a document so that I can categorize it for easier access and organization.
+- **US2: Remove Tags from a Document**
+  - As a user, I want to remove tags from a document to update its categorization or correct a tagging mistake.
+- **US3: Filter Documents by Tags**
+  - As a user, I want to filter documents based on tags so that I can quickly find a group of documents under the same category.
+- **US4: Display Tags on Documents**
+  - As a user, I want to view all tags on a document to understand its categorization and context quickly.
+- **US5: Autocomplete Tags**
+  - As a user, I want a tag autocomplete feature when adding tags to minimize typing and ensure tag consistency.
+
+### Functional Requirements
+
+1. **Tagging System**
+
+   - Provide an interface for the user to add, remove, and view tags associated with a document.
+   - Tags should be visible on the document's entry in the file system and in the dedicated document viewer/editor.
+   - Implement an autocomplete feature that suggests the existing tags as the user types.
+   - Allow users to add multiple tags to a document.
+
+2. **Filter by Tags**
+   - Implement a search or filter interface where users can select one or more tags to filter the document list accordingly.
+   - Update the document viewer dynamically based on the tags selected by the user.
+
+### Non-Functional Requirements
+
+1. **Usability**
+
+   - The tagging interface should be intuitive and easily accessible via the document's detailed view.
+   - Implement tagging with minimal clicks and typing to enhance user experience.
+   - Autocomplete suggestions should populate quickly and accurately as the user begins typing.
+
+2. **Performance**
+
+   - Tagging operations and tag-based filtering should be efficient and must not degrade performance as the number of documents or tags increases.
+   - The system should handle a high volume of documents and tags without any delays or performance bottlenecks.
+
+3. **Scalability**
+
+   - The system should support scaling both in terms of the number of documents handled and the number of concurrent users tagging documents.
+   - Ensure that tagging and filtering systems can scale as the document repository grows.
+
+4. **Reliability**
+   - Ensure that all tagging actions are processed reliably and users see consistent tag-related information across different views of the document.
+
+**Note**: Each tag should be stored in a centralized database management system to ensure uniformity and consistency across the application.

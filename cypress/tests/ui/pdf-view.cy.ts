@@ -2,9 +2,7 @@ describe('File Explorer for Space', () => {
   //   const testSpaceKey = 'a116538b';
   //   const ctx = {} as { homedir: string; pathSep: string };
   before(() => {
-    cy.task('seedTestSpaceForDocument').then(() => {
-      console.log('finished seeding test space');
-    });
+    cy.task('seedTestSpaceForDocument').then(() => {});
   });
 
   beforeEach(() => {

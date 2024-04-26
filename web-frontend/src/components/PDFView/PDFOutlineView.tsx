@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDocument } from '~/web/hooks/useDocument';
 import { usePDFDocument } from './hooks';
-import { PrimarySidebarAccordionItem } from '~/web/components/PrimarySidebarAccordionItem';
+import { SidebarAccordionItem } from '~/web/components/SidebarAccordionItem';
 import {
   Button,
   Tree,
@@ -113,7 +113,7 @@ export const PDFOutlineView = ({ name }: { name: string }) => {
   }, [pdfDocument]);
 
   return (
-    <PrimarySidebarAccordionItem
+    <SidebarAccordionItem
       headerButtons={null}
       headerText={t('pdfview.outline')}
       panel={
