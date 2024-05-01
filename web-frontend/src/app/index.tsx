@@ -25,7 +25,7 @@ import { Space } from '../types';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 const queryClient = new QueryClient();
-const useStyles = makeStyles({
+const useClasses = makeStyles({
   root: {
     height: '100vh',
     overflowY: 'hidden',
@@ -116,7 +116,7 @@ const useDocuments = () => {
 };
 
 const InkStain = () => {
-  const styles = useStyles();
+  const classes = useClasses();
   const { data: platform } = useQuery({
     queryKey: ['platform'],
     queryFn: async () => {
@@ -190,11 +190,11 @@ const InkStain = () => {
         activeDocumentViewRef,
       }}
     >
-      <div className={styles.root}>
-        <div className={styles.menubar}>
+      <div className={classes.root}>
+        <div className={classes.menubar}>
           <MenuBar />
         </div>
-        <div className={styles.body}>
+        <div className={classes.body}>
           <PrimarySidebar />
           <MainArea />
           <SecondarySidebar />

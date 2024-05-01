@@ -111,7 +111,7 @@ describe('Documents API', () => {
     });
   });
 
-  context(`POST /documents/${spaceKey}/tags`, () => {
+  context(`/documents/${spaceKey}/tags`, () => {
     it('should add tags to a document in a space', () => {
       const tagsToAdd = ['finance', 'report'];
       const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
@@ -127,9 +127,6 @@ describe('Documents API', () => {
         expect(response.status).to.eq(200);
       });
     });
-  });
-
-  context(`DELETE /documents/${spaceKey}/tags`, () => {
     it('should remove tags from a document in a space', () => {
       const tagsToRemove = ['report'];
       const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
@@ -145,9 +142,7 @@ describe('Documents API', () => {
         expect(response.status).to.eq(200);
       });
     });
-  });
 
-  context(`GET /documents/${spaceKey}/tags`, () => {
     it('should retrieve tags of a document in a space', () => {
       const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
       cy.request(
@@ -158,6 +153,56 @@ describe('Documents API', () => {
       ).then((response) => {
         expect(response.status).to.eq(200);
         expect(response.body).to.include('finance');
+      });
+    });
+  });
+
+  context(`/documents/${spaceKey}/attributes`, () => {
+    it('should retrieve attributes of a document in a space', () => {
+      const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
+      cy.request(
+        `GET`,
+        `/api/v1/documents/${spaceKey}/attributes?path=${encodeURIComponent(
+          testDocumentPath
+        )}`
+      ).then((response) => {
+        expect(response.status).to.eq(200);
+        expect(response.body).to.have.property('title');
+      });
+    });
+
+    it('should add attributes to a document in a space', () => {
+      const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
+      cy.request({
+        method: 'POST',
+        url: `/api/v1/documents/${spaceKey}/attributes?path=${encodeURIComponent(
+          testDocumentPath
+        )}`,
+        body: {
+          attributes: {
+            title: {
+              value: 'Test Document',
+            },
+            'test-attribute': {
+              value: 'test',
+            },
+          },
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(200);
+      });
+    });
+
+    it('should delete attributes of a document in a space', () => {
+      const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
+      cy.request({
+        method: 'DELETE',
+        url: `/api/v1/documents/${spaceKey}/attributes?path=${encodeURIComponent(
+          testDocumentPath
+        )}`,
+        body: ['test-attribute'],
+      }).then((response) => {
+        expect(response.status).to.eq(200);
       });
     });
   });

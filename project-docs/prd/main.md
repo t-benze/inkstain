@@ -240,3 +240,56 @@ The document tagging feature allows users to categorize their documents efficien
    - Ensure that all tagging actions are processed reliably and users see consistent tag-related information across different views of the document.
 
 **Note**: Each tag should be stored in a centralized database management system to ensure uniformity and consistency across the application.
+
+## Feature: Document Attributes
+
+### Purpose
+
+The "Document Attributes" feature allows users to view and manage meta-information associated with their documents. This metadata can be automatically extracted from the documents or manually entered by the users, providing detailed insights and context about the document content.
+
+### User Stories
+
+- **US1: View Document Attributes**
+  - As a user, I want to view the attributes associated with a document to understand its metadata and context.
+- **US2: Edit Document Attributes**
+  - As a user, I want to manually add or modify attributes of a document to ensure the metadata is accurate and up-to-date.
+- **US3: Auto-extract Document Attributes**
+  - As a user, I want certain attributes of the document to be automatically extracted (such as author, creation date, etc.) to save time and effort.
+- **US4: Search by Document Attributes**
+  - As a user, I want to search documents based on their attributes so that I can quickly find documents based on specific criteria.
+
+### Functional Requirements
+
+1. **Attribute Management System**
+
+   - Provide an interface for users to view, add, and edit attributes associated with a document.
+   - Some attributes should be auto-extracted using content recognition technologies when a document is first loaded or uploaded to the system.
+   - Allow the addition of custom attributes where users can define both the attribute name and its value.
+
+2. **Auto-extraction of Attributes**
+
+   - Implement algorithms or integrate with third-party services to extract common metadata such as title, author, created date, modified date, and keywords from documents, especially from structured formats like PDF, Word, and others.
+
+3. **Search Integration**
+   - Enhance the existing search system to include document attributes in the search criteria, allowing filtering and searching by both standard and custom attributes.
+
+### Non-Functional Requirements
+
+1. **Usability**
+
+   - The interface for managing document attributes should be user-friendly and integrated seamlessly within the existing document management system.
+   - Attribute editing should be straightforward, with type-ahead support and dropdown selections for predefined attribute types to prevent entry errors.
+
+2. **Performance**
+
+   - The auto-extraction of document attributes should be performed efficiently to minimize processing time and not affect the user's experience negatively.
+   - Ensure the search functionality remains fast and accurate even as the complexity of metadata and volume of documents increase.
+
+3. **Scalability**
+
+   - The system should efficiently handle an increasing volume of documents and metadata without degradation in performance.
+   - It should support a wide range of document types and sizes for attribute extraction and searching.
+
+4. **Reliability**
+   - Ensure accurate and consistent auto-extraction of attributes across various document types.
+   - Maintain data integrity when attributes are added, edited, or deleted to ensure that metadata consistently reflects the document's content.

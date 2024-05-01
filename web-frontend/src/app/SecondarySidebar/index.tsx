@@ -10,10 +10,11 @@ import {
 } from '@fluentui/react-components';
 import { AppContext } from '~/web/app/context';
 import { DocumentTagView } from '~/web/components/DocumentTagView';
+import { DocumentAttributesView } from '~/web/components/DocumentAttributesView';
 
 const useClasses = makeStyles({
   root: {
-    minWidth: '300px',
+    width: '300px',
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderLeft(
       tokens.strokeWidthThin,
@@ -51,10 +52,16 @@ export const SecondarySidebar = () => {
   };
   const accordions = [] as { value: string; view: React.ReactNode }[];
   if (document) {
-    accordions.push({
-      value: 'document-tag-view',
-      view: <DocumentTagView document={document} />,
-    });
+    accordions.push(
+      {
+        value: 'document-tag-view',
+        view: <DocumentTagView document={document} />,
+      },
+      {
+        value: 'document-attributes-view',
+        view: <DocumentAttributesView document={document} />,
+      }
+    );
   }
   return (
     <div data-test="secondarySidebar" className={classes.root}>

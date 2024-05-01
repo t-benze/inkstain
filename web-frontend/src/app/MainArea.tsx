@@ -15,7 +15,7 @@ export interface MainAreaHandle {
 }
 
 const useStyles = makeStyles({
-  root: { width: '100%' },
+  root: { flexGrow: 1 },
   tabList: {
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderBottom(

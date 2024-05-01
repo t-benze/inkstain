@@ -1,3 +1,20 @@
 {
-  "mimetype": "application/pdf"
+  "mimetype": "application/pdf",
+  "attributes": {
+    "title": {
+      "value": "Attention is All You Need"
+    },
+    "author": {
+      "value": [
+        "Vaswani, Ashish",
+        "Shazeer, Noam",
+        "Parmar, Niki",
+        "Uszkoreit, Jakob",
+        "Jones, Llion",
+        "Gomez, Aidan N.",
+        "Kaiser, Lukasz",
+        "Polosukhin, Illia"
+      ]
+    }
+  }
 }

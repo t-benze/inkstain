@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './AddDocumentTagsRequest';
+export * from './AddUpdateDocumentAttributesRequest';
 export * from './CreateSpaceOperationType';
 export * from './CreateSpaceRequest';
 export * from './ListDirectories200ResponseInner';

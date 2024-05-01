@@ -4,6 +4,7 @@ apis/SpacesApi.ts
 apis/index.ts
 index.ts
 models/AddDocumentTagsRequest.ts
+models/AddUpdateDocumentAttributesRequest.ts
 models/CreateSpaceOperationType.ts
 models/CreateSpaceRequest.ts
 models/ListDirectories200ResponseInner.ts

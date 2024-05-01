@@ -34,4 +34,14 @@ describe('Secondary Side Bar', () => {
         .should('not.exist');
     });
   });
+
+  context('Document Attributes View', () => {
+    it.only('Should display the document attributes', () => {
+      cy.getBySel('secondarySidebar').contains('Attributes').click();
+      cy.getBySel('documentAttributesView-attribute').should(
+        'have.length.at.least',
+        1
+      );
+    });
+  });
 });

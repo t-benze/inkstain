@@ -51,3 +51,13 @@ This project uses cypress for e2e testing (both api and ui) and UI component tes
 
 - **NX**: Tooling to support a monorepo structure, improve build times, and manage the linking of library dependencies in an Integrated Repos manner.
 - **Monorepo**: A strategy for organizing the project that houses both the client-side and server-side code in a single repository for easier management and cross-dependency integration.
+
+# Solution Details
+
+## Meta Data
+
+Each document is associated with a meta.json file that stores its meta data. This section defines the legitimate schema of the meta data.
+
+- mimetype: the media type of the document
+- tags: for document tagging
+- attributes: document attributes

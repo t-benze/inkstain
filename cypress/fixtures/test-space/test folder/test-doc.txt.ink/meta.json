@@ -1,4 +1,9 @@
 {
   "mimetype": "text/plain",
-  "tags": ["test"]
+  "tags": ["test"],
+  "attributes": {
+    "title": {
+      "value": "Test Text"
+    }
+  }
 }

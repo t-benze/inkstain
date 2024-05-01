@@ -15,12 +15,15 @@
 import * as runtime from '../runtime';
 import type {
   AddDocumentTagsRequest,
+  AddUpdateDocumentAttributesRequest,
   ListDocuments200ResponseInner,
   RemoveDocumentTagsRequest,
 } from '../models/index';
 import {
   AddDocumentTagsRequestFromJSON,
   AddDocumentTagsRequestToJSON,
+  AddUpdateDocumentAttributesRequestFromJSON,
+  AddUpdateDocumentAttributesRequestToJSON,
   ListDocuments200ResponseInnerFromJSON,
   ListDocuments200ResponseInnerToJSON,
   RemoveDocumentTagsRequestFromJSON,
@@ -44,12 +47,29 @@ export interface AddFolderRequest {
   path: string;
 }
 
+export interface AddUpdateDocumentAttributesOperationRequest {
+  spaceKey: string;
+  path: string;
+  addUpdateDocumentAttributesRequest: AddUpdateDocumentAttributesRequest;
+}
+
 export interface DeleteDocumentRequest {
   spaceKey: string;
   path: string;
 }
 
+export interface DeleteDocumentAttributesRequest {
+  spaceKey: string;
+  path: string;
+  requestBody: Array<string>;
+}
+
 export interface DeleteFolderRequest {
+  spaceKey: string;
+  path: string;
+}
+
+export interface GetDocumentAttributesRequest {
   spaceKey: string;
   path: string;
 }
@@ -309,6 +329,82 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
+   * Add or update attributes of a document in a specific space
+   */
+  async addUpdateDocumentAttributesRaw(
+    requestParameters: AddUpdateDocumentAttributesOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling addUpdateDocumentAttributes.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling addUpdateDocumentAttributes.'
+      );
+    }
+
+    if (
+      requestParameters.addUpdateDocumentAttributesRequest === null ||
+      requestParameters.addUpdateDocumentAttributesRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'addUpdateDocumentAttributesRequest',
+        'Required parameter requestParameters.addUpdateDocumentAttributesRequest was null or undefined when calling addUpdateDocumentAttributes.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/attributes`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: AddUpdateDocumentAttributesRequestToJSON(
+          requestParameters.addUpdateDocumentAttributesRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Add or update attributes of a document in a specific space
+   */
+  async addUpdateDocumentAttributes(
+    requestParameters: AddUpdateDocumentAttributesOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.addUpdateDocumentAttributesRaw(requestParameters, initOverrides);
+  }
+
+  /**
    * Delete a document from a space
    */
   async deleteDocumentRaw(
@@ -370,6 +466,80 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
+   * Delete attributes from a document in a specific space
+   */
+  async deleteDocumentAttributesRaw(
+    requestParameters: DeleteDocumentAttributesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling deleteDocumentAttributes.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling deleteDocumentAttributes.'
+      );
+    }
+
+    if (
+      requestParameters.requestBody === null ||
+      requestParameters.requestBody === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'requestBody',
+        'Required parameter requestParameters.requestBody was null or undefined when calling deleteDocumentAttributes.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/attributes`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+        body: requestParameters.requestBody,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Delete attributes from a document in a specific space
+   */
+  async deleteDocumentAttributes(
+    requestParameters: DeleteDocumentAttributesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.deleteDocumentAttributesRaw(requestParameters, initOverrides);
+  }
+
+  /**
    * Delete a folder within a space
    */
   async deleteFolderRaw(
@@ -428,6 +598,71 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.deleteFolderRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Retrieve attributes of a document in a specific space
+   */
+  async getDocumentAttributesRaw(
+    requestParameters: GetDocumentAttributesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<object>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling getDocumentAttributes.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling getDocumentAttributes.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/attributes`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse<any>(response);
+  }
+
+  /**
+   * Retrieve attributes of a document in a specific space
+   */
+  async getDocumentAttributes(
+    requestParameters: GetDocumentAttributesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<object> {
+    const response = await this.getDocumentAttributesRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
   }
 
   /**
