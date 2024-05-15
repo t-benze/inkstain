@@ -9,12 +9,14 @@ import { useTranslation } from 'react-i18next';
 
 export const PDFThumbnailView = ({
   width,
-  name,
+  documentPath,
+  spaceKey,
 }: {
+  spaceKey: string;
   width: number;
-  name: string;
+  documentPath: string;
 }) => {
-  const url = useDocument(name);
+  const url = useDocument(documentPath);
   const { t } = useTranslation();
   const pdfDocument = usePDFDocument({ url });
   const [desiredScale, setDesciredScale] = React.useState<number>(-1);
@@ -35,6 +37,8 @@ export const PDFThumbnailView = ({
       panel={
         desiredScale === -1 || pdfDocument === null ? null : (
           <PDFPageScrollView
+            spaceKey={spaceKey}
+            documentPath={documentPath}
             enableTextLayer={false}
             virtualizerLength={10}
             ref={sceneRef}

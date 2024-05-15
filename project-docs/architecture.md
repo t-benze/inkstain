@@ -52,6 +52,10 @@ This project uses cypress for e2e testing (both api and ui) and UI component tes
 - **NX**: Tooling to support a monorepo structure, improve build times, and manage the linking of library dependencies in an Integrated Repos manner.
 - **Monorepo**: A strategy for organizing the project that houses both the client-side and server-side code in a single repository for easier management and cross-dependency integration.
 
+## Cloud Services
+
+- AWS Textract: For document intelligence, i.e., text detection and layout analysis.
+
 # Solution Details
 
 ## Meta Data

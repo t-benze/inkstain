@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   AddDocumentTagsRequest,
   AddUpdateDocumentAttributesRequest,
+  DocumentTextDetection,
   ListDocuments200ResponseInner,
   RemoveDocumentTagsRequest,
 } from '../models/index';
@@ -24,6 +25,8 @@ import {
   AddDocumentTagsRequestToJSON,
   AddUpdateDocumentAttributesRequestFromJSON,
   AddUpdateDocumentAttributesRequestToJSON,
+  DocumentTextDetectionFromJSON,
+  DocumentTextDetectionToJSON,
   ListDocuments200ResponseInnerFromJSON,
   ListDocuments200ResponseInnerToJSON,
   RemoveDocumentTagsRequestFromJSON,
@@ -82,6 +85,14 @@ export interface GetDocumentContentRequest {
 export interface GetDocumentTagsRequest {
   spaceKey: string;
   path: string;
+}
+
+export interface IntelligenceAnalyzeDocumentRequest {
+  spaceKey: string;
+  path: string;
+  pageNum: number;
+  body: string;
+  mock?: number;
 }
 
 export interface ListDocumentsRequest {
@@ -789,6 +800,104 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<string>> {
     const response = await this.getDocumentTagsRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * analyze doucment through intelligence service
+   */
+  async intelligenceAnalyzeDocumentRaw(
+    requestParameters: IntelligenceAnalyzeDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<DocumentTextDetection>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling intelligenceAnalyzeDocument.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling intelligenceAnalyzeDocument.'
+      );
+    }
+
+    if (
+      requestParameters.pageNum === null ||
+      requestParameters.pageNum === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'pageNum',
+        'Required parameter requestParameters.pageNum was null or undefined when calling intelligenceAnalyzeDocument.'
+      );
+    }
+
+    if (
+      requestParameters.body === null ||
+      requestParameters.body === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'body',
+        'Required parameter requestParameters.body was null or undefined when calling intelligenceAnalyzeDocument.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    if (requestParameters.pageNum !== undefined) {
+      queryParameters['pageNum'] = requestParameters.pageNum;
+    }
+
+    if (requestParameters.mock !== undefined) {
+      queryParameters['mock'] = requestParameters.mock;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'text/plain';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/analyze`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: requestParameters.body as any,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentTextDetectionFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * analyze doucment through intelligence service
+   */
+  async intelligenceAnalyzeDocument(
+    requestParameters: IntelligenceAnalyzeDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<DocumentTextDetection> {
+    const response = await this.intelligenceAnalyzeDocumentRaw(
       requestParameters,
       initOverrides
     );

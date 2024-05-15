@@ -3,10 +3,12 @@ import * as React from 'react';
 import { tokens, makeStyles, shorthands } from '@fluentui/react-components';
 import { useLayoutEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import { useDocument } from '~/web/hooks/useDocument';
 import { PDFToolbar } from './PDFToolbar';
 import { PDFPage } from './PDFPage';
 import { PDFPageScrollView } from './PDFPageScrollView';
 import { usePDFDocument } from './hooks';
+import { PDFViewerContext } from './context';
 import './viewer.css';
 
 export interface PDFViewHandle {
@@ -14,7 +16,8 @@ export interface PDFViewHandle {
 }
 
 export interface PDFViewerProps {
-  url: string;
+  spaceKey: string;
+  documentPath: string;
   onDocumentLoadSuccess?: (document: PDFDocumentProxy) => void;
   onDocumentLoadFailure?: (error: Error) => void;
   initialPage?: number;
@@ -48,10 +51,17 @@ const SCALE_STEPS = [
 
 export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
   (
-    { url, onDocumentLoadSuccess, onDocumentLoadFailure, initialPage = 1 },
+    {
+      spaceKey,
+      documentPath,
+      onDocumentLoadSuccess,
+      onDocumentLoadFailure,
+      initialPage = 1,
+    },
     ref
   ) => {
     const styles = useStyles();
+    const url = useDocument(documentPath);
     const pdfDocument = usePDFDocument({
       url,
       onDocumentLoadSuccess,
@@ -66,6 +76,11 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     const [enableScroll, setEnableScroll] = useState<boolean>(false);
     const onEnableScrollChange = React.useCallback((enable: boolean) => {
       setEnableScroll(enable);
+    }, []);
+    const [showLayoutAnalysis, setShowLayoutAnalysis] =
+      useState<boolean>(false);
+    const onShowLayoutAnalysisChange = React.useCallback((show: boolean) => {
+      setShowLayoutAnalysis(show);
     }, []);
 
     const onScaleChange = React.useCallback((newScale: number) => {
@@ -133,58 +148,66 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     });
 
     return (
-      <div className={styles.root}>
-        <PDFToolbar
-          onPageChange={(pageNum) => {
-            setCurrentPageNumber(pageNum);
-          }}
-          scale={scale}
-          onScaleChange={onScaleChange}
-          currentPage={currentPageNumber}
-          numOfPages={pdfDocument?.numPages || 0}
-          sceneWidth={sceneWidth}
-          sceneHeight={sceneHeight}
-          initViewportWidth={defaultViewportWidth}
-          initViewportHeight={defaultViewportHeight}
-          initScale={DEFAULT_SCALE}
-          scaleSteps={SCALE_STEPS}
-          enableScroll={enableScroll}
-          onEnableScrollChange={onEnableScrollChange}
-        />
-        {pdfDocument ? (
-          enableScroll ? (
-            <PDFPageScrollView
-              ref={sceneRef}
-              onPageChange={(pageNum) => {
-                setCurrentPageNumber(pageNum);
-              }}
-              document={pdfDocument}
-              scale={scale}
-              currentPageNumber={currentPageNumber}
-              onRenderCompleted={handleRenderPageCompleted}
-            />
-          ) : (
-            <div
-              data-test="pdfViewer-scene"
-              ref={sceneRef}
-              className={styles.scene}
-            >
-              <PDFPage
-                pageNumber={currentPageNumber}
-                scale={scale}
-                onRenderCompleted={handleRenderPageCompleted}
-                document={pdfDocument}
-                style={{
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  marginTop: 'auto',
-                  marginBottom: 'auto',
+      <PDFViewerContext.Provider value={{ showLayoutAnalysis }}>
+        <div className={styles.root}>
+          <PDFToolbar
+            onPageChange={(pageNum) => {
+              setCurrentPageNumber(pageNum);
+            }}
+            scale={scale}
+            onScaleChange={onScaleChange}
+            currentPage={currentPageNumber}
+            numOfPages={pdfDocument?.numPages || 0}
+            sceneWidth={sceneWidth}
+            sceneHeight={sceneHeight}
+            initViewportWidth={defaultViewportWidth}
+            initViewportHeight={defaultViewportHeight}
+            initScale={DEFAULT_SCALE}
+            scaleSteps={SCALE_STEPS}
+            enableScroll={enableScroll}
+            onEnableScrollChange={onEnableScrollChange}
+            showLayoutAnalysis={showLayoutAnalysis}
+            onShowLayoutAnalysisChange={onShowLayoutAnalysisChange}
+          />
+          {pdfDocument ? (
+            enableScroll ? (
+              <PDFPageScrollView
+                ref={sceneRef}
+                onPageChange={(pageNum) => {
+                  setCurrentPageNumber(pageNum);
                 }}
+                spaceKey={spaceKey}
+                documentPath={documentPath}
+                document={pdfDocument}
+                scale={scale}
+                currentPageNumber={currentPageNumber}
+                onRenderCompleted={handleRenderPageCompleted}
               />
-            </div>
-          )
-        ) : null}
-      </div>
+            ) : (
+              <div
+                data-test="pdfViewer-scene"
+                ref={sceneRef}
+                className={styles.scene}
+              >
+                <PDFPage
+                  spaceKey={spaceKey}
+                  documentPath={documentPath}
+                  pageNumber={currentPageNumber}
+                  scale={scale}
+                  onRenderCompleted={handleRenderPageCompleted}
+                  document={pdfDocument}
+                  style={{
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    marginTop: 'auto',
+                    marginBottom: 'auto',
+                  }}
+                />
+              </div>
+            )
+          ) : null}
+        </div>
+      </PDFViewerContext.Provider>
     );
   }
 );

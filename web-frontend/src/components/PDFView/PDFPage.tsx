@@ -6,22 +6,20 @@ import {
 } from 'pdfjs-dist';
 import * as React from 'react';
 import { makeStyles } from '@fluentui/react-components';
+import { documentsApi } from '~/web/apiClient';
+import { AppContext } from '~/web/app/context';
+import { PDFPageTextLayer } from './PDFPageTextLayer';
 
 const useStyles = makeStyles({
   root: {
     position: 'relative',
   },
-  textLayer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
   canvas: {},
 });
 
 export const PDFPage = ({
+  spaceKey,
+  documentPath,
   document,
   pageNumber,
   scale,
@@ -30,9 +28,11 @@ export const PDFPage = ({
   ariaSetSize,
   ariaPosinset,
   style,
-  enableTextLayer = false,
+  enableTextLayer = true,
   onClick,
 }: {
+  spaceKey: string;
+  documentPath: string;
   document: PDFDocumentProxy;
   pageNumber: number;
   scale: number;
@@ -51,6 +51,7 @@ export const PDFPage = ({
   const pageRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const renderTaskRef = React.useRef<RenderTask | null>(null);
+  const appContext = React.useContext(AppContext);
   // const textLayerRef = React.useRef<HTMLDivElement>(null);
   // const textRenderTaskRef = React.useRef<TextLayerRenderTask | null>(null);
   // const textDivsRef = React.useRef<HTMLDivElement[]>([]);
@@ -91,41 +92,6 @@ export const PDFPage = ({
       try {
         await renderTaskRef.current.promise;
         onRenderCompleted?.(pageNumber, viewport);
-        // if (enableTextLayer) {
-        //   if (!textLayerRef.current)
-        //     throw new Error('text layer ref not found');
-        //   const readableStream = pdfPage.streamTextContent({
-        //     includeMarkedContent: true,
-        //     disableNormalization: true,
-        //   });
-        //   // const isOffscreenCanvasSupported =
-        //   //   typeof OffscreenCanvas !== 'undefined';
-        //   const isOffscreenCanvasSupported = false;
-        //   if (!isTextLayerRendered.current) {
-        //     textRenderTaskRef.current = renderTextLayer({
-        //       container: textLayerRef.current,
-        //       viewport,
-        //       textDivs: textDivsRef.current,
-        //       textDivProperties: textDivPropertiesRef.current,
-        //       textContentItemsStr: textContentItemsStrRef.current,
-        //       textContentSource: readableStream,
-        //       isOffscreenCanvasSupported,
-        //     });
-        //     textRenderTaskRef.current.promise.then(() => {
-        //       isTextLayerRendered.current = true;
-        //     });
-        //   } else {
-        //     // with the current implementation, the re-rendering can only be triggered by the changing of scale.
-        //     updateTextLayer({
-        //       container: textLayerRef.current,
-        //       viewport,
-        //       textDivs: textDivsRef.current,
-        //       textDivProperties: textDivPropertiesRef.current,
-        //       isOffscreenCanvasSupported,
-        //       mustRescale: true,
-        //     });
-        // }
-        // }
       } catch (e) {
         if (e instanceof RenderingCancelledException) {
           console.log('Rendering cancelled, page number: ', pageNumber);
@@ -138,11 +104,16 @@ export const PDFPage = ({
       if (renderTaskRef.current) {
         renderTaskRef.current.cancel();
       }
-      // if (textRenderTaskRef.current) {
-      //   textRenderTaskRef.current.cancel();
-      // }
     };
-  }, [enableTextLayer, document, pageNumber, scale, onRenderCompleted]);
+  }, [
+    enableTextLayer,
+    document,
+    pageNumber,
+    scale,
+    onRenderCompleted,
+    appContext.activeSpace,
+    appContext.activeDocument,
+  ]);
 
   return (
     <div
@@ -162,9 +133,14 @@ export const PDFPage = ({
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
-      {/* {enableTextLayer ? (
-        <div ref={textLayerRef} className={`${styles.textLayer} textLayer`} />
-      ) : null} */}
+      {enableTextLayer ? (
+        <PDFPageTextLayer
+          canvasRef={canvasRef}
+          spaceKey={spaceKey}
+          documentPath={documentPath}
+          pageNum={pageNumber}
+        />
+      ) : null}
     </div>
   );
 };

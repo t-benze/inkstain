@@ -6,6 +6,8 @@ import { PDFPage } from './PDFPage';
 export const PDFPageScrollView = React.forwardRef(
   (
     {
+      documentPath,
+      spaceKey,
       document,
       scale,
       currentPageNumber = 1,
@@ -15,6 +17,8 @@ export const PDFPageScrollView = React.forwardRef(
       onPageClick,
       virtualizerLength = 5,
     }: {
+      documentPath: string;
+      spaceKey: string;
       virtualizerLength?: number;
       enableTextLayer?: boolean;
       document: PDFDocumentProxy;
@@ -101,6 +105,8 @@ export const PDFPageScrollView = React.forwardRef(
         {(index: number) => {
           return (
             <PDFPage
+              spaceKey={spaceKey}
+              documentPath={documentPath}
               role="listitem"
               aria-posinset={index}
               aria-setsize={totalPages}
