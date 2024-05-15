@@ -66,14 +66,26 @@ export const PrimarySidebar = () => {
   const accordions = [
     { value: 'file-explorer', view: <FileExplorer space={activeSpace} /> },
   ];
+
   if (document && document.type === 'pdf') {
     accordions.push({
       value: 'pdf-thumbnail',
-      view: <PDFThumbnailView width={150} name={document.name} />,
+      view: (
+        <PDFThumbnailView
+          width={150}
+          spaceKey={activeSpace.key}
+          documentPath={document.name}
+        />
+      ),
     });
     accordions.push({
       value: 'pdf-outline',
-      view: <PDFOutlineView name={document.name} />,
+      view: (
+        <PDFOutlineView
+          spaceKey={activeSpace.key}
+          documentPath={document.name}
+        />
+      ),
     });
   }
   return (

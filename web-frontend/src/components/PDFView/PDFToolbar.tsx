@@ -20,6 +20,8 @@ import {
   ArrowResetRegular,
   InsertFilled,
   InsertRegular,
+  GlassesRegular,
+  GlassesFilled,
 } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -37,6 +39,8 @@ interface PDFToolbarProps {
   scaleSteps: number[];
   enableScroll: boolean;
   onEnableScrollChange: (enableScroll: boolean) => void;
+  showLayoutAnalysis: boolean;
+  onShowLayoutAnalysisChange: (showLayoutAnalysis: boolean) => void;
 }
 
 const useStyles = makeStyles({
@@ -64,6 +68,8 @@ export const PDFToolbar = ({
   scaleSteps,
   enableScroll,
   onEnableScrollChange,
+  showLayoutAnalysis,
+  onShowLayoutAnalysisChange,
 }: PDFToolbarProps) => {
   const styles = useStyles();
   const { t } = useTranslation();
@@ -224,6 +230,25 @@ export const PDFToolbar = ({
               <InsertRegular />
             )
           }
+        />
+      </Tooltip>
+      <Tooltip
+        relationship="description"
+        content={t('pdfview.analyzeDocBtnTooltip')}
+        positioning={'below'}
+      >
+        <ToolbarButton
+          data-test="pdfViewer-analyzeDocBtn"
+          icon={
+            showLayoutAnalysis ? (
+              <GlassesFilled color={tokens.colorBrandForeground1} />
+            ) : (
+              <GlassesRegular />
+            )
+          }
+          onClick={() => {
+            onShowLayoutAnalysisChange(!showLayoutAnalysis);
+          }}
         />
       </Tooltip>
     </Toolbar>

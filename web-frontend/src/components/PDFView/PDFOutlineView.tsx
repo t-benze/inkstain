@@ -99,8 +99,14 @@ const OutlineTree = ({
   );
 };
 
-export const PDFOutlineView = ({ name }: { name: string }) => {
-  const url = useDocument(name);
+export const PDFOutlineView = ({
+  spaceKey,
+  documentPath,
+}: {
+  spaceKey: string;
+  documentPath: string;
+}) => {
+  const url = useDocument(documentPath);
   const { t } = useTranslation();
   const pdfDocument = usePDFDocument({ url });
   const [outline, setOutline] = React.useState<OutlineNode[]>([]);

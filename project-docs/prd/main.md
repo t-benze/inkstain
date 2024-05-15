@@ -186,6 +186,10 @@ Shows the outline of the active pdf document in the primary sidebar.
 
 Shows the thumbnail of the active pdf document in the primary sidebar.
 
+#### Feature - Text Detection
+
+Detects texts and analyze the page layout using machine intelligence, and then renders a text layer.
+
 ## Feature: Document Tagging
 
 ### Purpose

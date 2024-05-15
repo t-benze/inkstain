@@ -35,11 +35,18 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
     }
   }
 
+  // when rendering an actual document, there must be an active space
+  if (appContext.activeSpace === null) {
+    throw new Error('Active space is null');
+  }
+
+  const spaceKey = appContext.activeSpace.key;
   switch (type) {
     case 'pdf': {
       return (
         <PDFView
-          name={name}
+          spaceKey={spaceKey}
+          documentPath={name}
           ref={documentViewRef as React.MutableRefObject<PDFViewHandle>}
         />
       );
