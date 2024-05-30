@@ -1,4 +1,4 @@
-import Router from 'koa-router';
+import Router from '@koa/router';
 import path from 'path';
 import fs from 'fs/promises';
 import {
@@ -6,12 +6,12 @@ import {
   AnalyzeDocumentCommand,
 } from '@aws-sdk/client-textract'; // ES Modules import
 import { fromIni } from '@aws-sdk/credential-providers';
-import spaceService from '~/server/services/spaceService';
 const REGION = 'ap-southeast-1'; //e.g. "us-east-1"
 const profileName = 'AdministratorAccess-408793953592';
 import * as readline from 'readline';
 import { createReadStream, createWriteStream } from 'fs';
 import { EOL } from 'os';
+import { Space } from '~/server/services/SpaceService';
 
 async function loadMockResponse() {
   const mockData = path.resolve(
@@ -30,11 +30,10 @@ const client = new TextractClient({
 // The first line of the jsonl file is the index to map the page number to the line number
 // The rest of the lines are the analyzed layout data for each page
 async function readAnalyzedDocumentCache(
-  spaceKey: string,
+  space: Space,
   documentPath: string,
-  pageNum: number
+  pageNum: string
 ) {
-  const space = await spaceService.getSpace(spaceKey);
   if (space) {
     try {
       const cacheIndexFilePath = path.join(
@@ -73,12 +72,11 @@ async function readAnalyzedDocumentCache(
 }
 
 async function writeAnalyzedDocumentCache(
-  spaceKey: string,
+  space: Space,
   documentPath: string,
-  pageNum: number,
+  pageNum: string,
   data: object
 ) {
-  const space = await spaceService.getSpace(spaceKey);
   if (space) {
     const cacheIndexFilePath = path.join(
       space.path,
@@ -158,15 +156,16 @@ async function writeAnalyzedDocumentCache(
  */
 export const analyzeDocument = async (ctx: Router.RouterContext) => {
   const { spaceKey } = ctx.params;
-  const { path: documentPath, pageNum, mock = false } = ctx.query;
+  const {
+    path: documentPath,
+    pageNum,
+    mock = false,
+  } = ctx.query as { path: string; pageNum: string; mock: string };
   const file = ctx.request.body as string;
+  const space = await ctx.spaceService.getSpace(spaceKey);
 
   try {
-    let result = await readAnalyzedDocumentCache(
-      spaceKey,
-      documentPath,
-      pageNum
-    );
+    let result = await readAnalyzedDocumentCache(space, documentPath, pageNum);
     if (!result) {
       const command = new AnalyzeDocumentCommand({
         Document: {
@@ -176,7 +175,7 @@ export const analyzeDocument = async (ctx: Router.RouterContext) => {
       });
       result =
         mock === '1' ? await loadMockResponse() : await client.send(command);
-      writeAnalyzedDocumentCache(spaceKey, documentPath, pageNum, result);
+      writeAnalyzedDocumentCache(space, documentPath, pageNum, result);
     }
     ctx.status = 200;
     ctx.body = result;

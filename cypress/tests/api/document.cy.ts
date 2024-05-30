@@ -180,12 +180,8 @@ describe('Documents API', () => {
         )}`,
         body: {
           attributes: {
-            title: {
-              value: 'Test Document',
-            },
-            'test-attribute': {
-              value: 'test',
-            },
+            title: 'Test Document',
+            'test-attribute': 'test',
           },
         },
       }).then((response) => {

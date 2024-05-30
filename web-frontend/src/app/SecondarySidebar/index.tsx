@@ -66,6 +66,7 @@ export const SecondarySidebar = () => {
   return (
     <div data-test="secondarySidebar" className={classes.root}>
       <Accordion
+        collapsible={true}
         className={classes.accordion}
         openItems={openItems}
         onToggle={handleToggle}

@@ -1,10 +1,11 @@
 import Router from '@koa/router';
-import spaceService, {
-  SpaceServiceError,
-  ErrorCode,
-} from '~/server/services/spaceService';
+import path from 'path';
+import fs from 'fs/promises';
+import { SpaceServiceError, ErrorCode } from '~/server/services/SpaceService';
 import logger from '../logger';
 import { RequestParamsError } from './common';
+import { Context } from '~/server/types';
+import { DefinedError } from 'ajv';
 
 /**
  * @swagger
@@ -25,9 +26,9 @@ import { RequestParamsError } from './common';
  *       500:
  *         description: Failed to get spaces.
  */
-export const getSpaces = async (ctx: Router.RouterContext) => {
+export const getSpaces = async (ctx: Context) => {
   try {
-    const data = await spaceService.loadSpaceData();
+    const data = await ctx.spaceService.loadSpaceData();
     ctx.body = Object.keys(data)
       .sort()
       .map((key) => ({ ...data[key], key }));
@@ -65,24 +66,55 @@ export const getSpaces = async (ctx: Router.RouterContext) => {
  *       500:
  *         description: Failed to create space.
  */
-export const createSpace = async (ctx: Router.RouterContext) => {
+export const createSpace = async (ctx: Context) => {
   // Extract details from the request body
   const type = ctx.query.type || 'new';
   const data = ctx.request.body;
   const validate = ctx.validator.getSchema('CreateSpaceRequest');
   if (!validate(data)) {
-    throw new RequestParamsError('Create space params error', validate.errors);
+    const definedErrors: DefinedError[] =
+      validate.errors?.map((error) => error as DefinedError) || [];
+    throw new RequestParamsError('Create space params error', definedErrors);
+  }
+  async function traverseDirectory(
+    spaceRoot: string,
+    targetPath: string,
+    documentsToIndex: string[]
+  ) {
+    console.log('traverse', spaceRoot, targetPath);
+    const files = await fs.readdir(targetPath);
+    for (const file of files) {
+      const fullPath = path.join(targetPath, file);
+      const stat = await fs.lstat(fullPath);
+      if (stat.isDirectory()) {
+        if (file.endsWith('.ink')) {
+          documentsToIndex.push(
+            fullPath.replace(spaceRoot, '').replace('.ink', '')
+          );
+        } else {
+          traverseDirectory(spaceRoot, fullPath, documentsToIndex);
+        }
+      }
+    }
   }
 
   try {
     switch (type) {
       case 'new': {
-        await spaceService.createSpace(data as { name: string; path: string });
+        await ctx.spaceService.createSpace(
+          data as { name: string; path: string }
+        );
         break;
       }
       case 'inkstain': {
         const path = (data as { path: string }).path;
-        await spaceService.importExistingInkStainSpace(path);
+        const space = await ctx.spaceService.importExistingInkStainSpace(path);
+        await ctx.documentService.clearIndex(space);
+        const documentsToIndex = [];
+        await traverseDirectory(path, path, documentsToIndex);
+        for (const doc of documentsToIndex) {
+          await ctx.documentService.indexDocument(space, doc);
+        }
         break;
       }
       default:
@@ -137,12 +169,12 @@ export const createSpace = async (ctx: Router.RouterContext) => {
  *       500:
  *         description: Failed to update space.
  */
-export const updateSpace = async (ctx: Router.RouterContext) => {
+export const updateSpace = async (ctx: Context) => {
   const { key } = ctx.params;
   const data = ctx.request.body;
 
   try {
-    await spaceService.updateSpace(key, data);
+    await ctx.spaceService.updateSpace(key, data);
     ctx.status = 200;
     ctx.body = 'Space updated successfully';
   } catch (error) {
@@ -173,11 +205,11 @@ export const updateSpace = async (ctx: Router.RouterContext) => {
  *       500:
  *         description: Failed to delete space.
  */
-export const deleteSpace = async (ctx: Router.RouterContext) => {
+export const deleteSpace = async (ctx: Context) => {
   const { key } = ctx.params;
 
   try {
-    await spaceService.deleteSpace(key);
+    await ctx.spaceService.deleteSpace(key);
     ctx.status = 200;
     ctx.body = 'Space deleted successfully';
   } catch (error) {

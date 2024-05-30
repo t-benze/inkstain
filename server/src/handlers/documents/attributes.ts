@@ -1,12 +1,12 @@
 import {
   SpaceServiceError,
   ErrorCode as SpaceServiceErrorCode,
-} from '~/server/services/spaceService';
-import Router from 'koa-router';
+} from '~/server/services/SpaceService';
 import path from 'path';
 import fs from 'fs/promises';
 import logger from '~/server/logger'; // Make sure to import your configured logger
-import { getFullPath } from './utils';
+import { getFullPath } from '../../utils';
+import { Context, MetaData } from '~/server/types';
 
 const handleErrors = (ctx, error) => {
   if (
@@ -57,17 +57,17 @@ const handleErrors = (ctx, error) => {
  *       500:
  *         description: Unable to retrieve the attributes due to server error.
  */
-export const getDocumentAttributes = async (ctx: Router.RouterContext) => {
+export const getDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path;
   const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(spaceKey, '');
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
     const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr);
+    const meta = JSON.parse(fileMetaStr) as MetaData;
 
     ctx.status = 200;
     ctx.body = meta.attributes ?? {};
@@ -117,24 +117,24 @@ export const getDocumentAttributes = async (ctx: Router.RouterContext) => {
  *       500:
  *         description: Unable to add or update the attributes due to server error.
  */
-export const addUpdateDocumentAttributes = async (
-  ctx: Router.RouterContext
-) => {
+export const addUpdateDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const documentPath = ctx.query.path;
+  const documentPath = ctx.query.path as string;
   const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(spaceKey, '');
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
     const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr);
+    const meta = JSON.parse(fileMetaStr) as MetaData;
 
-    const updates = ctx.request.body.attributes;
+    const updates = (ctx.request.body as { attributes: object }).attributes;
     meta.attributes = { ...meta.attributes, ...updates };
 
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.indexDocument(space, documentPath);
 
     ctx.status = 200;
     ctx.body = 'Attributes added or updated successfully.';
@@ -182,25 +182,26 @@ export const addUpdateDocumentAttributes = async (
  *       500:
  *         description: Unable to delete the attributes due to server error.
  */
-export const deleteDocumentAttributes = async (ctx: Router.RouterContext) => {
+export const deleteDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const documentPath = ctx.query.path;
+  const documentPath = ctx.query.path as string;
   const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(spaceKey, '');
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
     const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr);
+    const meta = JSON.parse(fileMetaStr) as MetaData;
 
-    const deletions = ctx.request.body;
+    const deletions = ctx.request.body as string[];
     deletions.forEach((key) => {
       delete meta.attributes[key];
     });
 
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.indexDocument(space, documentPath);
     ctx.status = 200;
     ctx.body = 'Attributes deleted successfully.';
   } catch (error) {

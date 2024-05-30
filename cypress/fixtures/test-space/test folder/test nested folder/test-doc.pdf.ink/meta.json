@@ -1,8 +1,6 @@
 {
   "mimetype": "application/pdf",
   "attributes": {
-    "title": {
-      "value": "Test PDF"
-    }
+    "title": "Test PDF"
   }
 }
