@@ -45,7 +45,7 @@ export const DocumentAttributesView = ({
       });
       return Object.entries(attributes).map(([name, value]) => ({
         name,
-        value: value.value,
+        value,
       })) as DocumentAttribute[];
     },
   });

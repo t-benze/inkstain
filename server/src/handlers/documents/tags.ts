@@ -1,12 +1,12 @@
-import Router from 'koa-router';
 import path from 'path';
 import fs from 'fs/promises';
 import {
   SpaceServiceError,
   ErrorCode as SpaceServiceErrorCode,
-} from '~/server/services/spaceService';
+} from '~/server/services/SpaceService';
 import logger from '~/server/logger'; // Make sure to import your configured logger
-import { getFullPath } from './utils';
+import { getFullPath } from '../../utils';
+import { Context, MetaData } from '~/server/types';
 
 /**
  * @swagger
@@ -52,15 +52,15 @@ import { getFullPath } from './utils';
  *       500:
  *         description: Unable to process the tagging due to server error.
  */
-export const addDocumentTags = async (ctx: Router.RouterContext) => {
+export const addDocumentTags = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const { tags } = ctx.request.body;
-  const { path: documentPath } = ctx.request.query;
+  const { tags } = ctx.request.body as { tags: string[] };
+  const { path: documentPath } = ctx.request.query as { path: string };
 
   const documentDirectory = documentPath + '.ink';
   try {
     // Retrieve the full path for the document storage space
-    const spaceRoot = await getFullPath(spaceKey, '');
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
     const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
     // Load existing metadata
@@ -74,7 +74,8 @@ export const addDocumentTags = async (ctx: Router.RouterContext) => {
 
     // Save updated metadata
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.indexDocument(space, documentPath);
     // Log successful operation
     logger.info(
       `Tags added to ${path.join(documentDirectory, 'meta.json')}: ${tags.join(
@@ -143,24 +144,26 @@ export const addDocumentTags = async (ctx: Router.RouterContext) => {
  *       500:
  *         description: Unable to process the tagging due to server error.
  */
-export const removeDocumentTags = async (ctx: Router.RouterContext) => {
+export const removeDocumentTags = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const { tags } = ctx.request.body;
-  const { path: documentPath } = ctx.request.query;
+  const { tags } = ctx.request.body as { tags: string[] };
+  const { path: documentPath } = ctx.request.query as { path: string };
 
   const documentDirectory = documentPath + '.ink';
   try {
-    const spaceRoot = await getFullPath(spaceKey, '');
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
     const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr);
+    const meta = JSON.parse(fileMetaStr) as MetaData;
 
     const existingTags = meta.tags ?? [];
     // Remove the specified tags
     meta.tags = existingTags.filter((tag) => !tags.includes(tag));
 
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.indexDocument(space, documentPath);
 
     logger.info(
       `Tags removed from ${path.join(
@@ -222,18 +225,16 @@ export const removeDocumentTags = async (ctx: Router.RouterContext) => {
  *       500:
  *         description: Unable to retrieve the tags due to server error.
  */
-export const getDocumentTags = async (ctx: Router.RouterContext) => {
+export const getDocumentTags = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path;
   const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(spaceKey, '');
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
     const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
-
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr);
-
+    const meta = JSON.parse(fileMetaStr) as MetaData;
     ctx.status = 200;
     ctx.body = meta.tags ?? [];
   } catch (error) {

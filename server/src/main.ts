@@ -1,12 +1,12 @@
 import Koa from 'koa';
-import Router from 'koa-router';
+import Router from '@koa/router';
 import path from 'path';
 import fs from 'fs/promises';
 import YAML from 'js-yaml';
 import mount from 'koa-mount';
 import serve from 'koa-static';
 import send from 'koa-send';
-import { host, port } from './settings';
+import { host, port, sqlitePath } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
 import AJV from 'ajv';
@@ -14,8 +14,13 @@ import { registerDocumentRoutes } from './handlers/documents';
 import { registerSpaceRoutes } from './handlers/space';
 import { registerPlatformRoutes } from './handlers/platform';
 import swaggerUi from 'swagger-ui-dist';
+import { Sequelize } from 'sequelize';
 import { RequestParamsError } from './handlers/common';
-const app = new Koa();
+import { SpaceService } from './services/SpaceService';
+import { DocumentService } from './services/DocumentService';
+import { initDB } from './db';
+import { Context } from './types';
+const app = new Koa<Koa.DefaultState, Context>();
 
 app.use(async (ctx, next) => {
   const start = Date.now();
@@ -129,7 +134,15 @@ async function start() {
     Object.keys(schema.components.schemas).forEach((key) => {
       validator.addSchema(schema.components.schemas[key], key);
     });
+    const sequelize = new Sequelize({
+      dialect: 'sqlite',
+      storage: sqlitePath,
+    });
+    await sequelize.authenticate();
+    await initDB(sequelize);
     app.context.validator = validator;
+    app.context.spaceService = new SpaceService();
+    app.context.documentService = new DocumentService(sequelize);
   } catch (e) {
     logger.error('Failed to load schema');
     throw e;

@@ -65,3 +65,68 @@ Each document is associated with a meta.json file that stores its meta data. Thi
 - mimetype: the media type of the document
 - tags: for document tagging
 - attributes: document attributes
+
+### Attributes
+
+- System defined attributes: attributes that are defined by the system and will be auto-indexed for document searching.
+- User defined attributes: attributes that are defined by the user and will not be auto-indexed.
+
+## Document Indexing and Searching
+
+To support searching documents by tags and attributes, this project use RealmDB as the storage engine.
+
+```ts
+export class Document extends Realm.Object<Document> {
+  documentPath!: string;
+  tags!: Tag[];
+  attributes!: Attribute[];
+
+  static schema: Realm.ObjectSchema = {
+    name: 'Document',
+    properties: {
+      documentPath: 'string',
+      tags: 'Tag[]', // Linking objects for tags
+      attributes: 'Attribute[]', // Linking objects for attributes
+    },
+    primaryKey: 'documentPath',
+  };
+}
+
+export class Tag extends Realm.Object<Tag> {
+  name!: string;
+  documents!: Document[];
+
+  static schema: Realm.ObjectSchema = {
+    name: 'Tag',
+    properties: {
+      name: 'string',
+      documents: {
+        type: 'linkingObjects',
+        objectType: 'Document',
+        property: 'tags',
+      },
+    },
+    primaryKey: 'name',
+  };
+}
+
+export class Attribute extends Realm.Object<Attribute> {
+  key!: string;
+  value!: string;
+  documents!: Document[];
+
+  static schema: Realm.ObjectSchema = {
+    name: 'Attribute',
+    properties: {
+      key: 'string',
+      value: 'string',
+      documents: {
+        type: 'linkingObjects',
+        objectType: 'Document',
+        property: 'attributes',
+      },
+    },
+    primaryKey: 'key',
+  };
+}
+```

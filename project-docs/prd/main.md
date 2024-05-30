@@ -62,6 +62,7 @@ InkStain is a document management tool that allows user to serve local file to t
 - Allow users to add existing documents or new documents to a 'Space'.
 - Implement a browsing interface specific to each 'Space' that displays all contained documents.
 - Enable document management within a 'Space', including renaming, deleting, and moving files.
+- Allow users to open an existing space folder and reindex documents
 
 ### Non-Functional Requirements
 
@@ -245,7 +246,7 @@ The document tagging feature allows users to categorize their documents efficien
 
 ## Feature: Document Attributes
 
-### Purpose
+### Overview
 
 The "Document Attributes" feature allows users to view and manage meta-information associated with their documents. This metadata can be automatically extracted from the documents or manually entered by the users, providing detailed insights and context about the document content.
 
@@ -295,3 +296,43 @@ The "Document Attributes" feature allows users to view and manage meta-informati
 4. **Reliability**
    - Ensure accurate and consistent auto-extraction of attributes across various document types.
    - Maintain data integrity when attributes are added, edited, or deleted to ensure that metadata consistently reflects the document's content.
+
+## Feature: Document Indexing and Searching
+
+### Overview
+
+This document outlines the design for the document indexing and searching feature in InkStain, focusing on utilizing document tags and attributes to enhance document retrieval and organization.
+
+### User Stories
+
+- As a user, I want to search documents by tags so that I can quickly find documents related to a specific topic.
+- As a user, I want to filter documents by attribute values (e.g., author, creation date) to narrow down search results.
+- As a user, I want autocomplete suggestions while searching to reduce typing and ensure consistent tag usage.
+
+### Functional Requirements
+
+#### Indexing
+
+1. **Tag Indexing**: Automatically index new and modified tags.
+2. **Attribute Indexing**: Index system-extracted and user-defined attributes.
+3. **Real-Time Updates**: Reflect changes in tags and attributes in the indexes immediately.
+
+#### Searching
+
+1. **Search Interface**:
+   - Search bar for keyword searches.
+   - Filter options for tags and attributes.
+   - Display results with highlights and metadata.
+2. **Backend Search Logic**:
+   - Interpret and parse user search queries.
+   - Perform efficient lookups in indexes.
+   - Rank and sort search results based on relevance.
+   - Return structured results to the frontend.
+
+### Non-Functional Requirements
+
+1. **Performance**: Fast indexing and retrieval times.
+2. **Scalability**: Handle a large volume of documents and concurrent users.
+3. **Usability**: Intuitive and responsive search interface.
+4. **Reliability**: Consistent and accurate indexing and search results.
+5. **Extensibility**: Capability to extend the system to include more document types and metadata in the future.

@@ -30,3 +30,8 @@ export const spaceDataFile = path.join(
   directories.dataDir,
   env == 'production' ? 'spaces.json' : `spaces.${env}.json`
 );
+
+export const sqlitePath = path.join(
+  directories.dataDir,
+  env == 'production' ? 'inkstain.sqlite' : `inkstain.${env}.sqlite`
+);

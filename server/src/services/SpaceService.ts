@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import * as settings from '~/server/settings';
 import logger from '../logger';
 
-interface Space {
+export interface Space {
   key: string;
   name: string;
   path: string;
@@ -30,7 +30,7 @@ function hashName(name: string) {
   return crypto.createHash('sha256').update(name).digest('hex').slice(0, 8);
 }
 
-class SpaceService {
+export class SpaceService {
   public async loadSpaceData() {
     try {
       await fs.access(settings.spaceDataFile);
@@ -82,6 +82,7 @@ class SpaceService {
       'utf-8'
     );
     logger.info(`Space created: ${name}`);
+    return spaces[key];
   }
 
   public async importExistingInkStainSpace(spacePath: string) {
@@ -108,6 +109,7 @@ class SpaceService {
     spaces[key] = { name: spaceName, key, path: spacePath };
     await this.saveSpaceData(spaces);
     logger.info(`Space imported: ${spaceName}, path: ${spacePath}`);
+    return spaces[key];
   }
 
   public async updateSpace(key: string, data: Partial<Space>) {
@@ -142,6 +144,3 @@ class SpaceService {
     return spaces[key];
   }
 }
-
-const spaceService = new SpaceService();
-export default spaceService;
