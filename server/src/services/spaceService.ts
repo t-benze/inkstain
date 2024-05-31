@@ -136,6 +136,11 @@ class SpaceService {
     delete spaces[key];
     await this.saveSpaceData(spaces);
   }
+
+  public async getSpace(key: string) {
+    const spaces = await this.loadSpaceData();
+    return spaces[key];
+  }
 }
 
 const spaceService = new SpaceService();

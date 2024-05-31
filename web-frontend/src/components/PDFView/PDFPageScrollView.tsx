@@ -13,7 +13,7 @@ export const PDFPageScrollView = React.forwardRef(
       currentPageNumber = 1,
       onRenderCompleted,
       onPageChange,
-      enableTextLayer = true,
+      enableTextLayer = false,
       onPageClick,
       virtualizerLength = 5,
     }: {
@@ -80,6 +80,7 @@ export const PDFPageScrollView = React.forwardRef(
         if (pageInFocus !== currentPageNumber - 1) {
           scrollViewRef.current.scrollTo({
             top: (currentPageNumber - 1) * distanceUnit,
+            behavior: 'instant',
           });
         }
       }

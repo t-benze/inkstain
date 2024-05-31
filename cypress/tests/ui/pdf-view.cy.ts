@@ -8,27 +8,160 @@ describe('File Explorer for Space', () => {
   beforeEach(() => {
     cy.openApp();
     cy.getBySel('recentSpaceBtn-a116538b').click();
+    cy.getBySel('fileExplorer').contains('sample-pdf.pdf').click();
   });
 
-  it('should display the PDF file', () => {
-    cy.getBySel('fileExplorer').contains('sample-pdf.pdf').click();
-    cy.getBySel('pdfViewer-canvas').should('exist');
+  context('Open a pdf document', () => {
+    it('should display the PDF file', () => {
+      cy.getBySel('pdfViewer-canvas').should('exist');
+    });
+    it('should show the thumbnails of the pdf file in the sidebar', () => {
+      cy.getBySel('primarySidebar').contains('Thumbnail').click();
+      cy.getBySel('primarySidebar')
+        .find('[data-test="pdfViewer-canvas"]')
+        .then((canvas) => {
+          expect(canvas).to.have.length.above(1);
+          cy.wrap(canvas[4]).click();
+          cy.getBySel('pdfViewer-pageNumInput').should('have.value', '5');
+        });
+    });
+    it('should show the outline of the pdf file in the sidebar', () => {
+      cy.getBySel('fileExplorer').contains('sample-pdf.pdf').click();
+      cy.getBySel('primarySidebar').contains('Outline').click();
+      cy.getBySel('primarySidebar').contains('Conclusion').click();
+      cy.getBySel('pdfViewer-pageNumInput').should('have.value', '10');
+    });
   });
-  it('should show the thumbnails of the pdf file in the sidebar', () => {
-    cy.getBySel('fileExplorer').contains('sample-pdf.pdf').click();
-    cy.getBySel('primarySidebar').contains('Thumbnail').click();
-    cy.getBySel('primarySidebar')
-      .find('[data-test="pdfViewer-canvas"]')
-      .then((canvas) => {
-        expect(canvas).to.have.length.above(1);
-        cy.wrap(canvas[4]).click();
-        cy.getBySel('pdfViewer-pageNumInput').should('have.value', '5');
+
+  context('PDFViewer without countinous rendering', () => {
+    it('should navigate between pages using navigation controls', () => {
+      // Assuming we've navigated to the component and the PDF is loaded
+      cy.getBySel('pdfViewer-nextPageBtn').click();
+      cy.getBySel('pdfViewer-pageNumInput').should('have.value', '2');
+
+      cy.getBySel('pdfViewer-prevPageBtn').click();
+      cy.getBySel('pdfViewer-pageNumInput').should('have.value', '1');
+
+      cy.getBySel('pdfViewer-pageNumInput').clear();
+      cy.getBySel('pdfViewer-pageNumInput').type('3{enter}');
+      cy.getBySel('pdfViewer-pageNumInput').should('have.value', '3');
+    });
+
+    it('should be able to zoom in and out and fit the page', () => {
+      cy.getBySel('pdfViewer-canvas').as('canvas');
+      cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
+      cy.getBySel('pdfViewer-scene').then(($scene) => {
+        const sceneWidth = $scene[0].clientWidth;
+        const sceneHeight = $scene[0].clientHeight;
+        cy.get('@canvas').then(($canvas) => {
+          const canvasBaseWidth = $canvas[0].offsetWidth;
+          if (canvasBaseWidth === undefined) {
+            throw new Error('canvas width is undefined');
+          }
+          cy.getBySel('pdfViewer-zoomInBtn').click();
+          cy.get('@canvas').then(($canvas) => {
+            cy.wrap($canvas[0].offsetWidth).should(
+              'be.within',
+              canvasBaseWidth * 1.1 - 10,
+              canvasBaseWidth * 1.1 + 10
+            );
+          });
+
+          cy.getBySel('pdfViewer-zoomOutBtn').click();
+          cy.get('@canvas').then(($canvas) => {
+            cy.wrap($canvas[0].offsetWidth).should(
+              'be.within',
+              canvasBaseWidth - 10,
+              canvasBaseWidth + 10
+            );
+          });
+
+          cy.getBySel('pdfViewer-fitWidthBtn').click();
+          cy.get('@canvas').then(($canvas) => {
+            cy.wrap($canvas[0].offsetWidth).should(
+              'be.within',
+              sceneWidth - 10,
+              sceneWidth + 10
+            );
+          });
+
+          cy.getBySel('pdfViewer-fitHeightBtn').click();
+          cy.get('@canvas').then(($canvas) => {
+            cy.wrap($canvas[0].offsetHeight).should(
+              'be.within',
+              sceneHeight - 10,
+              sceneHeight + 10
+            );
+          });
+
+          cy.getBySel('pdfViewer-resetScaleBtn').click();
+          cy.get('@canvas').then(($canvas) => {
+            cy.wrap($canvas[0].offsetWidth).should(
+              'be.within',
+              canvasBaseWidth - 10,
+              canvasBaseWidth + 10
+            );
+          });
+        });
       });
+    });
   });
-  it('should show the outline of the pdf file in the sidebar', () => {
-    cy.getBySel('fileExplorer').contains('sample-pdf.pdf').click();
-    cy.getBySel('primarySidebar').contains('Outline').click();
-    cy.getBySel('primarySidebar').contains('Conclusion').click();
-    cy.getBySel('pdfViewer-pageNumInput').should('have.value', '10');
+
+  context('PDFViewer with countinous rendering', () => {
+    beforeEach(() => {
+      cy.getBySel('pdfViewer-enableScrollBtn').click();
+      cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
+      cy.getBySel('pdfViewer-scene').as('scrollview');
+    });
+    it('should be able to jump to target page', () => {
+      cy.get('@scrollview')
+        .find("[role='listitem']")
+        .then(($listItems): void => {
+          const distance = $listItems[1].offsetTop - $listItems[0].offsetTop;
+          cy.getBySel('pdfViewer-nextPageBtn').click();
+          cy.get('@scrollview').then(($scrollview) => {
+            expect($scrollview[0].scrollTop).to.be.within(
+              distance - 10,
+              distance + 10
+            );
+          });
+          cy.getBySel('pdfViewer-prevPageBtn').click();
+          cy.get('@scrollview').then(($scrollview) => {
+            expect($scrollview[0].scrollTop).to.be.within(-10, +10);
+          });
+          cy.getBySel('pdfViewer-pageNumInput').clear();
+
+          cy.getBySel('pdfViewer-pageNumInput').type('10{enter}');
+          cy.get("[data-page-number='10']").should('exist');
+        });
+    });
+    it('should be able to scroll', () => {
+      cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
+      cy.getBySel('pdfViewer-canvas').should('have.length.above', 1);
+      cy.get('@scrollview')
+        .find("[role='listitem']")
+        .then(($listItems): void => {
+          const distance = $listItems[1].offsetTop - $listItems[0].offsetTop;
+          cy.get('@scrollview').scrollTo(0, 7 * distance);
+          cy.getBySel('pdfViewer-pageNumInput').should('have.value', '8');
+        });
+    });
+    it('should be able to scale the page ', () => {
+      cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
+      cy.getBySel('pdfViewer-scene').then(($scene) => {
+        const sceneWidth = $scene[0].clientWidth;
+        cy.getBySel('pdfViewer-fitWidthBtn').click();
+        cy.getBySel('pdfViewer-canvas').then(($canvas) => {
+          cy.wrap($canvas[0].offsetWidth).should(
+            'be.within',
+            sceneWidth - 10,
+            sceneWidth + 10
+          );
+        });
+      });
+    });
   });
+  // context('PDFViewer TextLayer', () => {
+  //   it('should render text layer', () => {});
+  // });
 });

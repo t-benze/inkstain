@@ -77,6 +77,8 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     const onEnableScrollChange = React.useCallback((enable: boolean) => {
       setEnableScroll(enable);
     }, []);
+    // TODO: enable text layer should be based on user status
+    const enableTextLayer = false;
     const [showLayoutAnalysis, setShowLayoutAnalysis] =
       useState<boolean>(false);
     const onShowLayoutAnalysisChange = React.useCallback((show: boolean) => {
@@ -182,6 +184,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                 scale={scale}
                 currentPageNumber={currentPageNumber}
                 onRenderCompleted={handleRenderPageCompleted}
+                enableTextLayer={enableTextLayer}
               />
             ) : (
               <div
@@ -196,6 +199,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                   scale={scale}
                   onRenderCompleted={handleRenderPageCompleted}
                   document={pdfDocument}
+                  enableTextLayer={enableTextLayer}
                   style={{
                     marginLeft: 'auto',
                     marginRight: 'auto',

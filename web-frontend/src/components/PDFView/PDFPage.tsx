@@ -6,7 +6,6 @@ import {
 } from 'pdfjs-dist';
 import * as React from 'react';
 import { makeStyles } from '@fluentui/react-components';
-import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
 import { PDFPageTextLayer } from './PDFPageTextLayer';
 
@@ -28,7 +27,7 @@ export const PDFPage = ({
   ariaSetSize,
   ariaPosinset,
   style,
-  enableTextLayer = true,
+  enableTextLayer = false,
   onClick,
 }: {
   spaceKey: string;
@@ -52,14 +51,6 @@ export const PDFPage = ({
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const renderTaskRef = React.useRef<RenderTask | null>(null);
   const appContext = React.useContext(AppContext);
-  // const textLayerRef = React.useRef<HTMLDivElement>(null);
-  // const textRenderTaskRef = React.useRef<TextLayerRenderTask | null>(null);
-  // const textDivsRef = React.useRef<HTMLDivElement[]>([]);
-  // const textDivPropertiesRef = React.useRef<WeakMap<HTMLElement, object>>(
-  //   new WeakMap()
-  // );
-  // const textContentItemsStrRef = React.useRef<string[]>([]);
-  // const isTextLayerRendered = React.useRef(false);
 
   React.useEffect(() => {
     document.getPage(pageNumber).then(async (pdfPage) => {
@@ -121,6 +112,7 @@ export const PDFPage = ({
       ref={pageRef}
       className={styles.root}
       style={style}
+      data-page-number={pageNumber}
       onClick={(e) => {
         e.preventDefault();
         onClick?.(pageNumber);

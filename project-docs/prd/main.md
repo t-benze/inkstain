@@ -162,17 +162,9 @@ This design document outlines the user stories, functional, and non-functional r
 
 #### Functional Requirements:
 
-**Basic Viewing and Navigation**
-
 1. **Open and Display**: Support seamless opening and displaying of PDF documents, ensuring formatting fidelity.
 2. **Navigation Controls**: Provide tools for page navigation, including previous/next, direct page entry, continuous scroll, and an overview panel with page thumbnails.
 3. **Zoom and Page Fit**: Offer zooming capabilities and page fit options like fit-to-width/page for diverse screen sizes and detailed document inspection.
-
-**Advanced Interaction**
-
-1. **Text Interaction**: Allow selection, copying, and in-document text search functionality.
-2. **Hyperlink Support**: Embed clickable links within the PDF, enabling direct navigation to referenced websites.
-3. **Annotation System**: Implement a system for users to highlight, take notes, and draw onto the PDF document, facilitating interactive reading and content review.
 
 #### Non-Functional Requirements:
 
@@ -186,13 +178,19 @@ Shows the outline of the active pdf document in the primary sidebar.
 
 Shows the thumbnail of the active pdf document in the primary sidebar.
 
-#### Feature - Text Detection
+#### Feature - PDF Text Layer
 
-Detects texts and analyze the page layout using machine intelligence, and then renders a text layer.
+Utilise AWS Textract service to detect texts and analyze the page layout using machine intelligence, and then renders a text layer. Because this feature relies on AWS service,
+it should only be enabled for authenticated users who subscribe for it.
+
+##### Function Requirements
+
+1. **Text Interaction**: Allow selection, copying, and in-document text search functionality.
+2. **Annotation System**: Implement a system for users to highlight, take notes, and draw onto the PDF document, facilitating interactive reading and content review.
 
 ## Feature: Document Tagging
 
-### Purpose
+### Overview
 
 The document tagging feature allows users to categorize their documents efficiently by adding tags, assisting in organization and retrieval processes.
 
