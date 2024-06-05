@@ -14,7 +14,7 @@ import { DocumentAttributesView } from '~/web/components/DocumentAttributesView'
 
 const useClasses = makeStyles({
   root: {
-    width: '300px',
+    minWidth: '300px',
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderLeft(
       tokens.strokeWidthThin,
@@ -51,7 +51,7 @@ export const SecondarySidebar = () => {
     setOpenItems(data.openItems);
   };
   const accordions = [] as { value: string; view: React.ReactNode }[];
-  if (document) {
+  if (document && !document.type.startsWith('@inkstain')) {
     accordions.push(
       {
         value: 'document-tag-view',

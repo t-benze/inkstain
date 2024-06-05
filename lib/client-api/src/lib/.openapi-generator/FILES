@@ -7,6 +7,9 @@ models/AddDocumentTagsRequest.ts
 models/AddUpdateDocumentAttributesRequest.ts
 models/CreateSpaceOperationType.ts
 models/CreateSpaceRequest.ts
+models/DocumentSearchResult.ts
+models/DocumentSearchResultMeta.ts
+models/DocumentSearchResultMetaAttributesValue.ts
 models/DocumentTextDetection.ts
 models/DocumentTextDetectionBlocksInner.ts
 models/DocumentTextDetectionBlocksInnerGeometry.ts
@@ -19,6 +22,7 @@ models/ListDirectories200ResponseInner.ts
 models/ListDocuments200ResponseInner.ts
 models/PlatformInfo200Response.ts
 models/RemoveDocumentTagsRequest.ts
+models/SearchDocuments200Response.ts
 models/Space.ts
 models/UpdateSpaceRequest.ts
 models/index.ts

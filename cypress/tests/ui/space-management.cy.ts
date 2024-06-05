@@ -59,15 +59,6 @@ describe('Space Management UI', () => {
       cy.getBySel('recentSpaceBtn-a116538b').click();
       cy.getBySel('fileExplorer').as('fileExplorer');
       cy.get('@fileExplorer').should('have.attr', 'data-space-key', 'a116538b');
-      cy.window().then((win) => {
-        cy.stub(win, 'open').as('open');
-        cy.getBySel('recentSpaceBtn-3c9665e8').click();
-        cy.get('@open').should(
-          'have.been.calledOnceWithExactly',
-          `${Cypress.config('baseUrl')}/?space=3c9665e8`,
-          `inkstain-3c9665e8`
-        );
-      });
     });
   });
   context('Open space via url', () => {

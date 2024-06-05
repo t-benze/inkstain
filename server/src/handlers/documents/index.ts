@@ -17,6 +17,7 @@ import {
   deleteDocumentAttributes,
 } from './attributes';
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
+import { searchDocuments } from './search';
 import { Context } from '~/server/types';
 
 const upload = multer({
@@ -448,4 +449,5 @@ export const registerDocumentRoutes = (router: Router) => {
   router.post('/documents/:spaceKey/attributes', addUpdateDocumentAttributes);
   router.delete('/documents/:spaceKey/attributes', deleteDocumentAttributes);
   router.post('/documents/:spaceKey/analyze', analyzeDocument);
+  router.get('/documents/:spaceKey/search', searchDocuments);
 };

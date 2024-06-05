@@ -64,6 +64,7 @@ export const MainArea = () => {
     }
   };
 
+  console.log(activeDocument, documentsAlive);
   return (
     <div className={styles.root}>
       <TabList
@@ -71,6 +72,7 @@ export const MainArea = () => {
         onTabSelect={onTabSelect}
         size="small"
         appearance="subtle"
+        selectedValue={activeDocument}
       >
         {documentsAlive.map((document) => {
           return (
