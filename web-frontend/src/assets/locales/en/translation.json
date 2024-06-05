@@ -12,6 +12,8 @@
   "error_unsupported_file_type": "This document type ({{type}}) is not supported by InkStain",
   "document_tags": "Tags",
   "document_attributes": "Attributes",
+  "apply": "Apply",
+  "clear": "Clear",
   "space": {
     "_": "Space",
     "input_space_name": "Input the space name",
@@ -30,7 +32,7 @@
     "create_space_failed": "Create space failed"
   },
   "file_explorer": {
-    "_": "File explorer",
+    "_": "Explorer",
     "add_a_document_tooltip": "Add a document",
     "add_a_folder_tooltip": "Add a folder",
     "refresh_folder_tooltip": "Refresh the folder",

@@ -92,6 +92,7 @@ const useDocuments = () => {
     },
     [setDocumentsAlive]
   );
+
   const openDocument = React.useCallback(
     (name: string) => {
       setDocumentsAlive((documentsAlive) => {
@@ -138,27 +139,18 @@ const InkStain = () => {
   const activeDocumentViewRef = React.useRef<unknown>(null);
 
   React.useEffect(() => {
-    if (!activeSpace) {
-      if (window.location.search) {
-        const searchParams = new URLSearchParams(window.location.search);
-        const spaceKey = searchParams.get('space');
-        if (spaceKey && spaces) {
-          const space = spaces.find((space) => space.key === spaceKey);
-          if (space) {
-            openSpace(space);
-          }
-        }
-      } else {
-        openSystemDocument('@inkstain/space-management');
-      }
-    }
-  }, [spaces, openSpace, activeSpace, openSystemDocument]);
-
-  React.useEffect(() => {
     if (activeDocument === null && documentsAlive.length > 0) {
       setActiveDocument(documentsAlive[0].name);
     }
   }, [documentsAlive, activeDocument]);
+
+  const handleOpenSystemDocument = React.useCallback(
+    (type: SystemDocumentType) => {
+      openSystemDocument(type);
+      setActiveDocument(type);
+    },
+    [openSystemDocument, setActiveDocument]
+  );
 
   const handleOpenDocument = React.useCallback(
     (name: string) => {
@@ -175,11 +167,30 @@ const InkStain = () => {
     []
   );
 
+  React.useEffect(() => {
+    if (!activeSpace) {
+      if (window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const spaceKey = searchParams.get('space');
+        if (spaceKey && spaces) {
+          const space = spaces.find((space) => space.key === spaceKey);
+          if (space) {
+            openSpace(space);
+          }
+        }
+      } else {
+        handleOpenSystemDocument('@inkstain/space-management');
+      }
+    } else {
+      handleOpenSystemDocument('@inkstain/search-document');
+    }
+  }, [spaces, openSpace, activeSpace, handleOpenSystemDocument]);
+
   return platform ? (
     <AppContext.Provider
       value={{
         platform,
-        openSystemDocument,
+        openSystemDocument: handleOpenSystemDocument,
         openDocument: handleOpenDocument,
         activeSpace,
         openSpace,

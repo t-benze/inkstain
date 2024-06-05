@@ -9,4 +9,6 @@ export interface Space {
   path: string;
 }
 
-export type SystemDocumentType = '@inkstain/space-management';
+export type SystemDocumentType =
+  | '@inkstain/space-management'
+  | '@inkstain/search-document';

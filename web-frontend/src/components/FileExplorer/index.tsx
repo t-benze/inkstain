@@ -12,6 +12,7 @@ import {
   FolderAddRegular,
   FolderSyncRegular,
   ArrowCollapseAllRegular,
+  SearchRegular,
 } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { Space } from '~/web/types';
@@ -246,6 +247,21 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   ]);
   const headerButtons = (
     <>
+      <Tooltip
+        content={t('file_explorer.search_documents')}
+        relationship="label"
+        positioning={'below'}
+      >
+        <Button
+          data-test="fileExplorer-searchDocuments"
+          appearance="subtle"
+          size="small"
+          icon={<SearchRegular />}
+          onClick={() => {
+            appContext.openSystemDocument('@inkstain/search-document');
+          }}
+        />
+      </Tooltip>
       <Tooltip
         content={t('file_explorer.add_a_document_tooltip')}
         relationship="label"

@@ -14,7 +14,7 @@ import { PDFThumbnailView, PDFOutlineView } from '~/web/components/PDFView';
 
 const useClasses = makeStyles({
   root: {
-    width: '300px',
+    minWidth: '300px',
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRight(
       tokens.strokeWidthThin,

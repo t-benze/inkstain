@@ -121,3 +121,30 @@ components:
           properties:
             Pages:
               type: number
+    DocumentSearchResult:
+      type: object
+      properties:
+        documentPath:
+          type: string
+        meta:
+          type: object
+          properties:
+            mimetype:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+            attributes:
+              type: object
+              additionalProperties: 
+                anyOf:
+                  - type: string
+                  - type: array
+                    items: 
+                      type: string
+          required:
+            - mimetype
+      required:
+        - documentPath
+        - meta

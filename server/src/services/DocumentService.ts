@@ -5,11 +5,16 @@ import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
 import { Space } from './SpaceService';
 
-const SYSTEM_ATTRIBUTES = ['title', 'author'];
 export class DocumentService {
   private sequelize: Sequelize;
+  private systemAttributes = ['title', 'author'];
+
   constructor(sequelize: Sequelize) {
     this.sequelize = sequelize;
+  }
+
+  getSystemAttributes() {
+    return this.systemAttributes;
   }
 
   async clearIndex(space: Space) {
@@ -64,7 +69,7 @@ export class DocumentService {
       }
 
       for (const [key, value] of Object.entries(attributes)) {
-        if (!SYSTEM_ATTRIBUTES.includes(key)) {
+        if (!this.systemAttributes.includes(key)) {
           break;
         }
         const values = Array.isArray(value) ? value : [value];
@@ -97,7 +102,9 @@ export class DocumentService {
     const attributeConditions = query.attributeFilters
       ? Object.entries(query.attributeFilters).map(([key, value]) => ({
           key,
-          value,
+          value: {
+            [Op.like]: `%${value}%`,
+          },
         }))
       : [];
 
@@ -117,13 +124,12 @@ export class DocumentService {
         where: { [Op.and]: attributeConditions },
       });
     }
-    const documents = await Document.findAll({
+    return Document.findAll({
       limit: 10,
       where: {
         spaceKey,
       },
       include: includes,
     });
-    return documents;
   }
 }
