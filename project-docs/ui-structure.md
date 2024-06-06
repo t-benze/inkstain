@@ -36,16 +36,13 @@ A page for managing 'Spaces', where users can organize groups of related documen
 - Create 'Space' Button: Initiates the creation of a new 'Space', prompting the user to provide a name.
 - Open 'Folder' Button: Open an existing folder that is a inkstain space.
 
-#### Settings Page
+#### Search Document
 
-A page for presenting settings options for the user:
-
-- Application Preferences: Customise application behavior and appearance.
-- Metadata Templates: Set up structures for custom metadata fields and tags.
+A page to search documents in the active space via tags and document attributes
 
 ## Secondary Sidebar (Metadata Panel)
 
-Displays and allows editing of the metadata for the active document in the Main Area:
+Displays and allows editing of the metadata (tags, attributes) for the active document in the Main Area:
 
 - Metadata Display: Shows the document's tags, notes, and custom metadata.
 - Edit Metadata Button: Enables direct metadata editing from the Main Page.

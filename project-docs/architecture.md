@@ -73,60 +73,15 @@ Each document is associated with a meta.json file that stores its meta data. Thi
 
 ## Document Indexing and Searching
 
-To support searching documents by tags and attributes, this project use RealmDB as the storage engine.
+To support searching documents by tags and attributes, this project use sqlite as the database and sequelize as the ORM framework.
 
-```ts
-export class Document extends Realm.Object<Document> {
-  documentPath!: string;
-  tags!: Tag[];
-  attributes!: Attribute[];
-
-  static schema: Realm.ObjectSchema = {
-    name: 'Document',
-    properties: {
-      documentPath: 'string',
-      tags: 'Tag[]', // Linking objects for tags
-      attributes: 'Attribute[]', // Linking objects for attributes
-    },
-    primaryKey: 'documentPath',
-  };
-}
-
-export class Tag extends Realm.Object<Tag> {
-  name!: string;
-  documents!: Document[];
-
-  static schema: Realm.ObjectSchema = {
-    name: 'Tag',
-    properties: {
-      name: 'string',
-      documents: {
-        type: 'linkingObjects',
-        objectType: 'Document',
-        property: 'tags',
-      },
-    },
-    primaryKey: 'name',
-  };
-}
-
-export class Attribute extends Realm.Object<Attribute> {
-  key!: string;
-  value!: string;
-  documents!: Document[];
-
-  static schema: Realm.ObjectSchema = {
-    name: 'Attribute',
-    properties: {
-      key: 'string',
-      value: 'string',
-      documents: {
-        type: 'linkingObjects',
-        objectType: 'Document',
-        property: 'attributes',
-      },
-    },
-    primaryKey: 'key',
-  };
-}
+```sql
+CREATE TABLE `Documents` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `spaceKey` VARCHAR(255) NOT NULL, `documentPath` VARCHAR(255) NOT NULL UNIQUE, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE TABLE `Tags` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255) NOT NULL UNIQUE, `spaceKey` VARCHAR(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+CREATE TABLE `DocAttributes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `spaceKey` VARCHAR(255) NOT NULL, `key` VARCHAR(255) NOT NULL, `value` VARCHAR(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL, `DocumentId` INTEGER REFERENCES `Documents` (`id`) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE `DocumentTags` (`createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL, `DocumentId` INTEGER NOT NULL REFERENCES `Documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE, `TagId` INTEGER NOT NULL REFERENCES `Tags` (`id`) ON DELETE CASCADE ON UPDATE CASCADE, PRIMARY KEY (`DocumentId`, `TagId`));
+CREATE UNIQUE INDEX `documents_space_key_document_path` ON `Documents` (`spaceKey`, `documentPath`);
+CREATE UNIQUE INDEX `tags_space_key_name` ON `Tags` (`spaceKey`, `name`);
+CREATE UNIQUE INDEX `doc_attributes_space_key_key_value` ON `DocAttributes` (`spaceKey`, `key`, `value`);
 ```

@@ -116,6 +116,13 @@ export async function initDB(sequelize: Sequelize) {
     {
       sequelize,
       modelName: 'Document',
+      indexes: [
+        {
+          fields: ['spaceKey', 'documentPath'],
+          unique: true,
+          using: 'BTREE',
+        },
+      ],
     }
   );
 
@@ -138,6 +145,13 @@ export async function initDB(sequelize: Sequelize) {
     {
       sequelize,
       modelName: 'Tag',
+      indexes: [
+        {
+          fields: ['spaceKey', 'name'],
+          unique: true,
+          using: 'BTREE',
+        },
+      ],
     }
   );
 
@@ -164,6 +178,13 @@ export async function initDB(sequelize: Sequelize) {
     {
       sequelize,
       modelName: 'DocAttribute',
+      indexes: [
+        {
+          fields: ['spaceKey', 'key', 'value'],
+          unique: true,
+          using: 'GIN',
+        },
+      ],
     }
   );
   Document.belongsToMany(Tag, {
