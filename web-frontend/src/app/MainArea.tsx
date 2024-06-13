@@ -5,8 +5,11 @@ import {
   makeStyles,
   tokens,
   shorthands,
+  Button,
 } from '@fluentui/react-components';
+import { DismissRegular } from '@fluentui/react-icons';
 import type { SelectTabData, SelectTabEvent } from '@fluentui/react-components';
+import { useTranslation } from 'react-i18next';
 import { DocumentView } from '~/web/components/DocumentView';
 import { AppContext } from './context';
 
@@ -14,8 +17,8 @@ export interface MainAreaHandle {
   setActiveDocument: (name: string) => void;
 }
 
-const useStyles = makeStyles({
-  root: { flexGrow: 1 },
+const useClasses = makeStyles({
+  root: { width: '0px', flexGrow: 1 },
   tabList: {
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderBottom(
@@ -23,7 +26,20 @@ const useStyles = makeStyles({
       'solid',
       tokens.colorNeutralStroke1
     ),
+    overflowX: 'scroll',
     height: '32px',
+    scrollbarWidth: 'none',
+    '&::-webkit-scrollbar': {
+      display: 'none',
+    },
+  },
+  tab: {
+    '& .fui-Button': {
+      visibility: 'hidden',
+    },
+    '&:hover .fui-Button': {
+      visibility: 'visible',
+    },
   },
   panel: {
     width: '100%',
@@ -41,7 +57,7 @@ const TabPanel = ({
   name: string;
   isActive: boolean;
 }) => {
-  const styles = useStyles();
+  const styles = useClasses();
   return (
     <div
       className={styles.panel}
@@ -53,9 +69,10 @@ const TabPanel = ({
 };
 
 export const MainArea = () => {
-  const { documentsAlive, setActiveDocument, activeDocument } =
+  const { closeDocument, documentsAlive, setActiveDocument, activeDocument } =
     React.useContext(AppContext);
-  const styles = useStyles();
+  const classes = useClasses();
+  const { t } = useTranslation();
 
   const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
     const document = documentsAlive.find((doc) => doc.name === data.value);
@@ -64,11 +81,10 @@ export const MainArea = () => {
     }
   };
 
-  console.log(activeDocument, documentsAlive);
   return (
-    <div className={styles.root}>
+    <div className={classes.root}>
       <TabList
-        className={styles.tabList}
+        className={classes.tabList}
         onTabSelect={onTabSelect}
         size="small"
         appearance="subtle"
@@ -76,8 +92,22 @@ export const MainArea = () => {
       >
         {documentsAlive.map((document) => {
           return (
-            <Tab key={document.name} value={document.name}>
-              {document.name === '' ? document.type : document.name}
+            <Tab
+              key={document.name}
+              value={document.name}
+              className={classes.tab}
+            >
+              {document.name.startsWith('@inkstain')
+                ? t(`system.${document.type}`)
+                : document.name}
+              <Button
+                appearance="transparent"
+                size="small"
+                icon={<DismissRegular fontSize={'16px'} />}
+                onClick={() => {
+                  closeDocument(document.name);
+                }}
+              />
             </Tab>
           );
         })}

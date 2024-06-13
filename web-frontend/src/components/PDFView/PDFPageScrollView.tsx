@@ -40,7 +40,7 @@ export const PDFPageScrollView = React.forwardRef(
     React.useEffect(() => {
       document.getPage(1).then((page) => {
         const viewport = page.getViewport({ scale });
-        setPageHeight(viewport.height);
+        setPageHeight(Math.ceil(viewport.height));
       });
     }, [scale, document]);
 

@@ -31,9 +31,10 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground4,
   },
   scene: {
+    width: '100%',
+    height: '0px',
     display: 'flex',
     flexGrow: 1,
-    height: 0,
     ...shorthands.overflow('scroll', 'scroll'),
   },
 });
@@ -140,6 +141,14 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
         scale,
       ]
     );
+
+    const hasAdjustedInitScale = React.useRef<boolean>(false);
+    React.useEffect(() => {
+      if (!hasAdjustedInitScale.current && sceneWidth < defaultViewportWidth) {
+        setScale(DEFAULT_SCALE * (sceneWidth / defaultViewportWidth));
+        hasAdjustedInitScale.current = true;
+      }
+    }, [sceneWidth, defaultViewportWidth]);
 
     React.useImperativeHandle(ref, () => {
       return {

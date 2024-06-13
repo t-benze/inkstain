@@ -7,6 +7,7 @@ export type ContextType = {
   documentsAlive: Document[];
   openSystemDocument: (type: SystemDocumentType) => void;
   openDocument: (name: string) => void;
+  closeDocument: (name: string) => void;
   activeSpace: Space | null;
   openSpace: (space: Space) => void;
   activeDocument: string | null;

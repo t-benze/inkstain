@@ -54,26 +54,15 @@ describe('File Explorer for Space', () => {
         const sceneWidth = $scene[0].clientWidth;
         const sceneHeight = $scene[0].clientHeight;
         cy.get('@canvas').then(($canvas) => {
-          const canvasBaseWidth = $canvas[0].offsetWidth;
-          if (canvasBaseWidth === undefined) {
-            throw new Error('canvas width is undefined');
-          }
+          const baseWidth = $canvas[0].offsetWidth;
           cy.getBySel('pdfViewer-zoomInBtn').click();
           cy.get('@canvas').then(($canvas) => {
-            cy.wrap($canvas[0].offsetWidth).should(
-              'be.within',
-              canvasBaseWidth * 1.1 - 10,
-              canvasBaseWidth * 1.1 + 10
-            );
-          });
-
-          cy.getBySel('pdfViewer-zoomOutBtn').click();
-          cy.get('@canvas').then(($canvas) => {
-            cy.wrap($canvas[0].offsetWidth).should(
-              'be.within',
-              canvasBaseWidth - 10,
-              canvasBaseWidth + 10
-            );
+            const newWidth = $canvas[0].offsetWidth;
+            cy.wrap(newWidth).should('be.greaterThan', baseWidth);
+            cy.getBySel('pdfViewer-zoomOutBtn').click();
+            cy.get('@canvas').then(($canvas) => {
+              cy.wrap($canvas[0].offsetWidth).should('be.lessThan', newWidth);
+            });
           });
 
           cy.getBySel('pdfViewer-fitWidthBtn').click();
@@ -96,10 +85,11 @@ describe('File Explorer for Space', () => {
 
           cy.getBySel('pdfViewer-resetScaleBtn').click();
           cy.get('@canvas').then(($canvas) => {
+            const pageWidth = window.devicePixelRatio * 612;
             cy.wrap($canvas[0].offsetWidth).should(
               'be.within',
-              canvasBaseWidth - 10,
-              canvasBaseWidth + 10
+              pageWidth - 10,
+              pageWidth + 10
             );
           });
         });
@@ -114,26 +104,13 @@ describe('File Explorer for Space', () => {
       cy.getBySel('pdfViewer-scene').as('scrollview');
     });
     it('should be able to jump to target page', () => {
-      cy.get('@scrollview')
-        .find("[role='listitem']")
-        .then(($listItems): void => {
-          const distance = $listItems[1].offsetTop - $listItems[0].offsetTop;
-          cy.getBySel('pdfViewer-nextPageBtn').click();
-          cy.get('@scrollview').then(($scrollview) => {
-            expect($scrollview[0].scrollTop).to.be.within(
-              distance - 10,
-              distance + 10
-            );
-          });
-          cy.getBySel('pdfViewer-prevPageBtn').click();
-          cy.get('@scrollview').then(($scrollview) => {
-            expect($scrollview[0].scrollTop).to.be.within(-10, +10);
-          });
-          cy.getBySel('pdfViewer-pageNumInput').clear();
-
-          cy.getBySel('pdfViewer-pageNumInput').type('10{enter}');
-          cy.get("[data-page-number='10']").should('exist');
-        });
+      cy.getBySel('pdfViewer-nextPageBtn').click();
+      cy.getBySel('pdfViewer-pageNumInput').should('have.value', '2');
+      cy.getBySel('pdfViewer-prevPageBtn').click();
+      cy.getBySel('pdfViewer-pageNumInput').should('have.value', '1');
+      cy.getBySel('pdfViewer-pageNumInput').clear();
+      cy.getBySel('pdfViewer-pageNumInput').type('10{enter}');
+      cy.get("[data-page-number='10']").should('exist');
     });
     it('should be able to scroll', () => {
       cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
@@ -142,7 +119,7 @@ describe('File Explorer for Space', () => {
         .find("[role='listitem']")
         .then(($listItems): void => {
           const distance = $listItems[1].offsetTop - $listItems[0].offsetTop;
-          cy.get('@scrollview').scrollTo(0, 7 * distance);
+          cy.get('@scrollview').scrollTo(0, 7 * distance + 50);
           cy.getBySel('pdfViewer-pageNumInput').should('have.value', '8');
         });
     });

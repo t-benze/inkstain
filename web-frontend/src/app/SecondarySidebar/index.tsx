@@ -14,7 +14,7 @@ import { DocumentAttributesView } from '~/web/components/DocumentAttributesView'
 
 const useClasses = makeStyles({
   root: {
-    minWidth: '300px',
+    minWidth: '250px',
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderLeft(
       tokens.strokeWidthThin,
