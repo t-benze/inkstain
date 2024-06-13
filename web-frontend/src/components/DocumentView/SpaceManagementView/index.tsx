@@ -28,7 +28,7 @@ import { spacesApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
 import { useTranslation } from 'react-i18next';
 
-const useStyles = makeStyles({
+const useClasses = makeStyles({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -58,11 +58,17 @@ const useStyles = makeStyles({
     alignItems: 'center',
 
     marginBottom: tokens.spacingVerticalS,
-    '> button': {
+    '& .fui-Button': {
+      textWrap: 'nowrap',
+      overflowX: 'hidden',
+      textOverflow: 'ellipsis',
       marginRight: tokens.spacingHorizontalM,
     },
-    '> span': {
+    '& .fui-Text': {
       color: tokens.colorNeutralForeground4,
+      textWrap: 'nowrap',
+      textOverflow: 'ellipsis',
+      overflowX: 'hidden',
     },
   },
 });
@@ -109,7 +115,7 @@ const SpaceNameDialog = ({
   );
 };
 export const SpaceManagementView = () => {
-  const styles = useStyles();
+  const classes = useClasses();
   const { t } = useTranslation();
   const [openDirectoryDialog, setOpenDirectoryDialog] = useState(false);
   const [openSpaceNameDialog, setOpenSpaceNameDialog] = useState(false);
@@ -212,10 +218,10 @@ export const SpaceManagementView = () => {
   });
 
   return (
-    <div className={styles.root}>
+    <div className={classes.root}>
       <Toaster toasterId={toasterId} />
       <Title2>{t('space.start')}</Title2>
-      <div className={styles.start}>
+      <div className={classes.start}>
         <Button
           data-test="createSpaceBtn"
           appearance="transparent"
@@ -242,13 +248,13 @@ export const SpaceManagementView = () => {
         </Button>
       </div>
       <Title2>{t('space.open_space')}</Title2>
-      <div className={styles.recent}></div>
+      <div className={classes.recent}></div>
       {isSpacesLoading ? (
         <div>{t('loading')}</div>
       ) : spaces && spaces.length > 0 ? (
         spaces.map((space) => {
           return (
-            <div key={space.key} className={styles.recentSpace}>
+            <div key={space.key} className={classes.recentSpace}>
               <Button
                 data-test={`recentSpaceBtn-${space.key}`}
                 appearance="transparent"

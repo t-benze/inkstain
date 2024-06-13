@@ -109,9 +109,26 @@ const useDocuments = () => {
     [setDocumentsAlive]
   );
 
+  const closeDocument = React.useCallback(
+    (name: string) => {
+      setDocumentsAlive((documentsAlive) => {
+        const index = documentsAlive.findIndex(
+          (document) => document.name === name
+        );
+        const newDocumentsAlive = [
+          ...documentsAlive.slice(0, index),
+          ...documentsAlive.slice(index + 1),
+        ];
+        return newDocumentsAlive;
+      });
+    },
+    [setDocumentsAlive]
+  );
+
   return {
     openSystemDocument,
     openDocument,
+    closeDocument,
     documentsAlive,
   } as const;
 };
@@ -132,7 +149,8 @@ const InkStain = () => {
   });
 
   const { openSpace, activeSpace } = useSpace();
-  const { openSystemDocument, openDocument, documentsAlive } = useDocuments();
+  const { closeDocument, openSystemDocument, openDocument, documentsAlive } =
+    useDocuments();
   const [activeDocument, setActiveDocument] = React.useState<string | null>(
     documentsAlive[0] ? documentsAlive[0].name : null
   );
@@ -158,6 +176,16 @@ const InkStain = () => {
       setActiveDocument(name);
     },
     [openDocument, setActiveDocument]
+  );
+
+  const handleCloseDocument = React.useCallback(
+    (name: string) => {
+      closeDocument(name);
+      if (activeDocument === name) {
+        setActiveDocument(null);
+      }
+    },
+    [closeDocument, activeDocument, setActiveDocument]
   );
 
   const setActiveDocumentViewRef = React.useCallback(
@@ -192,6 +220,7 @@ const InkStain = () => {
         platform,
         openSystemDocument: handleOpenSystemDocument,
         openDocument: handleOpenDocument,
+        closeDocument: handleCloseDocument,
         activeSpace,
         openSpace,
         documentsAlive,

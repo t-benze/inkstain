@@ -35,7 +35,9 @@ const useClasses = makeStyles({
     height: tokens.spacingVerticalSNudge,
   },
   addTagInput: {
-    width: '160px',
+    width: '0px',
+    flexGrow: 1,
+    marginRight: tokens.spacingHorizontalSNudge,
   },
 });
 interface DocumentTagViewProps {
@@ -153,7 +155,7 @@ export const DocumentTagView = ({ document }: DocumentTagViewProps) => {
             </div>
           </div>
         ) : (
-          <div>No active document</div>
+          <div>{t('no_active_document')}</div>
         )
       }
     />

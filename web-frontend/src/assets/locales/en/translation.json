@@ -14,6 +14,14 @@
   "document_attributes": "Attributes",
   "apply": "Apply",
   "clear": "Clear",
+  "no_active_document": "No active document",
+  "system": {
+    "@inkstain/space-management": "Space",
+    "@inkstain/search-document": "Documents",
+    "title": "Title",
+    "author": "Author",
+    "tags": "Tags"
+  },
   "space": {
     "_": "Space",
     "input_space_name": "Input the space name",

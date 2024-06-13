@@ -16,6 +16,7 @@ import {
   PopoverSurface,
   Input,
 } from '@fluentui/react-components';
+import { Translation } from 'react-i18next';
 
 import { FilterRegular, FilterFilled } from '@fluentui/react-icons';
 import { AppContext } from '~/web/app/context';
@@ -23,6 +24,7 @@ import { documentsApi } from '~/web/apiClient';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { DocumentSearchResult } from '@inkstain/client-api';
+import { t } from 'i18next';
 
 type Item = DocumentSearchResult;
 
@@ -83,7 +85,13 @@ function makeColumns(columnKeys: string[]) {
         }
       },
       renderHeaderCell() {
-        return key;
+        return (
+          <Translation>
+            {(t) => {
+              return t(`system.${key}`);
+            }}
+          </Translation>
+        );
       },
     });
   });
