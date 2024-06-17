@@ -10,6 +10,7 @@ models/CreateSpaceRequest.ts
 models/DocumentSearchResult.ts
 models/DocumentSearchResultMeta.ts
 models/DocumentSearchResultMetaAttributesValue.ts
+models/DocumentTag.ts
 models/DocumentTextDetection.ts
 models/DocumentTextDetectionBlocksInner.ts
 models/DocumentTextDetectionBlocksInnerGeometry.ts

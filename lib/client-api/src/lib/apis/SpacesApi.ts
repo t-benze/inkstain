@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   CreateSpaceOperationType,
   CreateSpaceRequest,
+  DocumentTag,
   Space,
   UpdateSpaceRequest,
 } from '../models/index';
@@ -24,6 +25,8 @@ import {
   CreateSpaceOperationTypeToJSON,
   CreateSpaceRequestFromJSON,
   CreateSpaceRequestToJSON,
+  DocumentTagFromJSON,
+  DocumentTagToJSON,
   SpaceFromJSON,
   SpaceToJSON,
   UpdateSpaceRequestFromJSON,
@@ -36,6 +39,10 @@ export interface CreateSpaceOperationRequest {
 }
 
 export interface DeleteSpaceRequest {
+  key: string;
+}
+
+export interface GetSpaceDocumentTagsRequest {
   key: string;
 }
 
@@ -141,6 +148,56 @@ export class SpacesApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.deleteSpaceRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Get all document tags of a space
+   */
+  async getSpaceDocumentTagsRaw(
+    requestParameters: GetSpaceDocumentTagsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Array<DocumentTag>>> {
+    if (requestParameters.key === null || requestParameters.key === undefined) {
+      throw new runtime.RequiredError(
+        'key',
+        'Required parameter requestParameters.key was null or undefined when calling getSpaceDocumentTags.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/spaces/{key}/tags`.replace(
+          `{${'key'}}`,
+          encodeURIComponent(String(requestParameters.key))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(DocumentTagFromJSON)
+    );
+  }
+
+  /**
+   * Get all document tags of a space
+   */
+  async getSpaceDocumentTags(
+    requestParameters: GetSpaceDocumentTagsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Array<DocumentTag>> {
+    const response = await this.getSpaceDocumentTagsRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
   }
 
   /**

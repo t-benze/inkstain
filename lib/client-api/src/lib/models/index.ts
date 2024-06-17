@@ -7,6 +7,7 @@ export * from './CreateSpaceRequest';
 export * from './DocumentSearchResult';
 export * from './DocumentSearchResultMeta';
 export * from './DocumentSearchResultMetaAttributesValue';
+export * from './DocumentTag';
 export * from './DocumentTextDetection';
 export * from './DocumentTextDetectionBlocksInner';
 export * from './DocumentTextDetectionBlocksInnerGeometry';
