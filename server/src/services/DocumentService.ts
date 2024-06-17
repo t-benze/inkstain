@@ -4,6 +4,7 @@ import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
 import { Space } from './SpaceService';
+import { getDocumentTags } from '../handlers/documents/tags';
 
 export class DocumentService {
   private sequelize: Sequelize;
@@ -15,6 +16,12 @@ export class DocumentService {
 
   getSystemAttributes() {
     return this.systemAttributes;
+  }
+
+  async getDocumentTags(spaceKey: string) {
+    return await Tag.findAll({
+      where: { spaceKey },
+    });
   }
 
   async clearIndex(space: Space) {
@@ -93,12 +100,15 @@ export class DocumentService {
   async searchDocuments(
     spaceKey: string,
     query: {
-      tagFilter?: string;
+      tagFilter?: string[];
       attributeFilters?: Record<string, string>;
     }
   ) {
     // Build query filters for tags and attributes
-    const tagCondition = query.tagFilter;
+    const tagCondition =
+      query.tagFilter && query.tagFilter.length
+        ? { [Op.in]: query.tagFilter }
+        : undefined;
     const attributeConditions = query.attributeFilters
       ? Object.entries(query.attributeFilters).map(([key, value]) => ({
           key,

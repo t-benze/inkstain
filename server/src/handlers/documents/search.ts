@@ -25,7 +25,9 @@ import { getFullPath } from '~/server/utils';
  *       - in: query
  *         name: tagFilter
  *         schema:
- *           type: string
+ *           type: array
+ *           items:
+ *             type: string
  *         description: The tag to filter documents by
  *       - in: query
  *         name: attributeFilters
@@ -62,7 +64,7 @@ import { getFullPath } from '~/server/utils';
 export const searchDocuments = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { tagFilter, attributeFilters } = ctx.request.query as {
-    tagFilter?: string;
+    tagFilter?: string[] | string;
     attributeFilters?: string;
   };
   const attributeFiltersObj = attributeFilters
@@ -71,7 +73,11 @@ export const searchDocuments = async (ctx: Context) => {
 
   try {
     const documents = await ctx.documentService.searchDocuments(spaceKey, {
-      tagFilter,
+      tagFilter: Array.isArray(tagFilter)
+        ? tagFilter
+        : tagFilter
+        ? [tagFilter]
+        : undefined,
       attributeFilters: attributeFiltersObj,
     });
 

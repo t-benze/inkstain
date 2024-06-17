@@ -111,7 +111,7 @@ export interface RemoveDocumentTagsOperationRequest {
 
 export interface SearchDocumentsRequest {
   spaceKey: string;
-  tagFilter?: string;
+  tagFilter?: Array<string>;
   attributeFilters?: string;
 }
 
@@ -1075,7 +1075,7 @@ export class DocumentsApi extends runtime.BaseAPI {
 
     const queryParameters: any = {};
 
-    if (requestParameters.tagFilter !== undefined) {
+    if (requestParameters.tagFilter) {
       queryParameters['tagFilter'] = requestParameters.tagFilter;
     }
 

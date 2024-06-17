@@ -46,6 +46,9 @@
     "refresh_folder_tooltip": "Refresh the folder",
     "collapse_all_tooltip": "Collapse all"
   },
+  "search_document": {
+    "select_tags": "Select tags"
+  },
   "pdfview": {
     "prevPageBtnTooltip": "Previous page",
     "nextPageBtnTooltip": "Next page",

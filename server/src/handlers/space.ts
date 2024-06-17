@@ -218,9 +218,51 @@ export const deleteSpace = async (ctx: Context) => {
   }
 };
 
+/**
+ * @swagger
+ * /spaces/{key}/tags:
+ *   get:
+ *     summary: Get all document tags of a space
+ *     operationId: getSpaceDocumentTags
+ *     tags: [Spaces]
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space to get document tags from
+ *     responses:
+ *       200:
+ *         description: Document tags retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/DocumentTag'
+ *       400:
+ *         description: Space does not exist or bad request.
+ *       500:
+ *         description: Failed to retrieve document tags.
+ */
+export const getSpaceDocumentTags = async (ctx: Context) => {
+  const { key } = ctx.params;
+
+  try {
+    const tags = await ctx.documentService.getDocumentTags(key);
+    ctx.status = 200;
+    ctx.body = tags;
+  } catch (error) {
+    ctx.status = error.message.includes('does not exist') ? 400 : 500;
+    ctx.body = error.message;
+  }
+};
+
 export const registerSpaceRoutes = (router: Router) => {
   router.get('/spaces', getSpaces);
   router.post('/spaces', createSpace);
   router.put('/spaces/:key', updateSpace);
   router.delete('/spaces/:key', deleteSpace);
+  router.get('/spaces/:key/tags', getSpaceDocumentTags);
 };

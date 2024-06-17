@@ -148,3 +148,13 @@ components:
       required:
         - documentPath
         - meta
+    DocumentTag:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
