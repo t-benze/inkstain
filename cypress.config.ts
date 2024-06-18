@@ -74,64 +74,63 @@ export default defineConfig({
         } catch (e) {
           /* empty */
         }
-        await copyDirectory(
-          path.join(__dirname, 'cypress', 'fixtures', 'test-space'),
-          path.join(testSpacePath, 'My Test Space For Importing')
-        );
+
         await fs.writeFile(
           path.join(runtimeDataFolder, 'spaces.test.json'),
           '{}',
           'utf-8'
         );
+        // set up folder for testing import existing inkstain folder
+        await copyDirectory(
+          path.join(__dirname, 'cypress', 'fixtures', 'test-space'),
+          path.join(testSpacePath, 'My Test Space For Importing')
+        );
+
+        // set up an existing space for document testing
+        const spaceName = 'My Test Space For Document';
+        const targetPath = path.join(testSpacePath, spaceName);
+        try {
+          await fs.rmdir(targetPath, { recursive: true });
+        } catch (e) {
+          /* empty */
+        }
+        await copyDirectory(
+          path.join(__dirname, 'cypress', 'fixtures', 'test-space'),
+          targetPath
+        );
+        const meta = await fs.readFile(
+          path.join(targetPath, '.inkstain'),
+          'utf-8'
+        );
+        const spaceMeta = JSON.parse(meta);
+        spaceMeta.name = spaceName;
+        await fs.writeFile(
+          path.join(targetPath, '.inkstain'),
+          JSON.stringify(spaceMeta),
+          'utf-8'
+        );
+        const createSpaceResponse = await fetch(
+          config.baseUrl + '/api/v1/spaces?type=inkstain',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              path: targetPath,
+            }),
+          }
+        );
+
+        if (
+          createSpaceResponse.status !== 201 &&
+          createSpaceResponse.status !== 400
+        )
+          throw new Error('Failed to import test space');
       });
 
       on('task', {
         async 'platform:get'() {
           const response = await fetch(config.baseUrl + '/api/v1/platform');
           return response.json();
-        },
-        async seedTestSpaceForDocument() {
-          const name = 'My Test Space For Document';
-          const targetPath = path.join(testSpacePath, name);
-          try {
-            await fs.rmdir(targetPath, { recursive: true });
-          } catch (e) {
-            /* empty */
-          }
-
-          await copyDirectory(
-            path.join(__dirname, 'cypress', 'fixtures', 'test-space'),
-            targetPath
-          );
-          const meta = await fs.readFile(
-            path.join(targetPath, '.inkstain'),
-            'utf-8'
-          );
-          const spaceMeta = JSON.parse(meta);
-          spaceMeta.name = 'My Test Space For Document';
-          await fs.writeFile(
-            path.join(targetPath, '.inkstain'),
-            JSON.stringify(spaceMeta),
-            'utf-8'
-          );
-          const createSpaceResponse = await fetch(
-            config.baseUrl + '/api/v1/spaces?type=inkstain',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                path: targetPath,
-              }),
-            }
-          );
-
-          if (
-            createSpaceResponse.status !== 201 &&
-            createSpaceResponse.status !== 400
-          )
-            throw new Error('Failed to import test space');
-
-          return Promise.resolve(null);
         },
       });
     },

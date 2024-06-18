@@ -112,12 +112,14 @@ const HeaderCell = ({
   renderInput,
   onApplyClick,
   onClearClick,
+  columnId,
 }: {
   renderHeaderCell: () => React.ReactNode;
   renderInput: () => React.ReactNode;
   hasFilterApplied: boolean;
   onApplyClick: () => void;
   onClearClick: () => void;
+  columnId: string;
 }) => {
   const [open, setOpen] = React.useState(false);
   const classes = useClasses();
@@ -126,6 +128,7 @@ const HeaderCell = ({
   const filterButton = (
     <Button
       appearance={'transparent'}
+      data-test={`searchDocumentView-filterBtn-${columnId}`}
       icon={
         hasFilterApplied ? (
           <FilterFilled primaryFill={tokens.colorBrandBackground} />
@@ -152,6 +155,7 @@ const HeaderCell = ({
           {renderInput()}
           <div className="button-container">
             <Button
+              data-test={`searchDocumentView-clearFilterBtn`}
               size="small"
               onClick={() => {
                 onClearClick();
@@ -162,6 +166,7 @@ const HeaderCell = ({
             </Button>
             <Button
               size="small"
+              data-test={`searchDocumentView-applyFilterBtn`}
               appearance="primary"
               onClick={() => {
                 onApplyClick();
@@ -192,11 +197,13 @@ const GridHeaderAttributeCell = ({
   const [value, setValue] = React.useState(filterValue);
   return (
     <HeaderCell
+      columnId={columnId}
       hasFilterApplied={hasFilterApplied}
       renderHeaderCell={renderHeaderCell}
       renderInput={() => {
         return (
           <Input
+            data-test="searchDocumentView-attributeFilterInput"
             value={value}
             onChange={(e, data) => {
               setValue(data.value);
@@ -245,9 +252,11 @@ const GridHeaderTagCell = ({
     <HeaderCell
       hasFilterApplied={hasFilterApplied}
       renderHeaderCell={renderHeaderCell}
+      columnId="tags"
       renderInput={() => {
         return (
           <Dropdown
+            data-test="searchDocumentView-tagFilterDropdown"
             size="small"
             value={value}
             multiselect={true}
@@ -261,7 +270,11 @@ const GridHeaderTagCell = ({
             {tags
               ? tags.map((tag) => {
                   return (
-                    <Option key={tag.name} value={tag.name}>
+                    <Option
+                      data-test="searchDocumentView-tagFilterOption"
+                      key={tag.name}
+                      value={tag.name}
+                    >
                       {tag.name}
                     </Option>
                   );
@@ -366,7 +379,10 @@ export const SearchDocumentView = () => {
         <DataGridBody<Item>>
           {({ item, rowId }) => {
             return (
-              <DataGridRow<Item> key={rowId}>
+              <DataGridRow<Item>
+                key={rowId}
+                data-test="searchDocumentView-result"
+              >
                 {({ renderCell }) => {
                   return (
                     <DataGridCell

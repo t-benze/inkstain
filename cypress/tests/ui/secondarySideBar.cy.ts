@@ -1,8 +1,4 @@
 describe('Secondary Side Bar', () => {
-  before(() => {
-    cy.task('seedTestSpaceForDocument').then(() => {});
-  });
-
   beforeEach(() => {
     cy.openApp();
     cy.getBySel('recentSpaceBtn-a116538b').click();

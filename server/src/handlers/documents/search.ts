@@ -34,6 +34,16 @@ import { getFullPath } from '~/server/utils';
  *         schema:
  *           type: string
  *           description: a json object with key value pairs to filter documents by, encoded as a string
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *         description: The number of documents to skip
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: The number of documents to return
  *     responses:
  *       200:
  *         description: Documents were successfully retrieved.
@@ -63,9 +73,11 @@ import { getFullPath } from '~/server/utils';
  */
 export const searchDocuments = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const { tagFilter, attributeFilters } = ctx.request.query as {
+  const { tagFilter, attributeFilters, offset, limit } = ctx.request.query as {
     tagFilter?: string[] | string;
     attributeFilters?: string;
+    offset?: string;
+    limit?: string;
   };
   const attributeFiltersObj = attributeFilters
     ? JSON.parse(attributeFilters)
@@ -73,12 +85,14 @@ export const searchDocuments = async (ctx: Context) => {
 
   try {
     const documents = await ctx.documentService.searchDocuments(spaceKey, {
-      tagFilter: Array.isArray(tagFilter)
-        ? tagFilter
-        : tagFilter
-        ? [tagFilter]
+      tagFilter: tagFilter
+        ? Array.isArray(tagFilter)
+          ? tagFilter
+          : [tagFilter]
         : undefined,
       attributeFilters: attributeFiltersObj,
+      offset: offset ? parseInt(offset) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
     });
 
     const result = await Promise.all(

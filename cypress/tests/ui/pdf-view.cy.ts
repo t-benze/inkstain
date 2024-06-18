@@ -1,10 +1,4 @@
 describe('File Explorer for Space', () => {
-  //   const testSpaceKey = 'a116538b';
-  //   const ctx = {} as { homedir: string; pathSep: string };
-  before(() => {
-    cy.task('seedTestSpaceForDocument').then(() => {});
-  });
-
   beforeEach(() => {
     cy.openApp();
     cy.getBySel('recentSpaceBtn-a116538b').click();
