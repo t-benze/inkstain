@@ -113,6 +113,8 @@ export interface SearchDocumentsRequest {
   spaceKey: string;
   tagFilter?: Array<string>;
   attributeFilters?: string;
+  offset?: number;
+  limit?: number;
 }
 
 /**
@@ -1081,6 +1083,14 @@ export class DocumentsApi extends runtime.BaseAPI {
 
     if (requestParameters.attributeFilters !== undefined) {
       queryParameters['attributeFilters'] = requestParameters.attributeFilters;
+    }
+
+    if (requestParameters.offset !== undefined) {
+      queryParameters['offset'] = requestParameters.offset;
+    }
+
+    if (requestParameters.limit !== undefined) {
+      queryParameters['limit'] = requestParameters.limit;
     }
 
     const headerParameters: runtime.HTTPHeaders = {};

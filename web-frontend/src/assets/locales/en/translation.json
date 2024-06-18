@@ -44,7 +44,8 @@
     "add_a_document_tooltip": "Add a document",
     "add_a_folder_tooltip": "Add a folder",
     "refresh_folder_tooltip": "Refresh the folder",
-    "collapse_all_tooltip": "Collapse all"
+    "collapse_all_tooltip": "Collapse all",
+    "search_document": "Search"
   },
   "search_document": {
     "select_tags": "Select tags"
