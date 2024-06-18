@@ -4,7 +4,7 @@ describe('Documents API', () => {
   // let testDocumentPath = '';
 
   const ctx = {} as { homedir: string; pathSep: string };
-  before((done) => {
+  before(() => {
     cy.task('platform:get').then(
       (response: { homedir: string; pathSep: string }) => {
         ctx.homedir = response.homedir;
@@ -12,9 +12,6 @@ describe('Documents API', () => {
         // testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
       }
     );
-    cy.task('seedTestSpaceForDocument').then(() => {
-      done();
-    });
   });
 
   context(`GET /documents/${spaceKey}/list`, () => {

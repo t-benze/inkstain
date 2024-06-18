@@ -8,9 +8,6 @@ describe('File Explorer for Space', () => {
         ctx.pathSep = response.pathSep;
       }
     );
-    cy.task('seedTestSpaceForDocument').then(() => {
-      console.log('finished seeding test space');
-    });
   });
 
   beforeEach(() => {

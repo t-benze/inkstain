@@ -98,6 +98,7 @@ export const PrimarySidebar = () => {
         {accordions.map((accordion) => {
           return (
             <AccordionItem
+              key={accordion.value}
               value={accordion.value}
               className={mergeClasses(
                 classes.accordionItem,

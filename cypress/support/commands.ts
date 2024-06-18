@@ -1,8 +1,9 @@
 Cypress.Commands.add('openApp', (key) => {
   if (key) {
     cy.visit(Cypress.config('baseUrl') + '/?space=' + key);
+  } else {
+    cy.visit(Cypress.config('baseUrl'));
   }
-  cy.visit(Cypress.config('baseUrl'));
 });
 Cypress.Commands.add('getBySel', (selector, options) => {
   return cy.get(`[data-test=${selector}]`, options);

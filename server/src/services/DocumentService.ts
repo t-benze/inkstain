@@ -4,7 +4,6 @@ import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
 import { Space } from './SpaceService';
-import { getDocumentTags } from '../handlers/documents/tags';
 
 export class DocumentService {
   private sequelize: Sequelize;
@@ -102,6 +101,8 @@ export class DocumentService {
     query: {
       tagFilter?: string[];
       attributeFilters?: Record<string, string>;
+      offset?: number;
+      limit?: number;
     }
   ) {
     // Build query filters for tags and attributes
@@ -117,6 +118,8 @@ export class DocumentService {
           },
         }))
       : [];
+    const limit = query.limit || 10;
+    const offset = query.offset || 0;
 
     // // Perform the search using Sequelize queries
     const includes: Includeable[] = [];
@@ -135,7 +138,8 @@ export class DocumentService {
       });
     }
     return Document.findAll({
-      limit: 10,
+      limit,
+      offset,
       where: {
         spaceKey,
       },
