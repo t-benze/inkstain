@@ -62,4 +62,42 @@ describe('Search documents in a space', () => {
         .and('contain', 'Attention is All You Need');
     });
   });
+
+  context('Test Pagination', () => {
+    beforeEach(() => {
+      cy.intercept('/api/v1/documents/a116538b/search*', (req) => {
+        const offset = req.query.offset
+          ? parseInt(req.query.offset as string)
+          : 0;
+        const limit = req.query.limit
+          ? parseInt(req.query.limit as string)
+          : 10;
+        const mockData = Array.from(
+          { length: offset > 40 ? 5 : limit },
+          (_, i) => ({
+            documentPath: `test-doc-${offset + i}.txt`,
+            meta: {
+              tags: ['ai', 'test'],
+              attributes: {
+                title: `Test Document ${offset + i}`,
+              },
+            },
+          })
+        );
+        req.reply(200, {
+          systemAttributes: ['title', 'author'],
+          data: mockData,
+        });
+      }).as('searchDocuments');
+      cy.openApp('a116538b');
+    });
+    it('should allow users to navigate through search results', () => {
+      cy.wait('@searchDocuments');
+      cy.getBySel('searchDocumentView-result').should('have.length', 25);
+      cy.getBySel('searchDocumentView').scrollTo('bottom', { duration: 1000 });
+      cy.getBySel('searchDocumentView-result').should('have.length', 50);
+      cy.getBySel('searchDocumentView').scrollTo('bottom', { duration: 1000 });
+      cy.getBySel('searchDocumentView-bottomElement').should('not.exist');
+    });
+  });
 });

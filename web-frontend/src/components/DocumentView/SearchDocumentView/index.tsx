@@ -24,13 +24,20 @@ import { FilterRegular, FilterFilled } from '@fluentui/react-icons';
 import { AppContext } from '~/web/app/context';
 import { documentsApi, spacesApi } from '~/web/apiClient';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
-import { DocumentSearchResult } from '@inkstain/client-api';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import {
+  DocumentSearchResult,
+  SearchDocuments200Response,
+} from '@inkstain/client-api';
 
 type Item = DocumentSearchResult;
 
+const PAGE_SIZE = 25;
 const useClasses = makeStyles({
   root: {
+    width: '100%',
+    height: '100%',
+    overflowY: 'scroll',
     ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
     '& .fui-DataGridRow': {
       cursor: 'pointer',
@@ -304,21 +311,71 @@ export const SearchDocumentView = () => {
     Record<string, string>
   >({});
   const systemAttributesRef = React.useRef<null | string[]>(null);
-  if (activeSpace === null) throw new Error('No activeSpace');
+
   const attributeFilterString = JSON.stringify(attributeFilters);
-  const spaceKey = activeSpace.key;
-  const { data: documents } = useQuery({
-    queryKey: ['searchDocuments', spaceKey, tagFilter, attributeFilterString],
+  const spaceKey = activeSpace!.key;
+
+  const [numOfPagesReached, setNumOfPagesReached] = React.useState(0);
+  const { data } = useQuery({
+    queryKey: [
+      'searchDocuments',
+      spaceKey,
+      tagFilter,
+      attributeFilterString,
+      numOfPagesReached,
+    ],
     queryFn: async () => {
+      const existingData: SearchDocuments200Response['data'] = data
+        ? data.documents
+        : [];
       const result = await documentsApi.searchDocuments({
         spaceKey,
         tagFilter,
         attributeFilters: attributeFilterString,
+        offset: numOfPagesReached * PAGE_SIZE,
+        limit: PAGE_SIZE,
       });
       systemAttributesRef.current = result.systemAttributes;
-      return result.data;
+      return {
+        documents: [...existingData, ...result.data],
+        noMore: result.data.length < PAGE_SIZE,
+      };
     },
+    placeholderData: keepPreviousData,
   });
+
+  const boudingElementRef = React.useRef<HTMLDivElement>(null);
+  const bottomElementRef = React.useRef<HTMLDivElement>(null);
+  const bottomElementObserver = React.useRef<IntersectionObserver | null>(null);
+  React.useEffect(() => {
+    bottomElementObserver.current = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          if (data && data.documents.length) {
+            const pageLoaded = data.documents.length / PAGE_SIZE;
+            if (!data.noMore) {
+              setNumOfPagesReached(pageLoaded);
+            }
+          }
+        }
+      },
+      {
+        rootMargin: '0px',
+        threshold: 0.5,
+      }
+    );
+    const bottomElement = bottomElementRef.current;
+    if (bottomElement) {
+      bottomElementObserver.current.observe(bottomElement);
+    }
+    return () => {
+      if (bottomElementObserver.current && bottomElement) {
+        bottomElementObserver.current.unobserve(bottomElement);
+      }
+    };
+  }, [bottomElementRef, data, numOfPagesReached]);
+
   const handleApplyAttributeFilter = React.useCallback(
     (key: string, value: string | undefined) => {
       setAttributeFilters((prev) => {
@@ -345,9 +402,13 @@ export const SearchDocumentView = () => {
   ]);
 
   return (
-    <div className={classes.root}>
+    <div
+      className={classes.root}
+      ref={boudingElementRef}
+      data-test="searchDocumentView"
+    >
       <DataGrid
-        items={documents || []}
+        items={data ? data.documents : []}
         columns={columns}
         resizableColumns
         columnSizingOptions={columnSizingOptions}
@@ -399,6 +460,15 @@ export const SearchDocumentView = () => {
           }}
         </DataGridBody>
       </DataGrid>
+      {data ? (
+        data.noMore ? null : (
+          <div
+            data-test="searchDocumentView-bottomElement"
+            style={{ height: '50px', visibility: 'hidden' }}
+            ref={bottomElementRef}
+          ></div>
+        )
+      ) : null}
     </div>
   );
 };
