@@ -101,7 +101,7 @@ describe('File Explorer for Space', () => {
       });
     });
 
-    it.only('should allow users to open a document', () => {
+    it('should allow users to open a document', () => {
       cy.getBySel('fileExplorer-folderTree').contains('test-text.txt').click();
       cy.getBySel('document-textView').contains('hello world');
     });

@@ -8,7 +8,6 @@ import {
   ErrorCode as SpaceServiceErrorCode,
 } from '~/server/services/SpaceService';
 import logger from '~/server/logger'; // Make sure to import your configured logger
-import { getFullPath } from '../../utils';
 
 import { analyzeDocument } from './intelligence';
 import {
@@ -19,6 +18,7 @@ import {
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
 import { searchDocuments } from './search';
 import { Context } from '~/server/types';
+import { traverseDirectory, getFullPath } from '~/server/utils';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -236,7 +236,7 @@ const addDocument = async (ctx: Context) => {
     const targetDirectoryPath = await getFullPath(
       ctx.spaceService,
       spaceKey,
-      path.join(targetPath + '.ink')
+      targetPath + '.ink'
     );
     // Create target directory
     await fs.mkdir(targetDirectoryPath, { recursive: true });
@@ -295,7 +295,7 @@ const addDocument = async (ctx: Context) => {
  */
 const deleteDocument = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
-  const targetPath = ctx.request.query.path;
+  const targetPath = ctx.request.query.path as string;
 
   if (!targetPath) {
     ctx.status = 400;
@@ -307,10 +307,12 @@ const deleteDocument = async (ctx: Context) => {
     const targetDirectoryPath = await getFullPath(
       ctx.spaceService,
       spaceKey,
-      path.join(targetPath + '.ink')
+      targetPath + '.ink'
     );
 
     await fs.rm(targetDirectoryPath, { recursive: true, force: true });
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.deleteDocument(space, targetPath);
     ctx.status = 200;
     ctx.body = 'Document deleted successfully';
   } catch (error) {
@@ -362,7 +364,7 @@ const addFolder = async (ctx: Context) => {
     const targetDirectoryPath = await getFullPath(
       ctx.spaceService,
       spaceKey,
-      path.join(targetPath)
+      targetPath
     );
 
     await fs.mkdir(targetDirectoryPath, { recursive: true });
@@ -417,9 +419,14 @@ const deleteFolder = async (ctx: Context) => {
     const targetDirectoryPath = await getFullPath(
       ctx.spaceService,
       spaceKey,
-      path.join(targetPath)
+      targetPath
     );
-
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    const documentsToIndex = [];
+    await traverseDirectory(space.path, targetDirectoryPath, documentsToIndex);
+    for (const doc of documentsToIndex) {
+      ctx.documentService.deleteDocument(space, doc);
+    }
     await fs.rm(targetDirectoryPath, { recursive: true, force: true });
     ctx.status = 200;
     ctx.body = 'Folder deleted successfully';

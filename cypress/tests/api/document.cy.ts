@@ -14,7 +14,7 @@ describe('Documents API', () => {
     );
   });
 
-  context(`GET /documents/${spaceKey}/list`, () => {
+  context(`documents`, () => {
     it('should list all documents within a space or sub-folder', () => {
       cy.request(
         'GET',
@@ -24,9 +24,6 @@ describe('Documents API', () => {
         expect(response.body).to.be.an('array');
       });
     });
-  });
-
-  context(`GET /documents/${spaceKey}/content`, () => {
     it('should serve document content from a space', () => {
       const documentContentPath = folderPath + ctx.pathSep + 'test-doc.txt';
       cy.request(
@@ -41,9 +38,6 @@ describe('Documents API', () => {
         );
       });
     });
-  });
-
-  context(`POST /documents/${spaceKey}/add`, () => {
     it('should add a new document to a space', () => {
       const formData = new FormData();
       const fileContent = 'Hello, world!';
@@ -65,9 +59,6 @@ describe('Documents API', () => {
         expect(response.status).to.eq(201);
       });
     });
-  });
-
-  context(`DELETE /documents/${spaceKey}/delete`, () => {
     it('should delete a document from a space', () => {
       const documentContentPath =
         folderPath + ctx.pathSep + 'test-doc-to-delete.txt';
@@ -82,8 +73,8 @@ describe('Documents API', () => {
     });
   });
 
-  context(`/documents/${spaceKey}/addFolder`, () => {
-    it('should add a new folder within a space', () => {
+  context(`folders`, () => {
+    it('should add and delete a new folder within a space', () => {
       cy.request(
         'POST',
         `/api/v1/documents/${spaceKey}/addFolder?path=${encodeURIComponent(
@@ -92,15 +83,10 @@ describe('Documents API', () => {
       ).then((response) => {
         expect(response.status).to.eq(200);
       });
-    });
-  });
-
-  context(`/documents/${spaceKey}/deleteFolder`, () => {
-    it('should delete a folder within a space', () => {
       cy.request(
         'DELETE',
         `/api/v1/documents/${spaceKey}/deleteFolder?path=${encodeURIComponent(
-          'test folder 2'
+          'new folder'
         )}`
       ).then((response) => {
         expect(response.status).to.eq(200);
@@ -108,7 +94,7 @@ describe('Documents API', () => {
     });
   });
 
-  context(`/documents/${spaceKey}/tags`, () => {
+  context(`tags`, () => {
     it('should add tags to a document in a space', () => {
       const tagsToAdd = ['finance', 'report'];
       const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
@@ -154,7 +140,7 @@ describe('Documents API', () => {
     });
   });
 
-  context(`/documents/${spaceKey}/attributes`, () => {
+  context(`attributes`, () => {
     it('should retrieve attributes of a document in a space', () => {
       const testDocumentPath = folderPath + ctx.pathSep + 'test-doc.txt';
       cy.request(
