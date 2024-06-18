@@ -1,11 +1,10 @@
 import Router from '@koa/router';
-import path from 'path';
-import fs from 'fs/promises';
 import { SpaceServiceError, ErrorCode } from '~/server/services/SpaceService';
 import logger from '../logger';
 import { RequestParamsError } from './common';
 import { Context } from '~/server/types';
 import { DefinedError } from 'ajv';
+import { traverseDirectory } from '~/server/utils';
 
 /**
  * @swagger
@@ -75,27 +74,6 @@ export const createSpace = async (ctx: Context) => {
     const definedErrors: DefinedError[] =
       validate.errors?.map((error) => error as DefinedError) || [];
     throw new RequestParamsError('Create space params error', definedErrors);
-  }
-  async function traverseDirectory(
-    spaceRoot: string,
-    targetPath: string,
-    documentsToIndex: string[]
-  ) {
-    console.log('traverse', spaceRoot, targetPath);
-    const files = await fs.readdir(targetPath);
-    for (const file of files) {
-      const fullPath = path.join(targetPath, file);
-      const stat = await fs.lstat(fullPath);
-      if (stat.isDirectory()) {
-        if (file.endsWith('.ink')) {
-          documentsToIndex.push(
-            fullPath.replace(spaceRoot, '').replace('.ink', '')
-          );
-        } else {
-          traverseDirectory(spaceRoot, fullPath, documentsToIndex);
-        }
-      }
-    }
   }
 
   try {

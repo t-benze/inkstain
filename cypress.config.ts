@@ -80,6 +80,7 @@ export default defineConfig({
           '{}',
           'utf-8'
         );
+        // await fs.rm(path.join(runtimeDataFolder, 'inkstain.test.sqlite') );
         // set up folder for testing import existing inkstain folder
         await copyDirectory(
           path.join(__dirname, 'cypress', 'fixtures', 'test-space'),

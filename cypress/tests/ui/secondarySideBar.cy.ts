@@ -2,8 +2,7 @@ describe('Secondary Side Bar', () => {
   beforeEach(() => {
     cy.openApp();
     cy.getBySel('recentSpaceBtn-a116538b').click();
-    cy.getBySel('fileExplorer').contains('test folder').click();
-    cy.getBySel('fileExplorer').contains('test-doc.txt').click();
+    cy.getBySel('fileExplorer').contains('sample-pdf.pdf').click();
   });
 
   context('Document Tag View', () => {
@@ -32,7 +31,7 @@ describe('Secondary Side Bar', () => {
   });
 
   context('Document Attributes View', () => {
-    it.only('Should display the document attributes', () => {
+    it('Should display the document attributes', () => {
       cy.getBySel('secondarySidebar').contains('Attributes').click();
       cy.getBySel('documentAttributesView-attribute').should(
         'have.length.at.least',

@@ -20,7 +20,8 @@
     "@inkstain/search-document": "Documents",
     "title": "Title",
     "author": "Author",
-    "tags": "Tags"
+    "tags": "Tags",
+    "documentPath": "Document path"
   },
   "space": {
     "_": "Space",
@@ -37,7 +38,8 @@
     "no_existing_space": "There's no exisitng space, please create one",
     "creating_space": "Creating space...",
     "create_space_success": "Create space succeeded",
-    "create_space_failed": "Create space failed"
+    "create_space_failed": "Create space failed",
+    "no_recent_spaces": "No recent spaces"
   },
   "file_explorer": {
     "_": "Explorer",

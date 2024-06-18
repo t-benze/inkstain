@@ -1,5 +1,6 @@
 import path from 'path';
 import { SpaceService } from '~/server/services/SpaceService';
+import fs from 'fs/promises';
 // Helper function to get the full file path
 export const getFullPath = async (
   spaceService: SpaceService,
@@ -15,8 +16,32 @@ export const getFullPath = async (
   const resolvedPath = path.resolve(space.path, documentPath);
   const relative = path.relative(space.path, resolvedPath);
   if (relative.startsWith('..') || path.isAbsolute(relative)) {
-    throw new Error('Invalid file path. Possible directory traversal attempt.');
+    throw new Error(
+      `Invalid file path: ${space.path}, ${resolvedPath}, ${relative}`
+    );
   }
 
   return resolvedPath;
 };
+
+export async function traverseDirectory(
+  spaceRoot: string,
+  targetPath: string,
+  documentsToIndex: string[]
+) {
+  const files = await fs.readdir(targetPath);
+  for (const file of files) {
+    const fullPath = path.join(targetPath, file);
+    const stat = await fs.lstat(fullPath);
+    if (stat.isDirectory()) {
+      if (file.endsWith('.ink')) {
+        const docPath = fullPath.replace(spaceRoot, '').replace('.ink', '');
+        documentsToIndex.push(
+          docPath.startsWith('/') ? docPath.slice(1) : docPath
+        );
+      } else {
+        traverseDirectory(spaceRoot, fullPath, documentsToIndex);
+      }
+    }
+  }
+}

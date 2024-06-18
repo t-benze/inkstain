@@ -4,6 +4,7 @@ import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
 import { Space } from './SpaceService';
+import { deleteDocumentAttributes } from '../handlers/documents/attributes';
 
 export class DocumentService {
   private sequelize: Sequelize;
@@ -92,6 +93,18 @@ export class DocumentService {
           }
           await document.addDocAttribute(attr, { transaction });
         }
+      }
+    });
+  }
+
+  async deleteDocument(space: Space, documentPath: string) {
+    await this.sequelize.transaction(async (transaction) => {
+      const document = await Document.findOne({
+        where: { spaceKey: space.key, documentPath },
+        transaction,
+      });
+      if (document) {
+        await document.destroy({ transaction });
       }
     });
   }

@@ -85,7 +85,9 @@ function makeColumns(columnKeys: string[]) {
     return createTableColumn({
       columnId: key,
       renderCell: (item: Item) => {
-        if (key === 'tags') {
+        if (key === 'documentPath') {
+          return item.documentPath;
+        } else if (key === 'tags') {
           return (item.meta.tags ?? []).join(', ');
         } else {
           const attrValue = item.meta.attributes && item.meta.attributes[key];
@@ -320,7 +322,7 @@ export const SearchDocumentView = () => {
     queryKey: [
       'searchDocuments',
       spaceKey,
-      tagFilter,
+      tagFilter ? tagFilter.join(',') : '',
       attributeFilterString,
       numOfPagesReached,
     ],
@@ -336,10 +338,17 @@ export const SearchDocumentView = () => {
         limit: PAGE_SIZE,
       });
       systemAttributesRef.current = result.systemAttributes;
-      return {
-        documents: [...existingData, ...result.data],
-        noMore: result.data.length < PAGE_SIZE,
-      };
+      if (numOfPagesReached !== 0) {
+        return {
+          documents: [...existingData, ...result.data],
+          noMore: result.data.length < PAGE_SIZE,
+        };
+      } else {
+        return {
+          documents: result.data,
+          noMore: result.data.length < PAGE_SIZE,
+        };
+      }
     },
     placeholderData: keepPreviousData,
   });
@@ -397,6 +406,7 @@ export const SearchDocumentView = () => {
 
   if (!systemAttributesRef.current) return null;
   const { columns, columnSizingOptions } = makeColumns([
+    'documentPath',
     ...systemAttributesRef.current,
     'tags',
   ]);
@@ -416,7 +426,11 @@ export const SearchDocumentView = () => {
         <DataGridHeader>
           <DataGridRow>
             {({ renderHeaderCell, columnId }) => {
-              if (columnId === 'tags') {
+              if (columnId === 'documentPath') {
+                return (
+                  <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                );
+              } else if (columnId === 'tags') {
                 return (
                   <GridHeaderTagCell
                     tagFilter={tagFilter}
