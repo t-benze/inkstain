@@ -17,7 +17,7 @@ export const getFullPath = async (
   const relative = path.relative(space.path, resolvedPath);
   if (relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error(
-      `Invalid file path: ${space.path}, ${resolvedPath}, ${relative}`
+      `Invalid file path: ${space.path}, ${documentPath}, ${resolvedPath}, ${relative}`
     );
   }
 
@@ -35,10 +35,8 @@ export async function traverseDirectory(
     const stat = await fs.lstat(fullPath);
     if (stat.isDirectory()) {
       if (file.endsWith('.ink')) {
-        const docPath = fullPath.replace(spaceRoot, '').replace('.ink', '');
-        documentsToIndex.push(
-          docPath.startsWith('/') ? docPath.slice(1) : docPath
-        );
+        const docPath = path.relative(spaceRoot, fullPath).replace('.ink', '');
+        documentsToIndex.push(docPath);
       } else {
         traverseDirectory(spaceRoot, fullPath, documentsToIndex);
       }
