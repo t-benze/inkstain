@@ -43,6 +43,12 @@ export interface PlatformInfo200Response {
    * @memberof PlatformInfo200Response
    */
   drives?: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof PlatformInfo200Response
+   */
+  systemAttributes: Array<string>;
 }
 
 /**
@@ -53,6 +59,7 @@ export function instanceOfPlatformInfo200Response(value: object): boolean {
   isInstance = isInstance && 'platform' in value;
   isInstance = isInstance && 'homedir' in value;
   isInstance = isInstance && 'pathSep' in value;
+  isInstance = isInstance && 'systemAttributes' in value;
 
   return isInstance;
 }
@@ -75,6 +82,7 @@ export function PlatformInfo200ResponseFromJSONTyped(
     homedir: json['homedir'],
     pathSep: json['pathSep'],
     drives: !exists(json, 'drives') ? undefined : json['drives'],
+    systemAttributes: json['systemAttributes'],
   };
 }
 
@@ -92,5 +100,6 @@ export function PlatformInfo200ResponseToJSON(
     homedir: value.homedir,
     pathSep: value.pathSep,
     drives: value.drives,
+    systemAttributes: value.systemAttributes,
   };
 }

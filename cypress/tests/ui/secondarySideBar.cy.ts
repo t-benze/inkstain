@@ -38,5 +38,22 @@ describe('Secondary Side Bar', () => {
         1
       );
     });
+
+    it("Should allow users to edit an attribute's value", () => {
+      cy.intercept('POST', '/api/v1/documents/**/attributes*').as(
+        'updateAttribute'
+      );
+      cy.getBySel('secondarySidebar').contains('Attributes').click();
+      cy.getBySel('documentAttributesView-attribute')
+        .contains('Title')
+        .siblings()
+        .find(`[data-test=documentAttributesView-attributeInput]`)
+        .as('input');
+      cy.get('@input').clear();
+      cy.get('@input').type('New Title');
+      cy.get('@input').blur();
+      cy.wait('@updateAttribute');
+      cy.get('@input').should('have.value', 'New Title');
+    });
   });
 });

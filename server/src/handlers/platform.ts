@@ -35,10 +35,15 @@ const router = new Router();
  *                   type: array
  *                   items:
  *                     type: string
+ *                 systemAttributes:
+ *                   type: array
+ *                   items:
+ *                     type: string
  *               required:
  *                 - platform
  *                 - homedir
  *                 - pathSep
+ *                 - systemAttributes
  */
 const platformInfo = async (ctx) => {
   // const drives = await drivelist.list();
@@ -53,6 +58,7 @@ const platformInfo = async (ctx) => {
     homedir: os.homedir(),
     pathSep: path.sep,
     drives,
+    systemAttributes: ctx.documentService.getSystemAttributes(),
   };
 };
 
