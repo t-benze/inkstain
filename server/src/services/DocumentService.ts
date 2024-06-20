@@ -4,7 +4,6 @@ import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
 import { Space } from './SpaceService';
-import { deleteDocumentAttributes } from '../handlers/documents/attributes';
 
 export class DocumentService {
   private sequelize: Sequelize;

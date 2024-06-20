@@ -164,7 +164,7 @@ export const addUpdateDocumentAttributes = async (ctx: Context) => {
  *           type: string
  *         description: The relative path to the document within the space
  *     requestBody:
- *       description: JSON object containing keys of attributes to delete
+ *       description: JSON array containing keys of attributes to delete
  *       required: true
  *       content:
  *         application/json:

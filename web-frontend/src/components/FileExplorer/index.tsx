@@ -257,7 +257,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           appearance="subtle"
           size="small"
           icon={<SearchRegular />}
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             appContext.openSystemDocument('@inkstain/search-document');
           }}
         />
@@ -272,7 +273,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           appearance="subtle"
           size="small"
           icon={<DocumentAddRegular />}
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             fileInputRef.current?.click();
           }}
         />
@@ -287,7 +289,10 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           appearance="subtle"
           size="small"
           icon={<FolderAddRegular />}
-          onClick={handleAddFolder}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddFolder();
+          }}
         />
       </Tooltip>
       <Tooltip
@@ -300,7 +305,10 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           appearance="subtle"
           size="small"
           icon={<FolderSyncRegular />}
-          onClick={handleSyncFolder}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSyncFolder();
+          }}
         />
       </Tooltip>
       <Tooltip
@@ -313,7 +321,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           appearance="subtle"
           size="small"
           icon={<ArrowCollapseAllRegular />}
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setOpenItems(new Set());
           }}
         />

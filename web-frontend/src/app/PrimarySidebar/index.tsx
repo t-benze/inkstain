@@ -15,6 +15,7 @@ import { PDFThumbnailView, PDFOutlineView } from '~/web/components/PDFView';
 const useClasses = makeStyles({
   root: {
     minWidth: '250px',
+    maxWidth: '250px',
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRight(
       tokens.strokeWidthThin,
@@ -39,10 +40,6 @@ const useClasses = makeStyles({
   },
 });
 
-const NoSpaceSelected = () => {
-  return <div>No space selected</div>;
-};
-
 export const PrimarySidebar = () => {
   const classes = useClasses();
   const { activeSpace, activeDocument, documentsAlive } =
@@ -57,11 +54,7 @@ export const PrimarySidebar = () => {
   };
 
   if (!activeSpace) {
-    return (
-      <div className={classes.root}>
-        <NoSpaceSelected />
-      </div>
-    );
+    return <div className={classes.root}></div>;
   }
   const accordions = [
     { value: 'file-explorer', view: <FileExplorer space={activeSpace} /> },
@@ -92,6 +85,7 @@ export const PrimarySidebar = () => {
     <div data-test="primarySidebar" className={classes.root}>
       <Accordion
         className={classes.accordion}
+        collapsible={true}
         openItems={openItems}
         onToggle={handleToggle}
       >
