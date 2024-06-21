@@ -1,4 +1,5 @@
 import {
+  TasksApi,
   PlatformApi,
   DocumentsApi,
   SpacesApi,
@@ -12,3 +13,4 @@ const config = new Configuration({
 export const platformApi = new PlatformApi(config);
 export const documentsApi = new DocumentsApi(config);
 export const spacesApi = new SpacesApi(config);
+export const taskApi = new TasksApi(config);

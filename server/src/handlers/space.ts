@@ -60,6 +60,15 @@ export const getSpaces = async (ctx: Context) => {
  *     responses:
  *       201:
  *         description: Space created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 taskId:
+ *                   type: string
+ *                   description: Task ID for the space creation process. When presents, the space is being created in the background and the task ID can be used to track the progress.
+ *
  *       400:
  *         description: Space already exists or bad request.
  *       500:
@@ -88,11 +97,22 @@ export const createSpace = async (ctx: Context) => {
         const path = (data as { path: string }).path;
         const space = await ctx.spaceService.importExistingInkStainSpace(path);
         await ctx.documentService.clearIndex(space);
-        const documentsToIndex = [];
-        await traverseDirectory(path, path, documentsToIndex);
-        for (const doc of documentsToIndex) {
-          await ctx.documentService.indexDocument(space, doc);
-        }
+        const taskId = ctx.taskService.addTask(async (progressCallback) => {
+          const documentsToIndex = [];
+          await traverseDirectory(path, path, documentsToIndex);
+          const totalDocuments = documentsToIndex.length;
+          for (const [index, doc] of documentsToIndex.entries()) {
+            if (process.env.NODE_ENV !== 'production') {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+            await ctx.documentService.indexDocument(space, doc);
+            if (index % 10 === 0) {
+              progressCallback((index / totalDocuments) * 100);
+            }
+          }
+        });
+        ctx.taskService.executeTask(taskId);
+        ctx.body = { taskId };
         break;
       }
       default:

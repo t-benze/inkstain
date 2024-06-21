@@ -14,6 +14,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  CreateSpace201Response,
   CreateSpaceOperationType,
   CreateSpaceRequest,
   DocumentTag,
@@ -21,6 +22,8 @@ import type {
   UpdateSpaceRequest,
 } from '../models/index';
 import {
+  CreateSpace201ResponseFromJSON,
+  CreateSpace201ResponseToJSON,
   CreateSpaceOperationTypeFromJSON,
   CreateSpaceOperationTypeToJSON,
   CreateSpaceRequestFromJSON,
@@ -61,7 +64,7 @@ export class SpacesApi extends runtime.BaseAPI {
   async createSpaceRaw(
     requestParameters: CreateSpaceOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<CreateSpace201Response>> {
     if (
       requestParameters.createSpaceRequest === null ||
       requestParameters.createSpaceRequest === undefined
@@ -93,7 +96,9 @@ export class SpacesApi extends runtime.BaseAPI {
       initOverrides
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CreateSpace201ResponseFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -102,8 +107,12 @@ export class SpacesApi extends runtime.BaseAPI {
   async createSpace(
     requestParameters: CreateSpaceOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<void> {
-    await this.createSpaceRaw(requestParameters, initOverrides);
+  ): Promise<CreateSpace201Response> {
+    const response = await this.createSpaceRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
   }
 
   /**
