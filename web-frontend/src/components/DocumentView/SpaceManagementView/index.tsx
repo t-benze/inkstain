@@ -13,6 +13,8 @@ import {
   useId,
   useToastController,
   ToastTitle,
+  ToastBody,
+  ProgressBar,
   Spinner,
   makeStyles,
   Title2,
@@ -24,7 +26,7 @@ import { DialogOpenChangeEventHandler } from '@fluentui/react-dialog';
 import { FormNewRegular, FolderOpenRegular } from '@fluentui/react-icons';
 import { DirectoryPickerDialog } from '~/web/components/DirectoryPickerDialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { spacesApi } from '~/web/apiClient';
+import { spacesApi, taskApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
 import { useTranslation } from 'react-i18next';
 
@@ -114,6 +116,38 @@ const SpaceNameDialog = ({
     </Dialog>
   );
 };
+
+const CreateSpaceProgress = ({
+  taskId,
+  onFinish,
+}: {
+  taskId: string;
+  onFinish: () => void;
+}) => {
+  const { data } = useQuery({
+    queryKey: ['task', taskId],
+    queryFn: async () => {
+      return await taskApi.getTaskStatus({ id: taskId });
+    },
+  });
+  const queryClient = useQueryClient();
+  const progress = data?.progress ?? 0;
+  useEffect(() => {
+    if (progress < 100) {
+      const timeout = setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: ['task', taskId],
+        });
+      }, 500);
+      return () => clearTimeout(timeout);
+    } else {
+      onFinish();
+    }
+  }, [progress, queryClient, taskId, onFinish]);
+
+  return <ProgressBar value={progress} max={100} />;
+};
+
 export const SpaceManagementView = () => {
   const classes = useClasses();
   const { t } = useTranslation();
@@ -188,20 +222,56 @@ export const SpaceManagementView = () => {
         }
       );
     },
-    onSuccess: () => {
-      updateToast({
-        content: (
-          <Toast>
-            <ToastTitle>{t('space.create_space_success')}</ToastTitle>
-          </Toast>
-        ),
-        intent: 'success',
-        timeout: 2000,
-        toastId,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['spaces'],
-      });
+    onSuccess: async (data) => {
+      if (data.taskId) {
+        // TODO: Show progress
+        updateToast({
+          content: (
+            <Toast>
+              <ToastTitle>{t('space.creating_space')}</ToastTitle>
+              <ToastBody>
+                <CreateSpaceProgress
+                  taskId={data.taskId}
+                  onFinish={() => {
+                    updateToast({
+                      content: (
+                        <Toast>
+                          <ToastTitle>
+                            {t('space.create_space_success')}
+                          </ToastTitle>
+                        </Toast>
+                      ),
+                      intent: 'success',
+                      timeout: 1000,
+                      toastId,
+                    });
+                    queryClient.invalidateQueries({
+                      queryKey: ['spaces'],
+                    });
+                  }}
+                />
+              </ToastBody>
+            </Toast>
+          ),
+          intent: 'info',
+          timeout: -1,
+          toastId,
+        });
+      } else {
+        updateToast({
+          content: (
+            <Toast>
+              <ToastTitle>{t('space.create_space_success')}</ToastTitle>
+            </Toast>
+          ),
+          intent: 'success',
+          timeout: 2000,
+          toastId,
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['spaces'],
+        });
+      }
     },
     onError: () => {
       updateToast({

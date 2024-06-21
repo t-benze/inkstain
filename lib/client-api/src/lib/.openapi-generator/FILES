@@ -1,10 +1,12 @@
 apis/DocumentsApi.ts
 apis/PlatformApi.ts
 apis/SpacesApi.ts
+apis/TasksApi.ts
 apis/index.ts
 index.ts
 models/AddDocumentTagsRequest.ts
 models/AddUpdateDocumentAttributesRequest.ts
+models/CreateSpace201Response.ts
 models/CreateSpaceOperationType.ts
 models/CreateSpaceRequest.ts
 models/DocumentSearchResult.ts
@@ -25,6 +27,7 @@ models/PlatformInfo200Response.ts
 models/RemoveDocumentTagsRequest.ts
 models/SearchDocuments200Response.ts
 models/Space.ts
+models/Task.ts
 models/UpdateSpaceRequest.ts
 models/index.ts
 runtime.ts

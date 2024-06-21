@@ -137,11 +137,11 @@ components:
                 type: string
             attributes:
               type: object
-              additionalProperties: 
+              additionalProperties:
                 anyOf:
                   - type: string
                   - type: array
-                    items: 
+                    items:
                       type: string
           required:
             - mimetype
@@ -158,3 +158,16 @@ components:
       required:
         - id
         - name
+    Task:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ['pending', 'running', 'completed', 'failed']
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - status
+        - progress

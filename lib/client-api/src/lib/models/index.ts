@@ -2,6 +2,7 @@
 /* eslint-disable */
 export * from './AddDocumentTagsRequest';
 export * from './AddUpdateDocumentAttributesRequest';
+export * from './CreateSpace201Response';
 export * from './CreateSpaceOperationType';
 export * from './CreateSpaceRequest';
 export * from './DocumentSearchResult';
@@ -22,4 +23,5 @@ export * from './PlatformInfo200Response';
 export * from './RemoveDocumentTagsRequest';
 export * from './SearchDocuments200Response';
 export * from './Space';
+export * from './Task';
 export * from './UpdateSpaceRequest';

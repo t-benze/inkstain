@@ -1,12 +1,14 @@
 import Router from '@koa/router';
 import AJV from 'ajv';
-import { DocumentService } from '~/server/services/DocumentService';
-import { SpaceService } from '~/server/services/SpaceService';
+import { DocumentService } from './services/DocumentService';
+import { SpaceService } from './services/SpaceService';
+import { TaskService } from './services/TaskService';
 
 export type Context = Router.RouterContext & {
   validator: AJV;
   spaceService: SpaceService;
   documentService: DocumentService;
+  taskService: TaskService;
 };
 
 interface Attributes {
