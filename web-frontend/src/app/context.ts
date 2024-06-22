@@ -14,5 +14,6 @@ export type ContextType = {
   setActiveDocument: (name: string) => void;
   setActiveDocumentViewRef: (view: unknown) => void;
   activeDocumentViewRef: React.MutableRefObject<unknown>;
+  toasterId: string;
 };
 export const AppContext = React.createContext<ContextType>({} as ContextType);

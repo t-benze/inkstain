@@ -6,6 +6,12 @@ import {
   TreeItemValue,
   Tooltip,
   tokens,
+  Toast,
+  ToastTitle,
+  ToastBody,
+  useToastController,
+  useId,
+  ProgressBar,
 } from '@fluentui/react-components';
 import {
   DocumentAddRegular,
@@ -110,7 +116,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   const handleTreeItemClicked = React.useCallback<OnTreeItemClicked>(
     (e) => {
       handleSelected(e);
-      if (e.itemType === 'leaf') {
+      if (e.event.type === 'click' && e.itemType === 'leaf') {
         appContext.openDocument(e.value.toString());
       }
     },
@@ -129,6 +135,11 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     [setOpenItems]
   );
 
+  const toastId = useId('toast');
+  console.log('toastId', toastId, appContext.toasterId);
+  const { dispatchToast, updateToast } = useToastController(
+    appContext.toasterId
+  );
   const handleFileInputChange = React.useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -138,25 +149,114 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       const folder = lastSelect.current
         ? getFolderPath(lastSelect.current, appContext.platform.pathSep)
         : '';
-      try {
-        await documentsApi.addDocument({
-          spaceKey: space.key,
-          path:
-            folder === ''
-              ? file.name
-              : `${folder}${appContext.platform.pathSep}${file.name}`,
-          document: file,
+      const path =
+        folder === ''
+          ? file.name
+          : `${folder}${appContext.platform.pathSep}${file.name}`;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `/api/v1/documents/${space.key}/add?path=${path}`, true);
+      // Make sure to set this before sending the request
+      // xhr.onreadystatechange = function () {
+      //   if (xhr.readyState === 4) {
+      //     console.log('Request completed');
+      //   }
+      // };
+      xhr.upload.onprogress = (event) => {
+        console.log('xhr upload progress', event);
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          console.log('upload progress', percentComplete);
+          updateToast({
+            toastId,
+            content: (
+              <Toast>
+                <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
+                <ToastBody>
+                  <ProgressBar max={100} value={percentComplete} />
+                </ToastBody>
+              </Toast>
+            ),
+          });
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status === 201) {
+          updateToast({
+            toastId,
+            content: (
+              <Toast>
+                <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
+                <ToastBody>
+                  {t('file_explorer.adding_document_succeeded')}
+                </ToastBody>
+              </Toast>
+            ),
+            timeout: 500,
+            intent: 'success',
+          });
+          queryClient.invalidateQueries({
+            queryKey: ['documents', space.key, folder],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ['searchDocuments', space.key, '', '', 0],
+          });
+        } else {
+          console.error('Adding document failed at uploading');
+          updateToast({
+            toastId,
+            intent: 'error',
+            content: (
+              <Toast>
+                <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
+                <ToastBody>
+                  {t('file_explorer.adding_document_failed')}
+                </ToastBody>
+              </Toast>
+            ),
+            timeout: 500,
+          });
+        }
+      };
+      xhr.onerror = (e) => {
+        console.error('Adding document failed', e);
+        updateToast({
+          toastId,
+          intent: 'error',
+          content: (
+            <Toast>
+              <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
+              <ToastBody>{t('file_explorer.adding_document_failed')}</ToastBody>
+            </Toast>
+          ),
+          timeout: 500,
         });
-        queryClient.invalidateQueries({
-          queryKey: ['documents', space.key, folder],
-        });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        event.target.files = null;
-      }
+      };
+      xhr.send(formData);
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
+          <ToastBody>
+            <ProgressBar max={100} value={0} />
+          </ToastBody>
+        </Toast>,
+        {
+          intent: 'info',
+          position: 'top',
+          timeout: -1,
+          toastId,
+        }
+      );
     },
-    [space.key, lastSelect, appContext.platform.pathSep, queryClient]
+    [
+      space.key,
+      updateToast,
+      lastSelect,
+      appContext.platform.pathSep,
+      dispatchToast,
+      toastId,
+      t,
+      queryClient,
+    ]
   );
 
   const handleAddFolder = React.useCallback(() => {
@@ -238,6 +338,9 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         queryKey: ['documents', space.key, folder],
       });
     });
+    queryClient.invalidateQueries({
+      queryKey: ['searchDocuments', space.key, '', '', 0],
+    });
   }, [
     selection,
     appContext.platform.pathSep,
@@ -245,6 +348,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     lastSelect,
     queryClient,
   ]);
+
   const headerButtons = (
     <>
       <Tooltip

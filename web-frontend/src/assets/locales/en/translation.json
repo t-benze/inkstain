@@ -47,7 +47,10 @@
     "add_a_folder_tooltip": "Add a folder",
     "refresh_folder_tooltip": "Refresh the folder",
     "collapse_all_tooltip": "Collapse all",
-    "search_document": "Search"
+    "search_documents": "Search",
+    "adding_document": "Adding document",
+    "adding_document_failed": "Adding document failed",
+    "adding_document_succeeded": "Adding document succeeded"
   },
   "search_document": {
     "select_tags": "Select tags"

@@ -102,9 +102,6 @@ export const createSpace = async (ctx: Context) => {
           await traverseDirectory(path, path, documentsToIndex);
           const totalDocuments = documentsToIndex.length;
           for (const [index, doc] of documentsToIndex.entries()) {
-            if (process.env.NODE_ENV !== 'production') {
-              await new Promise((resolve) => setTimeout(resolve, 500));
-            }
             await ctx.documentService.indexDocument(space, doc);
             if (index % 10 === 0) {
               progressCallback((index / totalDocuments) * 100);

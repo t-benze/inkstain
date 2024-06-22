@@ -5,6 +5,8 @@ import {
   makeStyles,
   tokens,
   shorthands,
+  Toaster,
+  useId,
 } from '@fluentui/react-components';
 
 import { MenuBar } from './MenuBar';
@@ -214,6 +216,7 @@ const InkStain = () => {
     }
   }, [spaces, openSpace, activeSpace, handleOpenSystemDocument]);
 
+  const toasterId = useId('toaster');
   return platform ? (
     <AppContext.Provider
       value={{
@@ -228,9 +231,11 @@ const InkStain = () => {
         setActiveDocument,
         setActiveDocumentViewRef,
         activeDocumentViewRef,
+        toasterId,
       }}
     >
       <div className={classes.root}>
+        <Toaster toasterId={toasterId} />
         <div className={classes.menubar}>
           <MenuBar />
         </div>

@@ -221,7 +221,7 @@ const getDocumentContent = async (ctx: Context) => {
  */
 const addDocument = async (ctx: Context) => {
   const file = ctx.request.file as File; // assuming file is uploaded through a form and handled by middleware
-  const targetPath = ctx.request.query.path;
+  const targetPath = ctx.request.query.path as string;
   const spaceKey = ctx.params.spaceKey;
 
   if (!file || !targetPath) {
@@ -252,7 +252,8 @@ const addDocument = async (ctx: Context) => {
     };
     const metadataPath = path.join(targetDirectoryPath, 'meta.json');
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
-
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.indexDocument(space, targetPath);
     ctx.status = 201;
     ctx.body = {
       message: 'Document added successfully',
