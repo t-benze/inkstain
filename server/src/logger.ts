@@ -1,37 +1,48 @@
 import winston from 'winston';
 import path from 'path';
 import { directories } from './settings';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 const { combine, timestamp, json, errors } = winston.format;
 
 const logger = winston.createLogger({
   transports: [
-    new winston.transports.File({
+    new DailyRotateFile({
       format: combine(timestamp(), json()),
-      filename: path.join(directories.stateDir, 'combined.log'),
+      filename: path.join(directories.stateDir, 'combined-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '7d', // Keep logs for 7 days
       level: process.env.NODE_ENV !== 'production' ? 'verbose' : 'http',
     }),
 
-    new winston.transports.File({
+    new DailyRotateFile({
       format: combine(errors({ stack: true }), timestamp(), json()),
-      filename: path.join(directories.stateDir, 'error.log'),
+      filename: path.join(directories.stateDir, 'error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '7d', // Keep error logs for 7 days
       level: 'error',
-    }), // Log error level to error.log
+    }),
   ],
   exceptionHandlers: [
-    new winston.transports.File({
-      filename: path.join(directories.stateDir, 'exception.log'),
+    new DailyRotateFile({
+      filename: path.join(directories.stateDir, 'exception-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '7d', // Keep exception logs for 7 days
     }),
   ],
   rejectionHandlers: [
-    new winston.transports.File({
-      filename: path.join(directories.stateDir, 'rejections.log'),
+    new DailyRotateFile({
+      filename: path.join(directories.stateDir, 'rejections-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '7d', // Keep rejection logs for 7 days
     }),
   ],
 });
-// If we're development then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-//
+
 if (process.env.NODE_ENV === 'development') {
   logger.add(
     new winston.transports.Console({

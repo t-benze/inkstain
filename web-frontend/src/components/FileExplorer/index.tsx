@@ -136,7 +136,6 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   );
 
   const toastId = useId('toast');
-  console.log('toastId', toastId, appContext.toasterId);
   const { dispatchToast, updateToast } = useToastController(
     appContext.toasterId
   );
@@ -155,17 +154,9 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           : `${folder}${appContext.platform.pathSep}${file.name}`;
       const xhr = new XMLHttpRequest();
       xhr.open('POST', `/api/v1/documents/${space.key}/add?path=${path}`, true);
-      // Make sure to set this before sending the request
-      // xhr.onreadystatechange = function () {
-      //   if (xhr.readyState === 4) {
-      //     console.log('Request completed');
-      //   }
-      // };
       xhr.upload.onprogress = (event) => {
-        console.log('xhr upload progress', event);
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
-          console.log('upload progress', percentComplete);
           updateToast({
             toastId,
             content: (
