@@ -197,12 +197,14 @@ const GridHeaderAttributeCell = ({
   onApplyAttributeFilter,
 }: {
   columnId: string;
-  attributeFilters: Record<string, string>;
+  attributeFilters: Record<string, string> | undefined;
   renderHeaderCell: () => React.ReactNode;
   onApplyAttributeFilter: (key: string, value: string | undefined) => void;
 }) => {
-  const hasFilterApplied = attributeFilters[columnId] !== undefined;
-  const filterValue = attributeFilters[columnId];
+  const hasFilterApplied = attributeFilters
+    ? attributeFilters[columnId] !== undefined
+    : false;
+  const filterValue = attributeFilters ? attributeFilters[columnId] : undefined;
   const [value, setValue] = React.useState(filterValue);
   return (
     <HeaderCell
@@ -305,14 +307,14 @@ const GridHeaderTagCell = ({
 
 export const SearchDocumentView = () => {
   const classes = useClasses();
-  const { activeSpace, openDocument } = React.useContext(AppContext);
+  const { activeSpace, openDocument, platform } = React.useContext(AppContext);
   const [tagFilter, setTagFilter] = React.useState<Array<string> | undefined>(
     undefined
   );
   const [attributeFilters, setAttributeFilters] = React.useState<
-    Record<string, string>
-  >({});
-  const systemAttributesRef = React.useRef<null | string[]>(null);
+    Record<string, string> | undefined
+  >(undefined);
+  const systemAttributes = platform.systemAttributes;
 
   const attributeFilterString = JSON.stringify(attributeFilters);
   const spaceKey = activeSpace!.key;
@@ -323,7 +325,7 @@ export const SearchDocumentView = () => {
       'searchDocuments',
       spaceKey,
       tagFilter ? tagFilter.join(',') : '',
-      attributeFilterString,
+      attributeFilterString ?? '',
       numOfPagesReached,
     ],
     queryFn: async () => {
@@ -337,7 +339,6 @@ export const SearchDocumentView = () => {
         offset: numOfPagesReached * PAGE_SIZE,
         limit: PAGE_SIZE,
       });
-      systemAttributesRef.current = result.systemAttributes;
       if (numOfPagesReached !== 0) {
         return {
           documents: [...existingData, ...result.data],
@@ -404,10 +405,9 @@ export const SearchDocumentView = () => {
     []
   );
 
-  if (!systemAttributesRef.current) return null;
   const { columns, columnSizingOptions } = makeColumns([
     'documentPath',
-    ...systemAttributesRef.current,
+    ...systemAttributes,
     'tags',
   ]);
 

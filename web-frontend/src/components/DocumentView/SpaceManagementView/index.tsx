@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
   Input,
-  Toaster,
   Toast,
   useId,
   useToastController,
@@ -160,10 +159,11 @@ export const SpaceManagementView = () => {
   const [isCreatingNewSpace, setIsCreatingNewSpace] = useState(false);
 
   const appContext = useContext(AppContext);
-  const toasterId = useId('toaster');
   const toastId = useId('toast');
 
-  const { dispatchToast, updateToast } = useToastController(toasterId);
+  const { dispatchToast, updateToast } = useToastController(
+    appContext.toasterId
+  );
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -289,7 +289,6 @@ export const SpaceManagementView = () => {
 
   return (
     <div className={classes.root}>
-      <Toaster toasterId={toasterId} />
       <Title2>{t('space.start')}</Title2>
       <div className={classes.start}>
         <Button
