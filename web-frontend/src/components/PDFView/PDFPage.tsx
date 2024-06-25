@@ -1,20 +1,136 @@
 import {
   PDFDocumentProxy,
   RenderTask,
-  // TextLayerRenderTask,
   RenderingCancelledException,
 } from 'pdfjs-dist';
 import * as React from 'react';
-import { makeStyles } from '@fluentui/react-components';
+import {
+  Popover,
+  PopoverSurface,
+  PopoverTrigger,
+  Button,
+  makeStyles,
+  tokens,
+  Textarea,
+  PopoverProps,
+} from '@fluentui/react-components';
+import { BookmarkFilled, BookmarkRegular } from '@fluentui/react-icons';
 import { AppContext } from '~/web/app/context';
 import { PDFPageTextLayer } from './PDFPageTextLayer';
+import { PDFViewerContext } from './context';
+import { useTranslation } from 'react-i18next';
 
-const useStyles = makeStyles({
+const useClasses = makeStyles({
   root: {
     position: 'relative',
   },
   canvas: {},
+  bookmartBtn: {
+    position: 'absolute',
+    top: '0px',
+    right: '50px',
+  },
+  bookmarkPopover: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '200px',
+    '& .fui-Textarea': {
+      marginBottom: tokens.spacingVerticalS,
+    },
+    '& .fui-Button': {},
+  },
+  bookmarkPopoverBtns: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
 });
+
+const BookmarkBtn = ({
+  isBookmarked,
+  comment,
+  onUpdate,
+  onAdd,
+  onRemove,
+}: {
+  isBookmarked: boolean;
+  comment?: string;
+  onUpdate: (comment: string) => void;
+  onAdd: (comment: string) => void;
+  onRemove: () => void;
+}) => {
+  const { t } = useTranslation();
+  const classes = useClasses();
+  const [commentInner, setCommentInner] = React.useState(comment ?? '');
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const handleOpenChange: PopoverProps['onOpenChange'] = (_, data) => {
+    setIsPopoverOpen(data.open);
+  };
+  return (
+    <div className={classes.bookmartBtn}>
+      <Popover
+        positioning={'below'}
+        open={isPopoverOpen}
+        onOpenChange={handleOpenChange}
+      >
+        <PopoverTrigger>
+          <Button
+            size="large"
+            appearance="transparent"
+            icon={
+              isBookmarked ? (
+                <BookmarkFilled primaryFill={tokens.colorBrandBackground} />
+              ) : (
+                <BookmarkRegular />
+              )
+            }
+          />
+        </PopoverTrigger>
+        <PopoverSurface>
+          <div className={classes.bookmarkPopover}>
+            <Textarea
+              value={commentInner}
+              textarea={{ placeholder: 'Comment (optional)' }}
+              onChange={(_, data) => setCommentInner(data.value)}
+            ></Textarea>
+            <div className={classes.bookmarkPopoverBtns}>
+              {isBookmarked && (
+                <Button
+                  onClick={(_) => {
+                    onUpdate(commentInner);
+                    setIsPopoverOpen(false);
+                  }}
+                >
+                  {t('update')}
+                </Button>
+              )}
+              {isBookmarked && (
+                <Button
+                  onClick={(_) => {
+                    onRemove();
+                    setIsPopoverOpen(false);
+                  }}
+                >
+                  {t('remove')}
+                </Button>
+              )}
+              {!isBookmarked && (
+                <Button
+                  onClick={(e) => {
+                    onAdd(commentInner);
+                    setIsPopoverOpen(false);
+                  }}
+                >
+                  {t('add')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </PopoverSurface>
+      </Popover>
+    </div>
+  );
+};
 
 export const PDFPage = ({
   spaceKey,
@@ -46,11 +162,12 @@ export const PDFPage = ({
   enableTextLayer?: boolean;
   onClick?: (pageNum: number) => void;
 }) => {
-  const styles = useStyles();
+  const classes = useClasses();
   const pageRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const renderTaskRef = React.useRef<RenderTask | null>(null);
   const appContext = React.useContext(AppContext);
+  const pdfViewerContext = React.useContext(PDFViewerContext);
 
   React.useEffect(() => {
     document.getPage(pageNumber).then(async (pdfPage) => {
@@ -83,6 +200,8 @@ export const PDFPage = ({
       try {
         await renderTaskRef.current.promise;
         onRenderCompleted?.(pageNumber, viewport);
+        const t = await pdfPage.getTextContent();
+        console.log('text', t);
       } catch (e) {
         if (e instanceof RenderingCancelledException) {
           console.log('Rendering cancelled, page number: ', pageNumber);
@@ -106,11 +225,12 @@ export const PDFPage = ({
     appContext.activeDocument,
   ]);
 
+  const isBookMarked = pdfViewerContext.bookmarks[pageNumber] ? true : false;
   return (
     <div
       role={role}
       ref={pageRef}
-      className={styles.root}
+      className={classes.root}
       style={style}
       data-page-number={pageNumber}
       onClick={(e) => {
@@ -121,7 +241,7 @@ export const PDFPage = ({
       <canvas
         aria-posinset={ariaPosinset}
         aria-setsize={ariaSetSize}
-        className={styles.canvas}
+        className={classes.canvas}
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
@@ -133,6 +253,33 @@ export const PDFPage = ({
           pageNum={pageNumber}
         />
       ) : null}
+      <BookmarkBtn
+        comment={pdfViewerContext.bookmarks[pageNumber]?.comment}
+        isBookmarked={isBookMarked}
+        onAdd={(comment) => {
+          pdfViewerContext.addAnnotation({
+            data: {
+              type: 'bookmark',
+            },
+            page: pageNumber,
+            comment,
+          });
+        }}
+        onUpdate={(comment) => {
+          pdfViewerContext.updateAnnotation({
+            data: {
+              type: 'bookmark',
+            },
+            page: pageNumber,
+            comment,
+          });
+        }}
+        onRemove={() => {
+          pdfViewerContext.deleteAnnotations([
+            pdfViewerContext.bookmarks[pageNumber].id,
+          ]);
+        }}
+      />
     </div>
   );
 };

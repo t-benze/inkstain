@@ -2,12 +2,15 @@
 /* eslint-disable */
 export * from './AddDocumentTagsRequest';
 export * from './AddUpdateDocumentAttributesRequest';
+export * from './Annotation';
+export * from './AnnotationData';
+export * from './BookmarkData';
 export * from './CreateSpace201Response';
 export * from './CreateSpaceOperationType';
 export * from './CreateSpaceRequest';
+export * from './DocumentMeta';
+export * from './DocumentMetaAttributesValue';
 export * from './DocumentSearchResult';
-export * from './DocumentSearchResultMeta';
-export * from './DocumentSearchResultMetaAttributesValue';
 export * from './DocumentTag';
 export * from './DocumentTextDetection';
 export * from './DocumentTextDetectionBlocksInner';
@@ -17,6 +20,8 @@ export * from './DocumentTextDetectionBlocksInnerGeometryPolygonInner';
 export * from './DocumentTextDetectionBlocksInnerQuery';
 export * from './DocumentTextDetectionBlocksInnerRelationshipsInner';
 export * from './DocumentTextDetectionDocumentMetadata';
+export * from './DrawingData';
+export * from './HighlightData';
 export * from './ListDirectories200ResponseInner';
 export * from './ListDocuments200ResponseInner';
 export * from './PlatformInfo200Response';

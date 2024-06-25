@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   AddDocumentTagsRequest,
   AddUpdateDocumentAttributesRequest,
+  Annotation,
   DocumentTextDetection,
   ListDocuments200ResponseInner,
   RemoveDocumentTagsRequest,
@@ -26,6 +27,8 @@ import {
   AddDocumentTagsRequestToJSON,
   AddUpdateDocumentAttributesRequestFromJSON,
   AddUpdateDocumentAttributesRequestToJSON,
+  AnnotationFromJSON,
+  AnnotationToJSON,
   DocumentTextDetectionFromJSON,
   DocumentTextDetectionToJSON,
   ListDocuments200ResponseInnerFromJSON,
@@ -40,6 +43,12 @@ export interface AddDocumentRequest {
   spaceKey: string;
   path: string;
   document: Blob;
+}
+
+export interface AddDocumentAnnotationRequest {
+  spaceKey: string;
+  path: string;
+  annotation: Annotation;
 }
 
 export interface AddDocumentTagsOperationRequest {
@@ -64,6 +73,12 @@ export interface DeleteDocumentRequest {
   path: string;
 }
 
+export interface DeleteDocumentAnnotationsRequest {
+  spaceKey: string;
+  path: string;
+  requestBody: Array<string>;
+}
+
 export interface DeleteDocumentAttributesRequest {
   spaceKey: string;
   path: string;
@@ -71,6 +86,11 @@ export interface DeleteDocumentAttributesRequest {
 }
 
 export interface DeleteFolderRequest {
+  spaceKey: string;
+  path: string;
+}
+
+export interface GetDocumentAnnotationsRequest {
   spaceKey: string;
   path: string;
 }
@@ -115,6 +135,12 @@ export interface SearchDocumentsRequest {
   attributeFilters?: string;
   offset?: number;
   limit?: number;
+}
+
+export interface UpdateDocumentAnnotationRequest {
+  spaceKey: string;
+  path: string;
+  annotation: Annotation;
 }
 
 /**
@@ -211,6 +237,86 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.addDocumentRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Add annotations of a document in a specific space
+   */
+  async addDocumentAnnotationRaw(
+    requestParameters: AddDocumentAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Annotation>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling addDocumentAnnotation.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling addDocumentAnnotation.'
+      );
+    }
+
+    if (
+      requestParameters.annotation === null ||
+      requestParameters.annotation === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'annotation',
+        'Required parameter requestParameters.annotation was null or undefined when calling addDocumentAnnotation.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/annotations`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: AnnotationToJSON(requestParameters.annotation),
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      AnnotationFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Add annotations of a document in a specific space
+   */
+  async addDocumentAnnotation(
+    requestParameters: AddDocumentAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Annotation> {
+    const response = await this.addDocumentAnnotationRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
   }
 
   /**
@@ -488,6 +594,80 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
+   * Delete annotations from a document in a specific space
+   */
+  async deleteDocumentAnnotationsRaw(
+    requestParameters: DeleteDocumentAnnotationsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling deleteDocumentAnnotations.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling deleteDocumentAnnotations.'
+      );
+    }
+
+    if (
+      requestParameters.requestBody === null ||
+      requestParameters.requestBody === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'requestBody',
+        'Required parameter requestParameters.requestBody was null or undefined when calling deleteDocumentAnnotations.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/annotations`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+        body: requestParameters.requestBody,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Delete annotations from a document in a specific space
+   */
+  async deleteDocumentAnnotations(
+    requestParameters: DeleteDocumentAnnotationsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.deleteDocumentAnnotationsRaw(requestParameters, initOverrides);
+  }
+
+  /**
    * Delete attributes from a document in a specific space
    */
   async deleteDocumentAttributesRaw(
@@ -620,6 +800,73 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.deleteFolderRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Retrieve annotations of a document in a specific space
+   */
+  async getDocumentAnnotationsRaw(
+    requestParameters: GetDocumentAnnotationsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Array<Annotation>>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling getDocumentAnnotations.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling getDocumentAnnotations.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/annotations`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(AnnotationFromJSON)
+    );
+  }
+
+  /**
+   * Retrieve annotations of a document in a specific space
+   */
+  async getDocumentAnnotations(
+    requestParameters: GetDocumentAnnotationsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Array<Annotation>> {
+    const response = await this.getDocumentAnnotationsRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
   }
 
   /**
@@ -1125,5 +1372,79 @@ export class DocumentsApi extends runtime.BaseAPI {
       initOverrides
     );
     return await response.value();
+  }
+
+  /**
+   * Update annotations of a document in a specific space
+   */
+  async updateDocumentAnnotationRaw(
+    requestParameters: UpdateDocumentAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling updateDocumentAnnotation.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling updateDocumentAnnotation.'
+      );
+    }
+
+    if (
+      requestParameters.annotation === null ||
+      requestParameters.annotation === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'annotation',
+        'Required parameter requestParameters.annotation was null or undefined when calling updateDocumentAnnotation.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/annotations`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+        body: AnnotationToJSON(requestParameters.annotation),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Update annotations of a document in a specific space
+   */
+  async updateDocumentAnnotation(
+    requestParameters: UpdateDocumentAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.updateDocumentAnnotationRaw(requestParameters, initOverrides);
   }
 }

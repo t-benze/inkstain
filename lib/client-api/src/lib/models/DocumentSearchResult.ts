@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { DocumentSearchResultMeta } from './DocumentSearchResultMeta';
+import type { DocumentMeta } from './DocumentMeta';
 import {
-  DocumentSearchResultMetaFromJSON,
-  DocumentSearchResultMetaFromJSONTyped,
-  DocumentSearchResultMetaToJSON,
-} from './DocumentSearchResultMeta';
+  DocumentMetaFromJSON,
+  DocumentMetaFromJSONTyped,
+  DocumentMetaToJSON,
+} from './DocumentMeta';
 
 /**
  *
@@ -34,10 +34,10 @@ export interface DocumentSearchResult {
   documentPath: string;
   /**
    *
-   * @type {DocumentSearchResultMeta}
+   * @type {DocumentMeta}
    * @memberof DocumentSearchResult
    */
-  meta: DocumentSearchResultMeta;
+  meta: DocumentMeta;
 }
 
 /**
@@ -64,7 +64,7 @@ export function DocumentSearchResultFromJSONTyped(
   }
   return {
     documentPath: json['documentPath'],
-    meta: DocumentSearchResultMetaFromJSON(json['meta']),
+    meta: DocumentMetaFromJSON(json['meta']),
   };
 }
 
@@ -79,6 +79,6 @@ export function DocumentSearchResultToJSON(
   }
   return {
     documentPath: value.documentPath,
-    meta: DocumentSearchResultMetaToJSON(value.meta),
+    meta: DocumentMetaToJSON(value.meta),
   };
 }

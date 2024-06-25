@@ -121,30 +121,32 @@ components:
           properties:
             Pages:
               type: number
+    DocumentMeta:
+      type: object
+      properties:
+        mimetype:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        attributes:
+          type: object
+          additionalProperties:
+            anyOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+      required:
+        - mimetype
     DocumentSearchResult:
       type: object
       properties:
         documentPath:
           type: string
         meta:
-          type: object
-          properties:
-            mimetype:
-              type: string
-            tags:
-              type: array
-              items:
-                type: string
-            attributes:
-              type: object
-              additionalProperties:
-                anyOf:
-                  - type: string
-                  - type: array
-                    items:
-                      type: string
-          required:
-            - mimetype
+          $ref: '#/components/schemas/DocumentMeta'
       required:
         - documentPath
         - meta
@@ -171,3 +173,59 @@ components:
       required:
         - status
         - progress
+    Annotation:
+      type: object
+      required:
+        - id
+        - data
+        - page
+      properties:
+        id:
+          type: string
+        page:
+          type: number
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/HighlightData'
+            - $ref: '#/components/schemas/DrawingData'
+            - $ref: '#/components/schemas/BookmarkData'
+        comment:
+          type: string
+    HighlightData:
+      type: object
+      required:
+        - type
+        - color
+      properties:
+        type:
+          type: string
+          enum:
+            - highlight
+        color:
+          type: string
+    DrawingData:
+      type: object
+      required:
+        - type
+        - color
+        - thickness
+      properties:
+        type:
+          type: string
+          enum:
+            - drawing
+        color:
+          type: string
+        thickness:
+          type: number
+
+    BookmarkData:
+      type: object
+      required:
+        - type
+        - page
+      properties:
+        type:
+          type: string
+          enum:
+            - bookmark

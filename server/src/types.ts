@@ -4,20 +4,15 @@ import { DocumentService } from './services/DocumentService';
 import { SpaceService } from './services/SpaceService';
 import { TaskService } from './services/TaskService';
 
+export {
+  Annotation,
+  AnnotationData,
+  DocumentMeta as MetaData,
+} from '@inkstain/client-api';
+
 export type Context = Router.RouterContext & {
   validator: AJV;
   spaceService: SpaceService;
   documentService: DocumentService;
   taskService: TaskService;
 };
-
-interface Attributes {
-  title: string;
-  author: Array<string>;
-}
-
-export interface MetaData {
-  mimetype: string;
-  tags?: string[];
-  attributes?: Attributes;
-}

@@ -186,8 +186,7 @@ it should only be enabled for authenticated users who subscribe for it.
 
 ##### Function Requirements
 
-1. **Text Interaction**: Allow selection, copying, and in-document text search functionality.
-2. **Annotation System**: Implement a system for users to highlight, take notes, and draw onto the PDF document, facilitating interactive reading and content review.
+1. **Text Interaction**: Allow selection, copying, and text highlight functionality.
 
 ## Feature: Document Tagging
 
@@ -336,3 +335,79 @@ This document outlines the design for the document indexing and searching featur
 3. **Usability**: Intuitive and responsive search interface.
 4. **Reliability**: Consistent and accurate indexing and search results.
 5. **Extensibility**: Capability to extend the system to include more document types and metadata in the future.
+
+## Feature - Document Annotation
+
+A system for users to highlight, take notes, and draw onto the PDF document, facilitating interactive reading and content review.
+
+Technically, the annotation system consists of two parts: objects and comments. Users can create a few types of objects: page bookmarks, text highlights, and drawings. And comments are text associated with an object. (Based on the document type, the object types could be extended).
+
+### User Stories
+
+- **US1**: As a user, I want to highlight text within a PDF document so that I can mark important information.
+- **US2**: As a user, I want to add comments or notes to specific sections of a PDF for better contextual understanding and reference.
+- **US3**: As a user, I want to draw shapes and freehand annotations on a PDF to illustrate or emphasize content visually.
+- **US4**: As a user, I want to manage my annotations, including editing and deleting them, to keep my document annotations relevant and up to date.
+- **US5**: As a user, I want to view a summary or list of all annotations within a PDF to quickly navigate to relevant sections.
+
+### Functional Requirements
+
+1. **Text Highlighting**
+
+   - Allow users to select text and apply different highlight colors.
+   - Provide a color picker or a predefined palette of colors for highlights.
+
+2. **Adding Comments and Notes**
+
+   - Enable users to attach comments or notes to specific points in the PDF.
+   - Support both text-based comments and rich text formatting (bold, italics, bullet points).
+
+3. **Drawing and Freehand Annotations**
+
+   - Offer tools for drawing shapes (rectangle, ellipse, lines) and freehand drawings.
+   - Provide options to adjust the thickness and color of drawn annotations.
+
+4. **Annotation Management**
+
+   - Allow users to edit existing annotations, including changing colors, shapes, and text content.
+   - Enable users to delete unwanted annotations.
+
+5. **Annotation Summary and Navigation**
+
+   - Create a sidebar or overlay that summarizes all annotations in the document.
+   - Enable users to click on an entry in the summary to navigate directly to the annotated section.
+
+6. **Saving and Exporting Annotations**
+   - Ensure all annotations are saved locally to allow persistence across sessions.
+   - Offer an option to export the annotated PDF or a separate file containing the annotations.
+
+### Non-Functional Requirements
+
+1. **Performance**
+
+   - Ensure annotations are applied and rendered quickly without lag, even on large PDFs.
+   - Optimize storage and retrieval of annotations for quick access.
+
+2. **Usability**
+
+   - Design an intuitive and user-friendly interface for applying and managing annotations.
+   - Provide tooltips and guides to help users understand the functionality of various annotation tools.
+
+3. **Accessibility**
+
+   - Ensure the annotation tools are accessible via keyboard shortcuts.
+   - Comply with accessibility standards to support users with disabilities.
+
+4. **Portability**
+
+   - Ensure compatibility across different operating systems and web browsers.
+   - Maintain consistent annotation functionality and appearance across platforms.
+
+5. **Security**
+
+   - Implement data protection measures to secure user annotations and prevent unauthorized access.
+   - Encrypt annotations data when saved locally or transmitted over the network.
+
+6. **Reliability**
+   - Ensure the consistency and accuracy of annotations, preserving their positions and formatting across different viewing sessions.
+   - Prevent loss of annotations due to application crashes or unintended actions.

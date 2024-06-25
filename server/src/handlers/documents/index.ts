@@ -15,6 +15,13 @@ import {
   addUpdateDocumentAttributes,
   deleteDocumentAttributes,
 } from './attributes';
+import {
+  getDocumentAnnotations,
+  addDocumentAnnotation,
+  updateDocumentAnnotation,
+  deleteDocumentAnnotations,
+} from './annotation';
+
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
 import { searchDocuments } from './search';
 import { Context } from '~/server/types';
@@ -440,6 +447,7 @@ const deleteFolder = async (ctx: Context) => {
 
 // Register routes and export
 export const registerDocumentRoutes = (router: Router) => {
+  // document files and folders
   router.get('/documents/:spaceKey/list', listDocuments);
   router.get('/documents/:spaceKey/content', getDocumentContent);
   router.post(
@@ -450,12 +458,22 @@ export const registerDocumentRoutes = (router: Router) => {
   router.post('/documents/:spaceKey/addFolder', addFolder);
   router.delete('/documents/:spaceKey/deleteFolder', deleteFolder);
   router.delete('/documents/:spaceKey/delete', deleteDocument);
+
+  // document tags
   router.get('/documents/:spaceKey/tags', getDocumentTags);
   router.post('/documents/:spaceKey/tags', addDocumentTags);
   router.delete('/documents/:spaceKey/tags', removeDocumentTags);
+  // document attributes
   router.get('/documents/:spaceKey/attributes', getDocumentAttributes);
   router.post('/documents/:spaceKey/attributes', addUpdateDocumentAttributes);
   router.delete('/documents/:spaceKey/attributes', deleteDocumentAttributes);
+
+  // document annotations
+  router.get('/documents/:spaceKey/annotations', getDocumentAnnotations);
+  router.post('/documents/:spaceKey/annotations', addDocumentAnnotation);
+  router.put('/documents/:spaceKey/annotations', updateDocumentAnnotation);
+  router.delete('/documents/:spaceKey/annotations', deleteDocumentAnnotations);
+
   router.post('/documents/:spaceKey/analyze', analyzeDocument);
   router.get('/documents/:spaceKey/search', searchDocuments);
 };

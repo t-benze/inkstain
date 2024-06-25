@@ -1,6 +1,6 @@
 import 'pdfjs-dist/webpack.mjs';
 import * as React from 'react';
-import { tokens, makeStyles, shorthands } from '@fluentui/react-components';
+import { tokens, makeStyles } from '@fluentui/react-components';
 import { useLayoutEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useDocument } from '~/web/hooks/useDocument';
@@ -10,6 +10,9 @@ import { PDFPageScrollView } from './PDFPageScrollView';
 import { usePDFDocument } from './hooks';
 import { PDFViewerContext } from './context';
 import './viewer.css';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { documentsApi } from '~/web/apiClient';
+import { Annotation, AnnotationData, BookmarkData } from '@inkstain/client-api';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -35,7 +38,7 @@ const useStyles = makeStyles({
     height: '0px',
     display: 'flex',
     flexGrow: 1,
-    ...shorthands.overflow('scroll', 'scroll'),
+    overflow: 'scroll scroll',
   },
 });
 
@@ -158,8 +161,104 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       };
     });
 
+    const { data: annotations } = useQuery({
+      queryKey: ['document-annotations', spaceKey, documentPath],
+      queryFn: async () => {
+        const data = await documentsApi.getDocumentAnnotations({
+          spaceKey,
+          path: documentPath,
+        });
+        return {
+          bookmarks: data
+            .filter((annotation) => annotation.data.type === 'bookmark')
+            .reduce((acc, annotation) => {
+              acc[annotation.page] = annotation;
+              return acc;
+            }, {} as Record<number, Annotation>),
+        };
+      },
+    });
+
+    const queryClient = useQueryClient();
+    const addAnnotationMutation = useMutation({
+      mutationFn: async ({
+        data,
+        page,
+        comment,
+      }: {
+        data: AnnotationData;
+        page: number;
+        comment?: string;
+      }) => {
+        await documentsApi.addDocumentAnnotation({
+          spaceKey: spaceKey,
+          path: documentPath,
+          annotation: {
+            id: '',
+            data,
+            page,
+            comment,
+          },
+        });
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['document-annotations', spaceKey, documentPath],
+        });
+      },
+    });
+    const updateAnnotation = useMutation({
+      mutationFn: async ({
+        data,
+        comment,
+        page,
+      }: {
+        data: AnnotationData;
+        comment?: string;
+        page: number;
+      }) => {
+        await documentsApi.updateDocumentAnnotation({
+          spaceKey: spaceKey,
+          path: documentPath,
+          annotation: {
+            id: '',
+            page,
+            data,
+            comment,
+          },
+        });
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['document-annotations', spaceKey, documentPath],
+        });
+      },
+    });
+    const deleteAnnotationsMutation = useMutation({
+      mutationFn: async (ids: Array<string>) => {
+        await documentsApi.deleteDocumentAnnotations({
+          spaceKey: spaceKey,
+          path: documentPath,
+          requestBody: ids,
+        });
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['document-annotations', spaceKey, documentPath],
+        });
+      },
+    });
+
     return (
-      <PDFViewerContext.Provider value={{ showLayoutAnalysis }}>
+      <PDFViewerContext.Provider
+        value={{
+          showLayoutAnalysis,
+          bookmarks: annotations ? annotations.bookmarks : {},
+          addAnnotation: addAnnotationMutation.mutate,
+          updateAnnotation: updateAnnotation.mutate,
+          deleteAnnotations: deleteAnnotationsMutation.mutate,
+        }}
+      >
         <div className={styles.root}>
           <PDFToolbar
             onPageChange={(pageNum) => {
