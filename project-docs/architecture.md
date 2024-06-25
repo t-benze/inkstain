@@ -85,3 +85,46 @@ CREATE UNIQUE INDEX `documents_space_key_document_path` ON `Documents` (`spaceKe
 CREATE UNIQUE INDEX `tags_space_key_name` ON `Tags` (`spaceKey`, `name`);
 CREATE UNIQUE INDEX `doc_attributes_space_key_key_value` ON `DocAttributes` (`spaceKey`, `key`, `value`);
 ```
+
+## Annotation
+
+- Object Types:
+  - Page Bookmarks: Marks a specific page for quick navigation.
+  - Text Highlights: Highlights selected text within the PDF.
+  - Drawings: Includes shapes (rectangle, ellipse, lines) and freehand drawings.
+- Comments: Optional text associated with an object to provide additional context or notes.
+
+### Data Structure
+
+```json
+{
+  "annotations": [
+    {
+      "type": "bookmark",
+      "page": 1,
+      "comment": "Bookmark for introduction page"
+    },
+    {
+      "type": "highlight",
+      "color": "#FFDD44",
+      "page": 2,
+      "coordinates": {
+        "start": { "x": 10, "y": 20 },
+        "end": { "x": 100, "y": 30 }
+      },
+      "comment": "Highlighting important point"
+    },
+    {
+      "type": "drawing",
+      "color": "#FF0000",
+      "thickness": 1,
+      "page": 3,
+      "path": [
+        { "x": 30, "y": 40 },
+        { "x": 35, "y": 45 }
+      ],
+      "comment": "This area needs revision"
+    }
+  ]
+}
+```

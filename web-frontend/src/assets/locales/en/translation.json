@@ -5,6 +5,8 @@
   "add": "Add",
   "delete": "Delete",
   "confirm": "Confirm",
+  "remove": "Remove",
+  "update": "Update",
   "cancel": "Cancel",
   "loading": "Loading",
   "next": "Next",
@@ -16,7 +18,7 @@
   "clear": "Clear",
   "no_active_document": "No active document",
   "system": {
-    "@inkstain/space-management": "Space",
+    "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",
     "title": "Title",
     "author": "Author",
