@@ -65,8 +65,18 @@
     "fitWidthBtnTooltip": "Fit width",
     "fitHeightBtnTooltip": "Fit height",
     "resetScaleBtnTooltip": "Reset scale",
+    "enableScrollBtnTooltip": "Enable scroll",
+    "analyzeDocBtnTooltip": "Analyze document",
+    "pickColorTooltip": "Change color",
+    "pickThicknessTooltip": "Change thickness",
     "thumbnail": "Thumbnail",
     "outline": "Outline",
-    "no_outline": "No outline in the document"
+    "no_outline": "No outline in the document",
+    "comment_optional": "Comment (optional)",
+    "bookmark": "Bookmark",
+    "stylus_select": "Select",
+    "stylus_line": "Line",
+    "stylus_rect": "Rectangle",
+    "stylus_ellipse": "Ellipse"
   }
 }

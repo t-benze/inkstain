@@ -12,34 +12,41 @@
  * Do not edit the class manually.
  */
 
-import type { BookmarkData } from './BookmarkData';
-import {
-  instanceOfBookmarkData,
-  BookmarkDataFromJSON,
-  BookmarkDataFromJSONTyped,
-  BookmarkDataToJSON,
-} from './BookmarkData';
-import type { DrawingData } from './DrawingData';
-import {
-  instanceOfDrawingData,
-  DrawingDataFromJSON,
-  DrawingDataFromJSONTyped,
-  DrawingDataToJSON,
-} from './DrawingData';
-import type { HighlightData } from './HighlightData';
-import {
-  instanceOfHighlightData,
-  HighlightDataFromJSON,
-  HighlightDataFromJSONTyped,
-  HighlightDataToJSON,
-} from './HighlightData';
-
+import { exists, mapValues } from '../runtime';
 /**
- * @type AnnotationData
  *
  * @export
+ * @interface AnnotationData
  */
-export type AnnotationData = BookmarkData | DrawingData | HighlightData;
+export interface AnnotationData {
+  [key: string]: any | any;
+  /**
+   *
+   * @type {string}
+   * @memberof AnnotationData
+   */
+  type?: AnnotationDataTypeEnum;
+}
+
+/**
+ * @export
+ */
+export const AnnotationDataTypeEnum = {
+  Highlight: 'highlight',
+  Drawing: 'drawing',
+  Bookmark: 'bookmark',
+} as const;
+export type AnnotationDataTypeEnum =
+  (typeof AnnotationDataTypeEnum)[keyof typeof AnnotationDataTypeEnum];
+
+/**
+ * Check if a given object implements the AnnotationData interface.
+ */
+export function instanceOfAnnotationData(value: object): boolean {
+  let isInstance = true;
+
+  return isInstance;
+}
 
 export function AnnotationDataFromJSON(json: any): AnnotationData {
   return AnnotationDataFromJSONTyped(json, false);
@@ -53,9 +60,8 @@ export function AnnotationDataFromJSONTyped(
     return json;
   }
   return {
-    ...BookmarkDataFromJSONTyped(json, true),
-    ...DrawingDataFromJSONTyped(json, true),
-    ...HighlightDataFromJSONTyped(json, true),
+    ...json,
+    type: !exists(json, 'type') ? undefined : json['type'],
   };
 }
 
@@ -66,16 +72,8 @@ export function AnnotationDataToJSON(value?: AnnotationData | null): any {
   if (value === null) {
     return null;
   }
-
-  if (instanceOfBookmarkData(value)) {
-    return BookmarkDataToJSON(value as BookmarkData);
-  }
-  if (instanceOfDrawingData(value)) {
-    return DrawingDataToJSON(value as DrawingData);
-  }
-  if (instanceOfHighlightData(value)) {
-    return HighlightDataToJSON(value as HighlightData);
-  }
-
-  return {};
+  return {
+    ...value,
+    type: value.type,
+  };
 }
