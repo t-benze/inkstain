@@ -12,7 +12,8 @@ import { PDFViewerContext } from './context';
 import './viewer.css';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentsApi } from '~/web/apiClient';
-import { Annotation, AnnotationData, BookmarkData } from '@inkstain/client-api';
+import { Annotation } from '@inkstain/client-api';
+import { StylusOption } from './types';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -78,18 +79,21 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     const [defaultViewportHeight, setDefaultViewportHeight] =
       useState<number>(0);
     const [enableScroll, setEnableScroll] = useState<boolean>(false);
-    const onEnableScrollChange = React.useCallback((enable: boolean) => {
+    const handleEnableScrollChange = React.useCallback((enable: boolean) => {
       setEnableScroll(enable);
     }, []);
     // TODO: enable text layer should be based on user status
     const enableTextLayer = false;
     const [showLayoutAnalysis, setShowLayoutAnalysis] =
       useState<boolean>(false);
-    const onShowLayoutAnalysisChange = React.useCallback((show: boolean) => {
-      setShowLayoutAnalysis(show);
-    }, []);
+    const handleShowLayoutAnalysisChange = React.useCallback(
+      (show: boolean) => {
+        setShowLayoutAnalysis(show);
+      },
+      []
+    );
 
-    const onScaleChange = React.useCallback((newScale: number) => {
+    const handleScaleChange = React.useCallback((newScale: number) => {
       setScale(newScale);
     }, []);
 
@@ -168,14 +172,11 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
           spaceKey,
           path: documentPath,
         });
-        return {
-          bookmarks: data
-            .filter((annotation) => annotation.data.type === 'bookmark')
-            .reduce((acc, annotation) => {
-              acc[annotation.page] = annotation;
-              return acc;
-            }, {} as Record<number, Annotation>),
-        };
+        return data.reduce((acc, annotation) => {
+          if (!acc[annotation.page]) acc[annotation.page] = [];
+          acc[annotation.page].push(annotation);
+          return acc;
+        }, {} as Record<number, Annotation[]>);
       },
     });
 
@@ -186,7 +187,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
         page,
         comment,
       }: {
-        data: AnnotationData;
+        data: object;
         page: number;
         comment?: string;
       }) => {
@@ -201,6 +202,26 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
           },
         });
       },
+      onMutate: async ({ data, page, comment }) => {
+        await queryClient.cancelQueries({
+          queryKey: ['document-annotations', spaceKey, documentPath],
+        });
+        const previousData = queryClient.getQueryData<
+          Record<number, Annotation[]>
+        >(['document-annotations', spaceKey, documentPath]);
+        if (previousData) {
+          if (!previousData[page]) {
+            previousData[page] = [];
+          }
+          previousData[page].push({
+            id: '',
+            data,
+            page,
+            comment,
+          });
+        }
+        return { previousData };
+      },
       onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: ['document-annotations', spaceKey, documentPath],
@@ -209,11 +230,13 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     });
     const updateAnnotation = useMutation({
       mutationFn: async ({
+        id,
         data,
         comment,
         page,
       }: {
-        data: AnnotationData;
+        data: object;
+        id: string;
         comment?: string;
         page: number;
       }) => {
@@ -221,12 +244,33 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
           spaceKey: spaceKey,
           path: documentPath,
           annotation: {
-            id: '',
+            id,
             page,
             data,
             comment,
           },
         });
+      },
+      onMutate: async ({ id, data, comment, page }) => {
+        await queryClient.cancelQueries({
+          queryKey: ['document-annotations', spaceKey, documentPath],
+        });
+        const previousData = queryClient.getQueryData<
+          Record<number, Annotation[]>
+        >(['document-annotations', spaceKey, documentPath]);
+        if (previousData) {
+          const annotations = previousData[page];
+          const index = annotations.findIndex((a) => a.id === id);
+          if (index >= 0) {
+            annotations[index] = {
+              id,
+              data,
+              page,
+              comment,
+            };
+          }
+        }
+        return { previousData };
       },
       onSettled: () => {
         queryClient.invalidateQueries({
@@ -242,6 +286,22 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
           requestBody: ids,
         });
       },
+      onMutate: (ids: Array<string>) => {
+        queryClient.cancelQueries({
+          queryKey: ['document-annotations', spaceKey, documentPath],
+        });
+        const previousData = queryClient.getQueryData<
+          Record<number, Annotation[]>
+        >(['document-annotations', spaceKey, documentPath]);
+        if (previousData) {
+          for (const page in previousData) {
+            previousData[page] = previousData[page].filter(
+              (annotation) => !ids.includes(annotation.id)
+            );
+          }
+        }
+        return { previousData };
+      },
       onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: ['document-annotations', spaceKey, documentPath],
@@ -249,23 +309,46 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       },
     });
 
+    const [stylus, setStylus] = useState<StylusOption>('select');
+    const handleStylusChange = React.useCallback((tool: StylusOption) => {
+      setStylus(tool);
+    }, []);
+    const [strokeColor, setStrokeColor] = useState<string>('#000000');
+    const handleStrokeColorChange = React.useCallback((color: string) => {
+      setStrokeColor(color);
+    }, []);
+    const [strokeWidth, setStrokeWidth] = useState<number>(1);
+    const handleStrokeWidthChange = React.useCallback((width: number) => {
+      setStrokeWidth(width);
+    }, []);
+
     return (
       <PDFViewerContext.Provider
         value={{
           showLayoutAnalysis,
-          bookmarks: annotations ? annotations.bookmarks : {},
+          documentPath: documentPath,
+          annotations: annotations ? annotations : {},
           addAnnotation: addAnnotationMutation.mutate,
           updateAnnotation: updateAnnotation.mutate,
           deleteAnnotations: deleteAnnotationsMutation.mutate,
+          selectedStylus: stylus,
+          strokeColor: strokeColor,
+          strokeWidth: strokeWidth,
         }}
       >
         <div className={styles.root}>
           <PDFToolbar
+            strokeColor={strokeColor}
+            onStrokeColorChange={handleStrokeColorChange}
+            strokeWidth={strokeWidth}
+            onStrokeWidthChange={handleStrokeWidthChange}
+            stylus={stylus}
+            onStylusChange={handleStylusChange}
             onPageChange={(pageNum) => {
               setCurrentPageNumber(pageNum);
             }}
             scale={scale}
-            onScaleChange={onScaleChange}
+            onScaleChange={handleScaleChange}
             currentPage={currentPageNumber}
             numOfPages={pdfDocument?.numPages || 0}
             sceneWidth={sceneWidth}
@@ -275,9 +358,9 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
             initScale={DEFAULT_SCALE}
             scaleSteps={SCALE_STEPS}
             enableScroll={enableScroll}
-            onEnableScrollChange={onEnableScrollChange}
+            onEnableScrollChange={handleEnableScrollChange}
             showLayoutAnalysis={showLayoutAnalysis}
-            onShowLayoutAnalysisChange={onShowLayoutAnalysisChange}
+            onShowLayoutAnalysisChange={handleShowLayoutAnalysisChange}
           />
           {pdfDocument ? (
             enableScroll ? (

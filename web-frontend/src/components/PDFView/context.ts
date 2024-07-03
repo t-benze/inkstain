@@ -1,25 +1,27 @@
 import * as React from 'react';
-import { Annotation, AnnotationData } from '@inkstain/client-api';
+import { Annotation } from '@inkstain/client-api';
+import { StylusOption } from './types';
 
 type ContextType = {
   showLayoutAnalysis: boolean;
-  bookmarks: Record<number, Annotation>;
-  addAnnotation: (params: {
-    page: number;
-    data: AnnotationData;
-    comment?: string;
-  }) => void;
-  updateAnnotation: (params: {
-    page: number;
-    data: AnnotationData;
-    comment?: string;
-  }) => void;
+  annotations: Record<number, Annotation[]>;
+  addAnnotation: (params: Annotation) => void;
+  updateAnnotation: (params: Annotation) => void;
   deleteAnnotations: (id: Array<string>) => void;
+  documentPath: string;
+  selectedStylus: StylusOption;
+  strokeColor: string;
+  strokeWidth: number;
 };
+
 export const PDFViewerContext = React.createContext<ContextType>({
   showLayoutAnalysis: false,
-  bookmarks: {},
+  annotations: {},
   addAnnotation: () => {},
   updateAnnotation: () => {},
   deleteAnnotations: () => {},
+  documentPath: '',
+  selectedStylus: 'select',
+  strokeColor: '#000000',
+  strokeWidth: 1,
 });

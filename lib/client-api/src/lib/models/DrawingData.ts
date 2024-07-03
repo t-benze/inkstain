@@ -26,17 +26,17 @@ export interface DrawingData {
    */
   type: DrawingDataTypeEnum;
   /**
-   *
+   * name of SVG shape
    * @type {string}
    * @memberof DrawingData
    */
-  color: string;
+  shape: string;
   /**
-   *
-   * @type {number}
+   * SVG element attributes
+   * @type {object}
    * @memberof DrawingData
    */
-  thickness: number;
+  attributes: object;
 }
 
 /**
@@ -54,8 +54,8 @@ export type DrawingDataTypeEnum =
 export function instanceOfDrawingData(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'type' in value;
-  isInstance = isInstance && 'color' in value;
-  isInstance = isInstance && 'thickness' in value;
+  isInstance = isInstance && 'shape' in value;
+  isInstance = isInstance && 'attributes' in value;
 
   return isInstance;
 }
@@ -73,8 +73,8 @@ export function DrawingDataFromJSONTyped(
   }
   return {
     type: json['type'],
-    color: json['color'],
-    thickness: json['thickness'],
+    shape: json['shape'],
+    attributes: json['attributes'],
   };
 }
 
@@ -87,7 +87,7 @@ export function DrawingDataToJSON(value?: DrawingData | null): any {
   }
   return {
     type: value.type,
-    color: value.color,
-    thickness: value.thickness,
+    shape: value.shape,
+    attributes: value.attributes,
   };
 }

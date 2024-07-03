@@ -13,12 +13,15 @@ import {
   tokens,
   Textarea,
   PopoverProps,
+  shorthands,
 } from '@fluentui/react-components';
 import { BookmarkFilled, BookmarkRegular } from '@fluentui/react-icons';
 import { AppContext } from '~/web/app/context';
 import { PDFPageTextLayer } from './PDFPageTextLayer';
 import { PDFViewerContext } from './context';
 import { useTranslation } from 'react-i18next';
+import { PDFPageDrawingLayer } from './PDFPageDrawingLayer';
+import { Annotation, AnnotationData } from '@inkstain/client-api';
 
 const useClasses = makeStyles({
   root: {
@@ -28,7 +31,7 @@ const useClasses = makeStyles({
   bookmartBtn: {
     position: 'absolute',
     top: '0px',
-    right: '50px',
+    right: '32px',
   },
   bookmarkPopover: {
     display: 'flex',
@@ -37,7 +40,9 @@ const useClasses = makeStyles({
     '& .fui-Textarea': {
       marginBottom: tokens.spacingVerticalS,
     },
-    '& .fui-Button': {},
+    '& .fui-Button': {
+      ...shorthands.padding('0px', '0px'),
+    },
   },
   bookmarkPopoverBtns: {
     display: 'flex',
@@ -47,21 +52,26 @@ const useClasses = makeStyles({
 });
 
 const BookmarkBtn = ({
-  isBookmarked,
-  comment,
-  onUpdate,
-  onAdd,
-  onRemove,
+  bookmark,
+  onUpdateAnnotation,
+  onAddAnnotation,
+  onRemoveAnnotation,
 }: {
-  isBookmarked: boolean;
-  comment?: string;
-  onUpdate: (comment: string) => void;
-  onAdd: (comment: string) => void;
-  onRemove: () => void;
+  bookmark: Annotation | undefined;
+  onUpdateAnnotation: (
+    id: string,
+    data: AnnotationData,
+    comment?: string
+  ) => void;
+  onAddAnnotation: (data: AnnotationData, comment?: string) => void;
+  onRemoveAnnotation: (id: string) => void;
 }) => {
   const { t } = useTranslation();
   const classes = useClasses();
-  const [commentInner, setCommentInner] = React.useState(comment ?? '');
+  const isBookmarked = bookmark !== undefined;
+  const [commentInner, setCommentInner] = React.useState(
+    bookmark?.comment ?? ''
+  );
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const handleOpenChange: PopoverProps['onOpenChange'] = (_, data) => {
     setIsPopoverOpen(data.open);
@@ -74,30 +84,35 @@ const BookmarkBtn = ({
         onOpenChange={handleOpenChange}
       >
         <PopoverTrigger>
-          <Button
-            size="large"
-            appearance="transparent"
-            icon={
-              isBookmarked ? (
-                <BookmarkFilled primaryFill={tokens.colorBrandBackground} />
-              ) : (
-                <BookmarkRegular />
-              )
-            }
-          />
+          <Button appearance="transparent" size="small">
+            {isBookmarked ? (
+              <BookmarkFilled
+                fontSize={32}
+                primaryFill={tokens.colorBrandBackground}
+              />
+            ) : (
+              <BookmarkRegular fontSize={32} />
+            )}
+          </Button>
         </PopoverTrigger>
         <PopoverSurface>
           <div className={classes.bookmarkPopover}>
             <Textarea
               value={commentInner}
-              textarea={{ placeholder: 'Comment (optional)' }}
+              textarea={{ placeholder: t('pdfview.comment_optional') }}
               onChange={(_, data) => setCommentInner(data.value)}
             ></Textarea>
             <div className={classes.bookmarkPopoverBtns}>
               {isBookmarked && (
                 <Button
                   onClick={(_) => {
-                    onUpdate(commentInner);
+                    onUpdateAnnotation(
+                      bookmark!.id,
+                      {
+                        type: 'bookmark',
+                      },
+                      commentInner
+                    );
                     setIsPopoverOpen(false);
                   }}
                 >
@@ -107,7 +122,7 @@ const BookmarkBtn = ({
               {isBookmarked && (
                 <Button
                   onClick={(_) => {
-                    onRemove();
+                    onRemoveAnnotation(bookmark.id);
                     setIsPopoverOpen(false);
                   }}
                 >
@@ -117,11 +132,16 @@ const BookmarkBtn = ({
               {!isBookmarked && (
                 <Button
                   onClick={(e) => {
-                    onAdd(commentInner);
+                    onAddAnnotation(
+                      {
+                        type: 'bookmark',
+                      },
+                      commentInner
+                    );
                     setIsPopoverOpen(false);
                   }}
                 >
-                  {t('add')}
+                  {t('pdfview.bookmark')}
                 </Button>
               )}
             </div>
@@ -168,6 +188,10 @@ export const PDFPage = ({
   const renderTaskRef = React.useRef<RenderTask | null>(null);
   const appContext = React.useContext(AppContext);
   const pdfViewerContext = React.useContext(PDFViewerContext);
+  const [canvasDimension, setCanvasDimension] = React.useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   React.useEffect(() => {
     document.getPage(pageNumber).then(async (pdfPage) => {
@@ -181,12 +205,16 @@ export const PDFPage = ({
       if (!context) throw new Error('Canvas context not found');
       canvas.width = Math.floor(viewport.width * outputScale);
       canvas.height = Math.floor(viewport.height * outputScale);
-      const widthSize = Math.floor(viewport.width).toFixed(0);
-      const widthHeight = Math.floor(viewport.height).toFixed(0);
-      canvas.style.width = `${widthSize}px`;
-      canvas.style.height = `${widthHeight}px`;
-      pageDiv.style.width = `${widthSize}px`;
-      pageDiv.style.height = `${widthHeight}px`;
+      setCanvasDimension({
+        width: canvas.width,
+        height: canvas.height,
+      });
+      const widthCSS = Math.floor(viewport.width).toFixed(0);
+      const heightCSS = Math.floor(viewport.height).toFixed(0);
+      canvas.style.width = `${widthCSS}px`;
+      canvas.style.height = `${heightCSS}px`;
+      pageDiv.style.width = `${widthCSS}px`;
+      pageDiv.style.height = `${heightCSS}px`;
       const transform =
         outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined;
       if (renderTaskRef.current) {
@@ -200,8 +228,6 @@ export const PDFPage = ({
       try {
         await renderTaskRef.current.promise;
         onRenderCompleted?.(pageNumber, viewport);
-        const t = await pdfPage.getTextContent();
-        console.log('text', t);
       } catch (e) {
         if (e instanceof RenderingCancelledException) {
           console.log('Rendering cancelled, page number: ', pageNumber);
@@ -225,7 +251,39 @@ export const PDFPage = ({
     appContext.activeDocument,
   ]);
 
-  const isBookMarked = pdfViewerContext.bookmarks[pageNumber] ? true : false;
+  const handleAddAnnotation = React.useCallback(
+    (data: AnnotationData, comment?: string) => {
+      pdfViewerContext.addAnnotation({
+        id: '',
+        page: pageNumber,
+        data,
+        comment,
+      });
+    },
+    [pdfViewerContext, pageNumber]
+  );
+  const handleUpdateAnnotation = React.useCallback(
+    (id: string, data: AnnotationData, comment?: string) => {
+      pdfViewerContext.updateAnnotation({
+        id: id,
+        page: pageNumber,
+        data,
+        comment,
+      });
+    },
+    [pdfViewerContext, pageNumber]
+  );
+  const handleDeleteAnnotation = React.useCallback(
+    (id: string) => {
+      pdfViewerContext.deleteAnnotations([id]);
+    },
+    [pdfViewerContext]
+  );
+  const annotations = pdfViewerContext.annotations[pageNumber];
+  const bookmark = annotations?.find((a) => a.data.type === 'bookmark');
+  const drawings = annotations
+    ? annotations.filter((a) => a.data.type === 'drawing')
+    : null;
   return (
     <div
       role={role}
@@ -253,32 +311,20 @@ export const PDFPage = ({
           pageNum={pageNumber}
         />
       ) : null}
+      <PDFPageDrawingLayer
+        scale={scale}
+        drawings={drawings}
+        canvasDimension={canvasDimension}
+        onAddAnnotation={handleAddAnnotation}
+        onUpdateAnnotation={handleUpdateAnnotation}
+        onRemoveAnnotation={handleDeleteAnnotation}
+        shapeType="rect"
+      />
       <BookmarkBtn
-        comment={pdfViewerContext.bookmarks[pageNumber]?.comment}
-        isBookmarked={isBookMarked}
-        onAdd={(comment) => {
-          pdfViewerContext.addAnnotation({
-            data: {
-              type: 'bookmark',
-            },
-            page: pageNumber,
-            comment,
-          });
-        }}
-        onUpdate={(comment) => {
-          pdfViewerContext.updateAnnotation({
-            data: {
-              type: 'bookmark',
-            },
-            page: pageNumber,
-            comment,
-          });
-        }}
-        onRemove={() => {
-          pdfViewerContext.deleteAnnotations([
-            pdfViewerContext.bookmarks[pageNumber].id,
-          ]);
-        }}
+        bookmark={bookmark}
+        onAddAnnotation={handleAddAnnotation}
+        onUpdateAnnotation={handleUpdateAnnotation}
+        onRemoveAnnotation={handleDeleteAnnotation}
       />
     </div>
   );

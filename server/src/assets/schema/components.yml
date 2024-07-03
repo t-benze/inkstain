@@ -185,10 +185,15 @@ components:
         page:
           type: number
         data:
-          oneOf:
-            - $ref: '#/components/schemas/HighlightData'
-            - $ref: '#/components/schemas/DrawingData'
-            - $ref: '#/components/schemas/BookmarkData'
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - highlight
+                - drawing
+                - bookmark
+          additionalProperties: true
         comment:
           type: string
     HighlightData:
@@ -207,23 +212,23 @@ components:
       type: object
       required:
         - type
-        - color
-        - thickness
+        - attributes
+        - shape
       properties:
         type:
           type: string
           enum:
             - drawing
-        color:
+        shape:
           type: string
-        thickness:
-          type: number
-
+          description: name of SVG shape
+        attributes:
+          type: object
+          description: SVG element attributes
     BookmarkData:
       type: object
       required:
         - type
-        - page
       properties:
         type:
           type: string
