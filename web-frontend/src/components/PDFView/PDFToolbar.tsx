@@ -160,7 +160,10 @@ const StylusPickerPopover = ({
         positioning="below"
       >
         <PopoverTrigger>
-          <ToolbarButton icon={optionToIcon[stylus]} />
+          <ToolbarButton
+            data-test="pdfViewer-pickStylusBtn"
+            icon={optionToIcon[stylus]}
+          />
         </PopoverTrigger>
       </Tooltip>
       <PopoverSurface>
@@ -172,6 +175,7 @@ const StylusPickerPopover = ({
               content={t(`pdfview.stylus_${option}`)}
             >
               <div
+                data-test={`pdfViewer-stylus-${option}`}
                 className={classes.stylusPickerItem}
                 onClick={() => {
                   onStylusChange(option);
