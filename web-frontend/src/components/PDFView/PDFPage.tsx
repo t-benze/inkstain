@@ -72,6 +72,9 @@ const BookmarkBtn = ({
   const [commentInner, setCommentInner] = React.useState(
     bookmark?.comment ?? ''
   );
+  React.useEffect(() => {
+    setCommentInner(bookmark?.comment ?? '');
+  }, [bookmark?.comment]);
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const handleOpenChange: PopoverProps['onOpenChange'] = (_, data) => {
     setIsPopoverOpen(data.open);
@@ -84,7 +87,11 @@ const BookmarkBtn = ({
         onOpenChange={handleOpenChange}
       >
         <PopoverTrigger>
-          <Button appearance="transparent" size="small">
+          <Button
+            appearance="transparent"
+            size="small"
+            data-test="pdfViewer-bookmarkBtn"
+          >
             {isBookmarked ? (
               <BookmarkFilled
                 fontSize={32}
@@ -98,6 +105,7 @@ const BookmarkBtn = ({
         <PopoverSurface>
           <div className={classes.bookmarkPopover}>
             <Textarea
+              data-test="pdfViewer-bookmarkComment"
               value={commentInner}
               textarea={{ placeholder: t('pdfview.comment_optional') }}
               onChange={(_, data) => setCommentInner(data.value)}
@@ -105,6 +113,7 @@ const BookmarkBtn = ({
             <div className={classes.bookmarkPopoverBtns}>
               {isBookmarked && (
                 <Button
+                  data-test="pdfViewer-bookmarkUpdateBtn"
                   onClick={(_) => {
                     onUpdateAnnotation(
                       bookmark!.id,
@@ -113,7 +122,6 @@ const BookmarkBtn = ({
                       },
                       commentInner
                     );
-                    setIsPopoverOpen(false);
                   }}
                 >
                   {t('update')}
@@ -121,6 +129,7 @@ const BookmarkBtn = ({
               )}
               {isBookmarked && (
                 <Button
+                  data-test="pdfViewer-bookmarkRemoveBtn"
                   onClick={(_) => {
                     onRemoveAnnotation(bookmark.id);
                     setIsPopoverOpen(false);
@@ -131,6 +140,7 @@ const BookmarkBtn = ({
               )}
               {!isBookmarked && (
                 <Button
+                  data-test="pdfViewer-bookmarkAddBtn"
                   onClick={(e) => {
                     onAddAnnotation(
                       {

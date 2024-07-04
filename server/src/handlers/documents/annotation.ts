@@ -237,7 +237,10 @@ export const updateDocumentAnnotation = async (ctx: Context) => {
     // Merge existing annotations with the new ones
     const index = annotations.findIndex((a) => a.id === update.id);
     if (index != -1) {
-      annotations[index] = update;
+      annotations[index] = {
+        ...annotations[index],
+        ...update,
+      };
     }
 
     await fs.writeFile(

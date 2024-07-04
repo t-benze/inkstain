@@ -99,6 +99,22 @@ const retriveSVGShapeAttributes = (attributes: object, scale: number) => {
   return newAttributes;
 };
 
+const fitLineToRect = (line: SVGGraphicsElement, newRect: DOMRect) => {
+  const y1 = parseFloat(line.getAttribute('y1') || '0');
+  const y2 = parseFloat(line.getAttribute('y2') || '0');
+  if (y1 > y2) {
+    line.setAttribute('x1', `${newRect.x}`);
+    line.setAttribute('y1', `${newRect.y + newRect.height}`);
+    line.setAttribute('x2', `${newRect.x + newRect.width}`);
+    line.setAttribute('y2', `${newRect.y}`);
+  } else {
+    line.setAttribute('x1', `${newRect.x}`);
+    line.setAttribute('y1', `${newRect.y}`);
+    line.setAttribute('x2', `${newRect.x + newRect.width}`);
+    line.setAttribute('y2', `${newRect.y + newRect.height}`);
+  }
+};
+
 const Drawing = ({
   drawing,
   scale,
@@ -113,7 +129,7 @@ const Drawing = ({
       return (
         <line
           data-annotation-id={drawing.id}
-          pointerEvents={'all'}
+          pointerEvents={'bounding-box'}
           x1={attributes.x1}
           y1={attributes.y1}
           x2={attributes.x2}
@@ -128,7 +144,7 @@ const Drawing = ({
       return (
         <rect
           data-annotation-id={drawing.id}
-          pointerEvents={'all'}
+          pointerEvents={'bounding-box'}
           width={attributes.width}
           height={attributes.height}
           x={attributes.x}
@@ -163,38 +179,40 @@ const DrawingSelectionPopover = ({
   annotation,
   onRemoveAnnotation,
   onUpdateAnnotation,
-  dismissPopover,
 }: {
   annotation: Annotation;
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
   onRemoveAnnotation: (id: string) => void;
-  dismissPopover: () => void;
 }) => {
   const classes = useClasses();
   const { t } = useTranslation();
   const [commentInner, setCommentInner] = React.useState(
     annotation.comment ?? ''
   );
+  React.useEffect(() => {
+    setCommentInner(annotation.comment ?? '');
+  }, [annotation.comment]);
   return (
     <div className={classes.drawingAnnotationPopover}>
       <Textarea
+        data-test="pdfViewer-drawingAnnotationComment"
         textarea={{ placeholder: t('pdfview.comment_optional') }}
         value={commentInner}
         onChange={(e) => setCommentInner(e.target.value)}
       />
       <div className={classes.drawingAnnotationPopoverBtns}>
         <Button
+          data-test="pdfViewer-drawingAnnotationUpdateBtn"
           onClick={() => {
             onUpdateAnnotation(annotation.id, annotation.data, commentInner);
-            dismissPopover();
           }}
         >
           {t('update')}
         </Button>
         <Button
+          data-test="pdfViewer-drawingAnnotationRemoveBtn"
           onClick={() => {
             onRemoveAnnotation(annotation.id);
-            dismissPopover();
           }}
         >
           {t('remove')}
@@ -228,7 +246,8 @@ export const PDFPageDrawingLayer = ({
   const svgcanvasRef = React.useRef<SVGSVGElement | null>(null);
   const startPointRef = React.useRef<SVGPoint | null>(null);
   const currentDrawingShapeRef = React.useRef<SVGElement | null>(null);
-  const interactionModeRef = React.useRef<InteractionMode | null>(null);
+  const [interactionMode, setInteractionMode] =
+    React.useState<InteractionMode | null>(null);
   const selectionImperativeRef = React.useRef<SelectionImperativeRef | null>(
     null
   );
@@ -243,6 +262,10 @@ export const PDFPageDrawingLayer = ({
     annotation: Annotation;
   } | null>(null);
 
+  const [openDrawingPopover, setOpenDrawingPopover] = React.useState(false);
+  const popoverPositioningRef = React.useRef<PositioningImperativeRef | null>(
+    null
+  );
   React.useEffect(() => {
     if (selection) {
       const selected = drawings?.find((annotation) => {
@@ -250,6 +273,11 @@ export const PDFPageDrawingLayer = ({
       });
       if (!selected) {
         setSelection(null);
+      } else {
+        setSelection({
+          ...selection,
+          annotation: selected,
+        });
       }
     }
   }, [drawings, selection]);
@@ -438,43 +466,7 @@ export const PDFPageDrawingLayer = ({
       selectionImperativeRef.current?.updateRect(newRect);
       switch (selection.annotation.data.shape) {
         case 'line': {
-          const y1 = parseFloat(selection.element.getAttribute('y1') || '0');
-          const y2 = parseFloat(selection.element.getAttribute('y2') || '0');
-          if (y1 > y2) {
-            selection.element.setAttribute(
-              'x1',
-              `${selection.initRect.x + dx}`
-            );
-            selection.element.setAttribute(
-              'y1',
-              `${selection.initRect.y + selection.initRect.height + dy}`
-            );
-            selection.element.setAttribute(
-              'x2',
-              `${selection.initRect.x + selection.initRect.width + dx}`
-            );
-            selection.element.setAttribute(
-              'y2',
-              `${selection.initRect.y + dy}`
-            );
-          } else {
-            selection.element.setAttribute(
-              'x1',
-              `${selection.initRect.x + dx}`
-            );
-            selection.element.setAttribute(
-              'y1',
-              `${selection.initRect.y + dy}`
-            );
-            selection.element.setAttribute(
-              'x2',
-              `${selection.initRect.x + selection.initRect.width + dx}`
-            );
-            selection.element.setAttribute(
-              'y2',
-              `${selection.initRect.y + selection.initRect.height + dy}`
-            );
-          }
+          fitLineToRect(selection.element, newRect);
           break;
         }
         case 'rect': {
@@ -553,10 +545,7 @@ export const PDFPageDrawingLayer = ({
     selectionImperativeRef.current?.updateRect(newRect);
     switch (selection.annotation.data.shape) {
       case 'line': {
-        selection.element.setAttribute('x1', `${newRect.x}`);
-        selection.element.setAttribute('y1', `${newRect.y}`);
-        selection.element.setAttribute('x2', `${newRect.x}`);
-        selection.element.setAttribute('y2', `${newRect.y}`);
+        fitLineToRect(selection.element, newRect);
         break;
       }
       case 'rect': {
@@ -585,8 +574,19 @@ export const PDFPageDrawingLayer = ({
   const handleMouseDown: React.MouseEventHandler<SVGElement> = (e) => {
     if (e.button !== 0 || !svgcanvasRef.current) return;
     const svgCanvas = svgcanvasRef.current;
+    const point = svgCanvas.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    const startPoint = point.matrixTransform(
+      svgCanvas.getScreenCTM()!.inverse()
+    );
+    startPointRef.current = startPoint;
     if (enableDrawing) {
-      interactionModeRef.current = 'drawing';
+      setInteractionMode('drawing');
+      startDrawing(startPoint);
+      if (selection) {
+        setSelection(null);
+      }
     } else {
       const target = e.target as SVGGraphicsElement;
       if (target.getAttribute('data-annotation-id') !== null) {
@@ -603,44 +603,13 @@ export const PDFPageDrawingLayer = ({
       } else {
         if (selection) {
           if (target.getAttribute('data-mode') !== null) {
-            interactionModeRef.current = target.getAttribute(
-              'data-mode'
-            ) as InteractionMode;
+            setInteractionMode(
+              target.getAttribute('data-mode') as InteractionMode
+            );
           } else {
             setSelection(null);
           }
         }
-      }
-    }
-    const point = svgCanvas.createSVGPoint();
-    point.x = e.clientX;
-    point.y = e.clientY;
-    const startPoint = point.matrixTransform(
-      svgCanvas.getScreenCTM()!.inverse()
-    );
-    startPointRef.current = startPoint;
-    switch (interactionModeRef.current) {
-      case 'drawing': {
-        startDrawing(startPoint);
-        if (selection) {
-          setSelection(null);
-        }
-        break;
-      }
-      case 'moving': {
-        // setOpenDrawingPopover(false);
-        break;
-      }
-      case 'resizingEast':
-      case 'resizingNorth':
-      case 'resizingSouth':
-      case 'resizingWest':
-      case 'resizingNorthEast':
-      case 'resizingSouthEast':
-      case 'resizingSouthWest':
-      case 'resizingNorthWest': {
-        // setOpenDrawingPopover(false);
-        break;
       }
     }
   };
@@ -652,7 +621,7 @@ export const PDFPageDrawingLayer = ({
     const svgPoint = point.matrixTransform(
       svgcanvasRef.current!.getScreenCTM()!.inverse()
     );
-    switch (interactionModeRef.current) {
+    switch (interactionMode) {
       case 'drawing': {
         drawingMove(svgPoint);
         break;
@@ -669,14 +638,15 @@ export const PDFPageDrawingLayer = ({
       case 'resizingSouthEast':
       case 'resizingSouthWest':
       case 'resizingNorthWest': {
-        resizingMove(svgPoint, interactionModeRef.current);
+        resizingMove(svgPoint, interactionMode);
         break;
       }
     }
   };
 
   const handleMouseUp = (e: React.MouseEvent<SVGSVGElement>) => {
-    switch (interactionModeRef.current) {
+    console.log('mouse up', interactionMode, selection);
+    switch (interactionMode) {
       case 'drawing': {
         drawingEnd(e);
         break;
@@ -707,30 +677,48 @@ export const PDFPageDrawingLayer = ({
         break;
       }
     }
-    interactionModeRef.current = null;
+    setInteractionMode(null);
   };
+  // React.useEffect(() => {
+  //   if(selection) {
 
-  const [openDrawingPopover, setOpenDrawingPopover] = React.useState(false);
-  const popoverPositioningRef = React.useRef<PositioningImperativeRef | null>(
-    null
-  );
+  //   }
+
+  // }, [])
+
+  React.useEffect(() => {
+    console.log('selection effect', selection, interactionMode);
+    if (interactionMode === null) {
+      if (selection) {
+        setOpenDrawingPopover(true);
+      } else {
+        setOpenDrawingPopover(false);
+      }
+    } else {
+      setOpenDrawingPopover(false);
+    }
+  }, [selection, interactionMode]);
 
   if (!canvasDimension) return null;
+  console.log('render popover ', openDrawingPopover);
 
   return (
     <Popover
+      trapFocus
       open={openDrawingPopover}
-      onOpenChange={(_, data) => {
-        setOpenDrawingPopover(data.open);
-      }}
       positioning={{ positioningRef: popoverPositioningRef }}
     >
       <svg
+        data-test="pdfViewer-drawingLayer"
         viewBox={`0 0 ${canvasDimension.width} ${canvasDimension.height}`}
         className={classes.root}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         ref={svgcanvasRef}
         style={{ cursor: enableDrawing ? 'crosshair' : 'default' }}
       >
@@ -748,14 +736,13 @@ export const PDFPageDrawingLayer = ({
         )}
       </svg>
       <PopoverSurface>
-        {selection && (
+        {selection ? (
           <DrawingSelectionPopover
             annotation={selection.annotation}
             onRemoveAnnotation={onRemoveAnnotation}
             onUpdateAnnotation={onUpdateAnnotation}
-            dismissPopover={() => setOpenDrawingPopover(false)}
           />
-        )}
+        ) : null}
       </PopoverSurface>
     </Popover>
   );
