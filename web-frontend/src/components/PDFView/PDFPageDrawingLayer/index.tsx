@@ -40,7 +40,6 @@ interface PDFPageDrawingLayerProps {
   scale: number;
   canvasDimension: { width: number; height: number } | null;
   drawings: Array<Annotation> | null;
-  shapeType: 'rect' | 'line' | 'ellipse';
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
   onAddAnnotation: (data: object, comment?: string) => void;
   onRemoveAnnotation: (id: string) => void;
@@ -700,7 +699,7 @@ export const PDFPageDrawingLayer = ({
   }, [selection, interactionMode]);
 
   if (!canvasDimension) return null;
-  console.log('render popover ', openDrawingPopover);
+  // console.log('render page ', pageopenDrawingPopover);
 
   return (
     <Popover
@@ -712,13 +711,9 @@ export const PDFPageDrawingLayer = ({
         data-test="pdfViewer-drawingLayer"
         viewBox={`0 0 ${canvasDimension.width} ${canvasDimension.height}`}
         className={classes.root}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
+        onMouseDown={pdfViewerContext.isThumbnail ? undefined : handleMouseDown}
+        onMouseMove={pdfViewerContext.isThumbnail ? undefined : handleMouseMove}
+        onMouseUp={pdfViewerContext.isThumbnail ? undefined : handleMouseUp}
         ref={svgcanvasRef}
         style={{ cursor: enableDrawing ? 'crosshair' : 'default' }}
       >

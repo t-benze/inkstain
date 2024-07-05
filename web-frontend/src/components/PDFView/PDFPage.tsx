@@ -294,6 +294,13 @@ export const PDFPage = ({
   const drawings = annotations
     ? annotations.filter((a) => a.data.type === 'drawing')
     : null;
+  console.log(
+    'render page',
+    pageNumber,
+    pdfViewerContext.annotations,
+    annotations,
+    drawings
+  );
   return (
     <div
       role={role}
@@ -328,14 +335,15 @@ export const PDFPage = ({
         onAddAnnotation={handleAddAnnotation}
         onUpdateAnnotation={handleUpdateAnnotation}
         onRemoveAnnotation={handleDeleteAnnotation}
-        shapeType="rect"
       />
-      <BookmarkBtn
-        bookmark={bookmark}
-        onAddAnnotation={handleAddAnnotation}
-        onUpdateAnnotation={handleUpdateAnnotation}
-        onRemoveAnnotation={handleDeleteAnnotation}
-      />
+      {!pdfViewerContext.isThumbnail && (
+        <BookmarkBtn
+          bookmark={bookmark}
+          onAddAnnotation={handleAddAnnotation}
+          onUpdateAnnotation={handleUpdateAnnotation}
+          onRemoveAnnotation={handleDeleteAnnotation}
+        />
+      )}
     </div>
   );
 };

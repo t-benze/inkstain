@@ -16,8 +16,10 @@ export const PDFPageScrollView = React.forwardRef(
       enableTextLayer = false,
       onPageClick,
       virtualizerLength = 5,
+      shortListedPages,
     }: {
       documentPath: string;
+      shortListedPages?: number[];
       spaceKey: string;
       virtualizerLength?: number;
       enableTextLayer?: boolean;
@@ -34,7 +36,9 @@ export const PDFPageScrollView = React.forwardRef(
     ref
   ) => {
     const pageGap = 8;
-    const totalPages = document.numPages;
+    const totalPages = shortListedPages
+      ? shortListedPages.length
+      : document.numPages;
     const [pageHeight, setPageHeight] = React.useState(0);
 
     React.useEffect(() => {
@@ -104,6 +108,9 @@ export const PDFPageScrollView = React.forwardRef(
         scrollViewRef={scrollViewRef}
       >
         {(index: number) => {
+          const pageNumber = shortListedPages
+            ? shortListedPages[index]
+            : index + 1;
           return (
             <PDFPage
               spaceKey={spaceKey}
@@ -113,7 +120,7 @@ export const PDFPageScrollView = React.forwardRef(
               aria-setsize={totalPages}
               key={`scrollview-child-${index}`}
               document={document}
-              pageNumber={index + 1}
+              pageNumber={pageNumber}
               scale={scale}
               onRenderCompleted={onRenderCompleted}
               style={{

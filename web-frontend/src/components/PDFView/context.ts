@@ -12,16 +12,21 @@ type ContextType = {
   selectedStylus: StylusOption;
   strokeColor: string;
   strokeWidth: number;
+  isThumbnail: boolean;
 };
 
-export const PDFViewerContext = React.createContext<ContextType>({
+export const defaultContextValue = {
   showLayoutAnalysis: false,
   annotations: {},
   addAnnotation: () => {},
   updateAnnotation: () => {},
   deleteAnnotations: () => {},
   documentPath: '',
-  selectedStylus: 'select',
+  selectedStylus: 'select' as const,
   strokeColor: '#000000',
   strokeWidth: 1,
-});
+  isThumbnail: false,
+};
+
+export const PDFViewerContext =
+  React.createContext<ContextType>(defaultContextValue);
