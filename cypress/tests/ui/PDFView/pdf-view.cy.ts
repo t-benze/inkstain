@@ -12,11 +12,23 @@ describe('File Explorer for Space', () => {
     it('should show the thumbnails of the pdf file in the sidebar', () => {
       cy.getBySel('primarySidebar').contains('Thumbnail').click();
       cy.getBySel('primarySidebar')
-        .find('[data-test="pdfViewer-canvas"]')
-        .then((canvas) => {
-          expect(canvas).to.have.length.above(1);
-          cy.wrap(canvas[4]).click();
-          cy.getBySel('pdfViewer-pageNumInput').should('have.value', '5');
+        .find('[data-page-number="4"]')
+        .then(($page) => {
+          cy.wrap($page).click();
+          cy.getBySel('pdfViewer-pageNumInput').should('have.value', '4');
+        });
+    });
+    it('should show the annotated thumbnails of the pdf file in the sidebar', () => {
+      cy.getBySel('primarySidebar').contains('Annotations').click();
+      cy.getBySel('primarySidebar')
+        .find('[role=listitem]')
+        .should('have.length.above', 1);
+      // page 7 is the page with annotations
+      cy.getBySel('primarySidebar')
+        .find('[data-page-number="7"]')
+        .then(($page) => {
+          cy.wrap($page).click();
+          cy.getBySel('pdfViewer-pageNumInput').should('have.value', '7');
         });
     });
     it('should show the outline of the pdf file in the sidebar', () => {

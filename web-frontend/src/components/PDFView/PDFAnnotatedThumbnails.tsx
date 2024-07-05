@@ -6,9 +6,12 @@ import { SidebarAccordionItem } from '../SidebarAccordionItem';
 import { AppContext } from '~/web/app/context';
 import { PDFViewHandle } from './PDFViewer';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { documentsApi } from '~/web/apiClient';
+import { Annotation } from '@inkstain/client-api';
 import { PDFViewerContext, defaultContextValue } from './context';
 
-export const PDFThumbnailView = ({
+export const PDFAnnotatedThumbnails = ({
   width,
   documentPath,
   spaceKey,
@@ -23,6 +26,7 @@ export const PDFThumbnailView = ({
   const [desiredScale, setDesciredScale] = React.useState<number>(-1);
   const sceneRef = React.useRef<HTMLDivElement>(null);
   const appContext = React.useContext(AppContext);
+
   React.useEffect(() => {
     if (pdfDocument) {
       pdfDocument.getPage(1).then((page) => {
@@ -32,13 +36,35 @@ export const PDFThumbnailView = ({
     }
   }, [pdfDocument, width]);
 
+  const { data: annotations } = useQuery({
+    queryKey: ['document-annotations', spaceKey, documentPath],
+    queryFn: async () => {
+      const data = await documentsApi.getDocumentAnnotations({
+        spaceKey,
+        path: documentPath,
+      });
+      return data.reduce((acc, annotation) => {
+        if (!acc[annotation.page]) acc[annotation.page] = [];
+        acc[annotation.page].push(annotation);
+        return acc;
+      }, {} as Record<number, Annotation[]>);
+    },
+  });
+  const shortListedPages = React.useMemo(() => {
+    return Object.keys(annotations || {}).map(Number);
+  }, [annotations]);
+
   return (
     <SidebarAccordionItem
-      headerText={t('pdfview.thumbnail')}
+      headerText={t('pdfview.annotatedThumbnail')}
       panel={
         desiredScale === -1 || pdfDocument === null ? null : (
           <PDFViewerContext.Provider
-            value={{ ...defaultContextValue, isThumbnail: true }}
+            value={{
+              ...defaultContextValue,
+              annotations: annotations || {},
+              isThumbnail: true,
+            }}
           >
             <PDFPageScrollView
               spaceKey={spaceKey}
@@ -49,13 +75,13 @@ export const PDFThumbnailView = ({
               document={pdfDocument}
               scale={desiredScale}
               onPageClick={(pageNum) => {
-                console.log('pageNum', pageNum);
                 if (appContext.activeDocumentViewRef.current) {
                   (
                     appContext.activeDocumentViewRef.current as PDFViewHandle
                   ).goToPage(pageNum);
                 }
               }}
+              shortListedPages={shortListedPages}
             />
           </PDFViewerContext.Provider>
         )

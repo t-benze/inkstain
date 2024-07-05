@@ -1,1 +1,88 @@
-[]
+[
+  {
+    "id": "1720182319467",
+    "page": 3,
+    "data": { "type": "bookmark" },
+    "comment": ""
+  },
+  {
+    "id": "1720182323821",
+    "page": 5,
+    "data": { "type": "bookmark" },
+    "comment": ""
+  },
+  {
+    "id": "1720182332959",
+    "page": 4,
+    "data": {
+      "type": "drawing",
+      "shape": "rect",
+      "attributes": {
+        "x": "47.33",
+        "y": "197.33",
+        "width": "222.00",
+        "height": "245.00",
+        "stroke": "#ffff00",
+        "stroke-width": "3.33",
+        "fill": "none"
+      }
+    }
+  },
+  {
+    "id": "1720182335428",
+    "page": 4,
+    "data": {
+      "type": "drawing",
+      "shape": "ellipse",
+      "attributes": {
+        "rx": "227.00",
+        "ry": "220.00",
+        "stroke": "#ffff00",
+        "stroke-width": "3.33",
+        "fill": "none",
+        "cx": "406.33",
+        "cy": "522.33"
+      }
+    }
+  },
+  {
+    "id": "1720182341882",
+    "page": 7,
+    "data": { "type": "bookmark" },
+    "comment": ""
+  },
+  {
+    "id": "1720182345773",
+    "page": 7,
+    "data": {
+      "type": "drawing",
+      "shape": "ellipse",
+      "attributes": {
+        "rx": "147.00",
+        "ry": "159.00",
+        "stroke": "#ffff00",
+        "stroke-width": "3.33",
+        "fill": "none",
+        "cx": "243.33",
+        "cy": "231.33"
+      }
+    }
+  },
+  {
+    "id": "1720182352395",
+    "page": 5,
+    "data": {
+      "type": "drawing",
+      "shape": "ellipse",
+      "attributes": {
+        "rx": "129.00",
+        "ry": "206.00",
+        "stroke": "#ff0000",
+        "stroke-width": "3.33",
+        "fill": "none",
+        "cx": "387.33",
+        "cy": "356.33"
+      }
+    }
+  }
+]

@@ -13,3 +13,4 @@ export const PDFView = React.forwardRef<
 export { PDFViewHandle };
 export { PDFOutlineView } from './PDFOutlineView';
 export { PDFThumbnailView } from './PDFThumbnailView';
+export { PDFAnnotatedThumbnails } from './PDFAnnotatedThumbnails';

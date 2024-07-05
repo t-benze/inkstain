@@ -334,6 +334,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
           selectedStylus: stylus,
           strokeColor: strokeColor,
           strokeWidth: strokeWidth,
+          isThumbnail: false,
         }}
       >
         <div className={styles.root}>

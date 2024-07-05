@@ -10,7 +10,11 @@ import {
 } from '@fluentui/react-components';
 import { AppContext } from '~/web/app/context';
 import { FileExplorer } from '~/web/components/FileExplorer';
-import { PDFThumbnailView, PDFOutlineView } from '~/web/components/PDFView';
+import {
+  PDFThumbnailView,
+  PDFOutlineView,
+  PDFAnnotatedThumbnails,
+} from '~/web/components/PDFView';
 
 const useClasses = makeStyles({
   root: {
@@ -75,6 +79,16 @@ export const PrimarySidebar = () => {
       value: 'pdf-outline',
       view: (
         <PDFOutlineView
+          spaceKey={activeSpace.key}
+          documentPath={document.name}
+        />
+      ),
+    });
+    accordions.push({
+      value: 'pdf-annotations',
+      view: (
+        <PDFAnnotatedThumbnails
+          width={150}
           spaceKey={activeSpace.key}
           documentPath={document.name}
         />
