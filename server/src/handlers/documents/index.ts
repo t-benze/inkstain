@@ -1,4 +1,5 @@
 import Router from '@koa/router';
+import os from 'os';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
@@ -183,6 +184,53 @@ const getDocumentContent = async (ctx: Context) => {
     }
     logger.error(error.message);
     throw error;
+  }
+};
+
+/**
+ * @swagger
+ * /documents/{spaceKey}/open:
+ *   get:
+ *     summary: Open a document with the system app
+ *     tags: [Documents]
+ *     operationId: openDocumentWithSystemApp
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The relative path to the document within the space
+ *     responses:
+ *       200:
+ *         description: Document opened successfully.
+ *       500:
+ *         description: Failed to open document.
+ */
+const openDocumentWithSystemApp = async (ctx: Context) => {
+  const spaceKey = ctx.params.spaceKey;
+  const filePath = ctx.query.path + '.ink';
+  const open = await import('open');
+  try {
+    const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
+    const extension = path.extname(ctx.query.path as string);
+    const file = path.join(fullPath, `content${extension}`);
+    // If parameters or parameter values contain a space, they need to be surrounded with escaped double quotes.
+    // For more information, see https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules?view=powershell-7.4&viewFallbackFrom=powershell-7.1.
+    open.default(os.platform() === 'win32' ? '`"' + file + '`"' : file);
+    ctx.status = 200;
+    ctx.body = { message: 'Document opened successfully' };
+    logger.info(`Opened document at ${file}`);
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { message: error.message };
+    logger.error(`Failed to open document: ${error.message}`);
   }
 };
 
@@ -450,6 +498,7 @@ export const registerDocumentRoutes = (router: Router) => {
   // document files and folders
   router.get('/documents/:spaceKey/list', listDocuments);
   router.get('/documents/:spaceKey/content', getDocumentContent);
+  router.get('/documents/:spaceKey/open', openDocumentWithSystemApp);
   router.post(
     '/documents/:spaceKey/add',
     upload.single('document'),

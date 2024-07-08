@@ -294,13 +294,6 @@ export const PDFPage = ({
   const drawings = annotations
     ? annotations.filter((a) => a.data.type === 'drawing')
     : null;
-  console.log(
-    'render page',
-    pageNumber,
-    pdfViewerContext.annotations,
-    annotations,
-    drawings
-  );
   return (
     <div
       role={role}

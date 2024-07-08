@@ -75,7 +75,7 @@
     "apidocs": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx swagger-jsdoc -d server/swaggerDefinition.js -o server/src/assets/openapi.yml  'server/src/handlers/**/*.ts' server/src/assets/schema/*.yml"
+        "command": "npx swagger-jsdoc -d server/swaggerDefinition.js -o server/src/assets/openapi.yml  \"server/src/handlers/**/*.ts\" server/src/assets/schema/*.yml"
       }
     }
   },

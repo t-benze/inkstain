@@ -8,11 +8,11 @@ const router = new Router();
 
 /**
  * @swagger
- * /platform:
+ * /system/platform:
  *   get:
  *     summary: Get platform information
  *     operationId: platformInfo
- *     tags: [Platform]
+ *     tags: [System]
  *     description: This endpoint returns the platform and home directory information of the server.
  *     responses:
  *       200:
@@ -64,14 +64,14 @@ const platformInfo = async (ctx) => {
 
 /**
  * @swagger
- * /platform/directories/{path}:
+ * /system/directories:
  *   get:
  *     operationId: listDirectories
  *     summary: List directories of a specified path
  *     description: This endpoint returns a list of directories in the specified path.
- *     tags: [Platform]
+ *     tags: [System]
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: path
  *         required: true
  *         schema:
@@ -102,7 +102,7 @@ const platformInfo = async (ctx) => {
  *         description: An error occurred while trying to list the folder.
  */
 const listDirectories = async (ctx) => {
-  const fullPath = ctx.params.path;
+  const fullPath = ctx.query.path;
 
   try {
     const files = await fs.readdir(fullPath, { withFileTypes: true });
@@ -127,9 +127,9 @@ const listDirectories = async (ctx) => {
   }
 };
 
-export const registerPlatformRoutes = (router: Router) => {
-  router.get('/platform', platformInfo);
-  router.get('/platform/directories/:path', listDirectories);
+export const registerSystemRoutes = (router: Router) => {
+  router.get('/system/platform', platformInfo);
+  router.get('/system/directories', listDirectories);
 };
 
 export default router;

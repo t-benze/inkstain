@@ -1,7 +1,7 @@
-describe('Platform API', () => {
-  context('GET /platform', () => {
+describe('System API', () => {
+  context('GET /system/platform', () => {
     it('should return platform information', () => {
-      cy.request('GET', '/api/v1/platform').then((response) => {
+      cy.request('GET', '/api/v1/system/platform').then((response) => {
         expect(response.status).to.eq(200);
         expect(response.body).to.have.property('platform');
         expect(response.body).to.have.property('homedir');
@@ -13,13 +13,13 @@ describe('Platform API', () => {
     });
   });
 
-  context('GET /platform/directories/{path}', () => {
+  context('GET /system/directories', () => {
     it("should list directories of the user's home directory", () => {
-      cy.request('GET', '/api/v1/platform').then((response) => {
+      cy.request('GET', '/api/v1/system/platform').then((response) => {
         const homedir = response.body.homedir;
         cy.request(
           'GET',
-          `/api/v1/platform/directories/${encodeURIComponent(homedir)}`
+          `/api/v1/system/directories?path=${encodeURIComponent(homedir)}`
         ).then((response) => {
           expect(response.status).to.eq(200);
           expect(response.body).to.be.an('array').that.has.length.above(0);

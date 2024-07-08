@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRightRegular } from '@fluentui/react-icons';
 import { useQuery } from '@tanstack/react-query';
 import { AppContext } from '~/web/app/context';
-import { platformApi } from '~/web/apiClient';
+import { systemApi } from '~/web/apiClient';
 
 const useStyles = makeStyles({
   breadcrumbs: {
@@ -71,7 +71,7 @@ export const DirectoryPickerDialog: React.FunctionComponent<
           path: d + appContext.platform.pathSep,
         }));
       }
-      return await platformApi.listDirectories({
+      return await systemApi.listDirectories({
         path: currentDirectoryInner,
       });
     },

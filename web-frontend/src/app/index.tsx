@@ -19,7 +19,7 @@ import {
   QueryClient,
 } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { platformApi, spacesApi } from '~/web/apiClient';
+import { spacesApi, systemApi } from '~/web/apiClient';
 import { AppContext } from './context';
 import { PrimarySidebar } from './PrimarySidebar';
 import { SecondarySidebar } from './SecondarySidebar';
@@ -140,7 +140,7 @@ const InkStain = () => {
   const { data: platform } = useQuery({
     queryKey: ['platform'],
     queryFn: async () => {
-      return await platformApi.platformInfo();
+      return await systemApi.platformInfo();
     },
   });
   const { data: spaces } = useQuery({
