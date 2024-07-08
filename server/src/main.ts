@@ -12,7 +12,7 @@ import bodyParser from 'koa-bodyparser';
 import AJV from 'ajv';
 import { registerDocumentRoutes } from './handlers/documents';
 import { registerSpaceRoutes } from './handlers/space';
-import { registerPlatformRoutes } from './handlers/platform';
+import { registerSystemRoutes } from './handlers/system';
 import { registerTaskRoutes } from './handlers/task';
 import swaggerUi from 'swagger-ui-dist';
 import { Sequelize } from 'sequelize';
@@ -22,7 +22,6 @@ import { DocumentService } from './services/DocumentService';
 import { TaskService } from './services/TaskService';
 import { initDB } from './db';
 import { Context } from './types';
-import { register } from 'module';
 const app = new Koa<Koa.DefaultState, Context>();
 
 app.use(async (ctx, next) => {
@@ -119,7 +118,7 @@ const router = new Router({
 // Register document routes
 registerDocumentRoutes(router);
 registerSpaceRoutes(router);
-registerPlatformRoutes(router);
+registerSystemRoutes(router);
 registerTaskRoutes(router);
 
 // Apply the routes to the application

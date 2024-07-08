@@ -1,6 +1,6 @@
 import {
   TasksApi,
-  PlatformApi,
+  SystemApi,
   DocumentsApi,
   SpacesApi,
   Configuration,
@@ -10,7 +10,7 @@ export const API_PREFIX = '/api/v1';
 const config = new Configuration({
   basePath: API_PREFIX,
 });
-export const platformApi = new PlatformApi(config);
+export const systemApi = new SystemApi(config);
 export const documentsApi = new DocumentsApi(config);
 export const spacesApi = new SpacesApi(config);
 export const taskApi = new TasksApi(config);

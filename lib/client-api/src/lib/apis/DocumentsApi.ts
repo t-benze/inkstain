@@ -123,6 +123,11 @@ export interface ListDocumentsRequest {
   path: string;
 }
 
+export interface OpenDocumentWithSystemAppRequest {
+  spaceKey: string;
+  path: string;
+}
+
 export interface RemoveDocumentTagsOperationRequest {
   spaceKey: string;
   path: string;
@@ -1227,6 +1232,67 @@ export class DocumentsApi extends runtime.BaseAPI {
       initOverrides
     );
     return await response.value();
+  }
+
+  /**
+   * Open a document with the system app
+   */
+  async openDocumentWithSystemAppRaw(
+    requestParameters: OpenDocumentWithSystemAppRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling openDocumentWithSystemApp.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling openDocumentWithSystemApp.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/open`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Open a document with the system app
+   */
+  async openDocumentWithSystemApp(
+    requestParameters: OpenDocumentWithSystemAppRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.openDocumentWithSystemAppRaw(requestParameters, initOverrides);
   }
 
   /**

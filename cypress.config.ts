@@ -130,7 +130,9 @@ export default defineConfig({
 
       on('task', {
         async 'platform:get'() {
-          const response = await fetch(config.baseUrl + '/api/v1/platform');
+          const response = await fetch(
+            config.baseUrl + '/api/v1/system/platform'
+          );
           return response.json();
         },
       });

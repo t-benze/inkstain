@@ -1,6 +1,6 @@
 apis/DocumentsApi.ts
-apis/PlatformApi.ts
 apis/SpacesApi.ts
+apis/SystemApi.ts
 apis/TasksApi.ts
 apis/index.ts
 index.ts

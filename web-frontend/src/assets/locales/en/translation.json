@@ -17,6 +17,8 @@
   "apply": "Apply",
   "clear": "Clear",
   "no_active_document": "No active document",
+  "open_with_system_app": "Open with system app",
+  "close": "Close",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",
