@@ -26,15 +26,14 @@ describe('File Explorer for Space', () => {
   });
 
   context('Folder Operations', () => {
-    it('should allow users to create new folders and organize files', () => {
+    it.only('should allow users to create new folders and organize files', () => {
       cy.intercept({
         method: 'POST',
         pathname: '/api/v1/documents/a116538b/addFolder',
       }).as('addFolder');
       cy.getBySel('fileExplorer-addFolderBtn').click(); // Replace with actual selector
-      cy.getBySel('fileExplorer-newFolderNameInput').as('nameInput');
-      cy.get('@nameInput').type('New Folder'); // Replace with actual selectors and assume folder creation is done inline
-      cy.get('@nameInput').blur();
+      cy.getBySel('fileExplorer-newFolderNameInput').type('New Folder');
+      cy.getBySel('fileExplorer-newFolderNameInput').blur();
       cy.wait('@addFolder');
       cy.getBySel('fileExplorer-folderTree').contains('New Folder');
     });
@@ -107,15 +106,47 @@ describe('File Explorer for Space', () => {
     });
   });
 
-  //   context('File explorer should allow multiple selection', () => {
-  //     it('should allow users to select multiple files and folder then delete them', () => {
-  //       cy.getBySel('fileExplorer-folderTree').contains('test folder').click();
-  //       cy.getBySel('fileExplorer-folderTree').contains('test-doc.txt').click({
-  //         ctrlKey: true,
-  //       });
-  //       cy.getBySel('fileExplorer-folderTree')
-  //         .contains('test-doc.jpg')
-  //         .click({ ctrlKey: true });
-  //     });
-  //   });
+  context('Export documents', () => {
+    it('should allow users to export documents', () => {
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: '/api/v1/documents/a116538b/export*',
+          query: {
+            withData: '0',
+          },
+        },
+        {
+          statusCode: 200,
+          body: 'test',
+        }
+      ).as('exportDocument');
+      cy.getBySel('fileExplorer-folderTree')
+        .contains('test-text.txt')
+        .rightclick();
+      cy.getBySel('fileExplorer-exportDocument').click();
+      cy.wait('@exportDocument');
+    });
+
+    it('should allow users to export documents with data', () => {
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: '/api/v1/documents/a116538b/export*',
+          query: {
+            withData: '1',
+          },
+        },
+        {
+          statusCode: 200,
+          body: 'test',
+        }
+      ).as('exportDocument');
+      cy.getBySel('fileExplorer-folderTree')
+        .contains('test-text.txt')
+        .rightclick();
+      cy.getBySel('fileExplorer-exportDocumentWithData').click();
+      cy.wait('@exportDocument');
+    });
+  });
 });

@@ -111,6 +111,10 @@ export const FolderTree = ({
               size="small"
               ref={newFolderInputRef}
               value={newFolderName}
+              onClick={(e) => {
+                // prevent propagation to TreeItem
+                e.stopPropagation();
+              }}
               onChange={(e, data) => {
                 setNewFolderName(data.value);
               }}
