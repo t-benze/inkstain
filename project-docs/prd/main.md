@@ -1,6 +1,6 @@
 # InkStain
 
-InkStain is a document management tool that allows user to serve local file to the browser for viewing and edting. It also provides some built-in functions to create meta data for the documents, such as tagging and annotations.
+InkStain is a document management software that allows users to serve local files in the browser for viewing and provides functionalities to assist the user in managing and interacting with the documents. It also provides some built-in functions to create meta data for the documents, such as tagging and annotations.
 
 ## Principles
 

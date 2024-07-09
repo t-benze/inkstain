@@ -22,7 +22,7 @@ import { Translation } from 'react-i18next';
 
 import { FilterRegular, FilterFilled } from '@fluentui/react-icons';
 import { AppContext } from '~/web/app/context';
-import { documentsApi, spacesApi } from '~/web/apiClient';
+import { searchApi, spacesApi } from '~/web/apiClient';
 import { useTranslation } from 'react-i18next';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
@@ -332,7 +332,7 @@ export const SearchDocumentView = () => {
       const existingData: SearchDocuments200Response['data'] = data
         ? data.documents
         : [];
-      const result = await documentsApi.searchDocuments({
+      const result = await searchApi.searchDocuments({
         spaceKey,
         tagFilter,
         attributeFilters: attributeFilterString,

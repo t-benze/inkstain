@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
+import Router from '@koa/router';
 import logger from '~/server/logger'; // Make sure to import your configured logger
 import {
   SpaceServiceError,
@@ -10,10 +11,10 @@ import { getFullPath } from '~/server/utils';
 
 /**
  * @swagger
- * /documents/{spaceKey}/search:
+ * /search/{spaceKey}/documents:
  *   get:
  *     summary: Search documents in a specific space
- *     tags: [Documents]
+ *     tags: [Search]
  *     operationId: searchDocuments
  *     parameters:
  *       - in: path
@@ -129,4 +130,8 @@ export const searchDocuments = async (ctx: Context) => {
       ctx.body = 'Unable to process the search due to server error.';
     }
   }
+};
+
+export const registerSearchRoutes = (router: Router) => {
+  router.get('/search/:spaceKey/documents', searchDocuments);
 };

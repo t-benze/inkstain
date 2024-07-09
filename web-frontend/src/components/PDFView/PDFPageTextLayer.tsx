@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { documentsApi } from '~/web/apiClient';
+import { intelligenceApi } from '~/web/apiClient';
 import {
   makeStyles,
   shorthands,
@@ -109,7 +109,7 @@ export const PDFPageTextLayer = ({
       const base64Data = canvasRef.current
         .toDataURL('image/jpeg')
         .split(',')[1]; // Remove the data URL prefix
-      const analyzedResult = await documentsApi.intelligenceAnalyzeDocument({
+      const analyzedResult = await intelligenceApi.intelligenceAnalyzeDocument({
         spaceKey,
         path: documentPath,
         pageNum,

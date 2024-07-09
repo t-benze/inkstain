@@ -1,4 +1,6 @@
 apis/DocumentsApi.ts
+apis/IntelligenceApi.ts
+apis/SearchApi.ts
 apis/SpacesApi.ts
 apis/SystemApi.ts
 apis/TasksApi.ts

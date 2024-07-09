@@ -16,7 +16,7 @@ import { Space } from '~/server/services/SpaceService';
 async function loadMockResponse() {
   const mockData = path.resolve(
     __dirname,
-    '../../../../assets/mocks/sample-pdf-analyze-layout-result.json'
+    '../../../assets/mocks/sample-pdf-analyze-layout-result.json'
   );
   return await fs.readFile(mockData, 'utf8');
 }
@@ -105,10 +105,10 @@ async function writeAnalyzedDocumentCache(
 
 /**
  * @swagger
- * /documents/{spaceKey}/analyze:
+ * /intelligence/{spaceKey}/analyze:
  *   post:
  *     summary: analyze doucment through intelligence service
- *     tags: [Documents]
+ *     tags: [Intelligence]
  *     operationId: intelligenceAnalyzeDocument
  *     parameters:
  *       - in: path
@@ -183,4 +183,8 @@ export const analyzeDocument = async (ctx: Router.RouterContext) => {
   } catch (e) {
     console.error(e);
   }
+};
+
+export const registerIntelligenceRoutes = (router: Router) => {
+  router.post('/intelligence/:spaceKey/analyze', analyzeDocument);
 };

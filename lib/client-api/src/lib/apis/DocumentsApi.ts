@@ -17,10 +17,8 @@ import type {
   AddDocumentTagsRequest,
   AddUpdateDocumentAttributesRequest,
   Annotation,
-  DocumentTextDetection,
   ListDocuments200ResponseInner,
   RemoveDocumentTagsRequest,
-  SearchDocuments200Response,
 } from '../models/index';
 import {
   AddDocumentTagsRequestFromJSON,
@@ -29,14 +27,10 @@ import {
   AddUpdateDocumentAttributesRequestToJSON,
   AnnotationFromJSON,
   AnnotationToJSON,
-  DocumentTextDetectionFromJSON,
-  DocumentTextDetectionToJSON,
   ListDocuments200ResponseInnerFromJSON,
   ListDocuments200ResponseInnerToJSON,
   RemoveDocumentTagsRequestFromJSON,
   RemoveDocumentTagsRequestToJSON,
-  SearchDocuments200ResponseFromJSON,
-  SearchDocuments200ResponseToJSON,
 } from '../models/index';
 
 export interface AddDocumentRequest {
@@ -90,6 +84,12 @@ export interface DeleteFolderRequest {
   path: string;
 }
 
+export interface ExportDocumentRequest {
+  spaceKey: string;
+  path: string;
+  withData?: string;
+}
+
 export interface GetDocumentAnnotationsRequest {
   spaceKey: string;
   path: string;
@@ -110,14 +110,6 @@ export interface GetDocumentTagsRequest {
   path: string;
 }
 
-export interface IntelligenceAnalyzeDocumentRequest {
-  spaceKey: string;
-  path: string;
-  pageNum: number;
-  body: string;
-  mock?: number;
-}
-
 export interface ListDocumentsRequest {
   spaceKey: string;
   path: string;
@@ -132,14 +124,6 @@ export interface RemoveDocumentTagsOperationRequest {
   spaceKey: string;
   path: string;
   removeDocumentTagsRequest: RemoveDocumentTagsRequest;
-}
-
-export interface SearchDocumentsRequest {
-  spaceKey: string;
-  tagFilter?: Array<string>;
-  attributeFilters?: string;
-  offset?: number;
-  limit?: number;
 }
 
 export interface UpdateDocumentAnnotationRequest {
@@ -808,6 +792,75 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
+   * Export a document to a different format
+   */
+  async exportDocumentRaw(
+    requestParameters: ExportDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Blob>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling exportDocument.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling exportDocument.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    if (requestParameters.withData !== undefined) {
+      queryParameters['withData'] = requestParameters.withData;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/export`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.BlobApiResponse(response);
+  }
+
+  /**
+   * Export a document to a different format
+   */
+  async exportDocument(
+    requestParameters: ExportDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Blob> {
+    const response = await this.exportDocumentRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
    * Retrieve annotations of a document in a specific space
    */
   async getDocumentAnnotationsRaw(
@@ -1070,104 +1123,6 @@ export class DocumentsApi extends runtime.BaseAPI {
   }
 
   /**
-   * analyze doucment through intelligence service
-   */
-  async intelligenceAnalyzeDocumentRaw(
-    requestParameters: IntelligenceAnalyzeDocumentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<DocumentTextDetection>> {
-    if (
-      requestParameters.spaceKey === null ||
-      requestParameters.spaceKey === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling intelligenceAnalyzeDocument.'
-      );
-    }
-
-    if (
-      requestParameters.path === null ||
-      requestParameters.path === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'path',
-        'Required parameter requestParameters.path was null or undefined when calling intelligenceAnalyzeDocument.'
-      );
-    }
-
-    if (
-      requestParameters.pageNum === null ||
-      requestParameters.pageNum === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'pageNum',
-        'Required parameter requestParameters.pageNum was null or undefined when calling intelligenceAnalyzeDocument.'
-      );
-    }
-
-    if (
-      requestParameters.body === null ||
-      requestParameters.body === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'body',
-        'Required parameter requestParameters.body was null or undefined when calling intelligenceAnalyzeDocument.'
-      );
-    }
-
-    const queryParameters: any = {};
-
-    if (requestParameters.path !== undefined) {
-      queryParameters['path'] = requestParameters.path;
-    }
-
-    if (requestParameters.pageNum !== undefined) {
-      queryParameters['pageNum'] = requestParameters.pageNum;
-    }
-
-    if (requestParameters.mock !== undefined) {
-      queryParameters['mock'] = requestParameters.mock;
-    }
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters['Content-Type'] = 'text/plain';
-
-    const response = await this.request(
-      {
-        path: `/documents/{spaceKey}/analyze`.replace(
-          `{${'spaceKey'}}`,
-          encodeURIComponent(String(requestParameters.spaceKey))
-        ),
-        method: 'POST',
-        headers: headerParameters,
-        query: queryParameters,
-        body: requestParameters.body as any,
-      },
-      initOverrides
-    );
-
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      DocumentTextDetectionFromJSON(jsonValue)
-    );
-  }
-
-  /**
-   * analyze doucment through intelligence service
-   */
-  async intelligenceAnalyzeDocument(
-    requestParameters: IntelligenceAnalyzeDocumentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<DocumentTextDetection> {
-    const response = await this.intelligenceAnalyzeDocumentRaw(
-      requestParameters,
-      initOverrides
-    );
-    return await response.value();
-  }
-
-  /**
    * List all documents within a space or sub-folder
    */
   async listDocumentsRaw(
@@ -1369,75 +1324,6 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.removeDocumentTagsRaw(requestParameters, initOverrides);
-  }
-
-  /**
-   * Search documents in a specific space
-   */
-  async searchDocumentsRaw(
-    requestParameters: SearchDocumentsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<SearchDocuments200Response>> {
-    if (
-      requestParameters.spaceKey === null ||
-      requestParameters.spaceKey === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'spaceKey',
-        'Required parameter requestParameters.spaceKey was null or undefined when calling searchDocuments.'
-      );
-    }
-
-    const queryParameters: any = {};
-
-    if (requestParameters.tagFilter) {
-      queryParameters['tagFilter'] = requestParameters.tagFilter;
-    }
-
-    if (requestParameters.attributeFilters !== undefined) {
-      queryParameters['attributeFilters'] = requestParameters.attributeFilters;
-    }
-
-    if (requestParameters.offset !== undefined) {
-      queryParameters['offset'] = requestParameters.offset;
-    }
-
-    if (requestParameters.limit !== undefined) {
-      queryParameters['limit'] = requestParameters.limit;
-    }
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    const response = await this.request(
-      {
-        path: `/documents/{spaceKey}/search`.replace(
-          `{${'spaceKey'}}`,
-          encodeURIComponent(String(requestParameters.spaceKey))
-        ),
-        method: 'GET',
-        headers: headerParameters,
-        query: queryParameters,
-      },
-      initOverrides
-    );
-
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      SearchDocuments200ResponseFromJSON(jsonValue)
-    );
-  }
-
-  /**
-   * Search documents in a specific space
-   */
-  async searchDocuments(
-    requestParameters: SearchDocumentsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<SearchDocuments200Response> {
-    const response = await this.searchDocumentsRaw(
-      requestParameters,
-      initOverrides
-    );
-    return await response.value();
   }
 
   /**

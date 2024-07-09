@@ -328,7 +328,9 @@ export const SpaceManagementView = () => {
                 data-test={`recentSpaceBtn-${space.key}`}
                 appearance="transparent"
                 size="large"
-                onClick={() => appContext.openSpace(space)}
+                onClick={() => {
+                  window.location.href = `${window.location.origin}?space=${space.key}`;
+                }}
               >
                 {space.name}
               </Button>

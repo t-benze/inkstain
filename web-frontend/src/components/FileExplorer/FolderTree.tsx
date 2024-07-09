@@ -12,13 +12,8 @@ import {
   makeStyles,
   Input,
   mergeClasses,
-  Menu,
-  MenuItem,
-  MenuList,
-  MenuPopover,
   MenuTrigger,
 } from '@fluentui/react-components';
-import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
@@ -45,7 +40,6 @@ interface FolderTreeProps {
   onTreeItemDoubleClicked?: OnTreeItemClicked;
   addNewFolderTarget: string | null;
   addFolder: (params: { targetFolder: string; name: string }) => void;
-  deleteFiles: () => void;
 }
 
 const useStyles = makeStyles({
@@ -72,10 +66,8 @@ export const FolderTree = ({
   onTreeItemDoubleClicked,
   addNewFolderTarget,
   addFolder,
-  deleteFiles,
 }: FolderTreeProps) => {
   const styles = useStyles();
-  const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
   const currentFolder = path.endsWith(appContext.platform.pathSep)
     ? path.slice(0, -appContext.platform.pathSep.length)
@@ -145,81 +137,64 @@ export const FolderTree = ({
           (document.type === 'folder' ? appContext.platform.pathSep : '');
         const itemType = document.type === 'folder' ? 'branch' : 'leaf';
         return (
-          <Menu key={value} openOnContext positioning="below-end">
-            <MenuTrigger disableButtonEnhancement>
-              <TreeItem
-                data-test={`fileExplorer-${document.type}`}
-                onContextMenu={(e) => {
-                  e.stopPropagation();
-                  onTreeItemClicked &&
-                    onTreeItemClicked({
-                      event: e,
-                      value: value,
-                      itemType,
-                    });
-                }}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  onTreeItemDoubleClicked &&
-                    onTreeItemDoubleClicked({
-                      event: e,
-                      value: value,
-                      itemType,
-                    });
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTreeItemClicked &&
-                    onTreeItemClicked({
-                      event: e,
-                      value: value,
-                      itemType,
-                    });
-                }}
-                itemType={itemType}
-                value={value}
-              >
-                <TreeItemLayout
-                  className={mergeClasses(
-                    styles.itemLayout,
-                    selection.has(value) ? styles.itemSelected : undefined
-                  )}
-                  main={{ style: { width: '100%' } }}
-                >
-                  <Text
-                    wrap={false}
-                    truncate={true}
-                    className={styles.itemText}
-                  >
-                    {document.name}
-                  </Text>
-                </TreeItemLayout>
-                {document.type === 'folder' && (
-                  <FolderTree
-                    addFolder={addFolder}
-                    onTreeItemClicked={onTreeItemClicked}
-                    selection={selection}
-                    spaceKey={spaceKey}
-                    path={document.path + appContext.platform.pathSep}
-                    level={level + 1}
-                    openItems={openItems}
-                    addNewFolderTarget={addNewFolderTarget}
-                    deleteFiles={deleteFiles}
-                  />
+          <MenuTrigger disableButtonEnhancement>
+            <TreeItem
+              data-test={`fileExplorer-${document.type}`}
+              onContextMenu={(e) => {
+                e.stopPropagation();
+                onTreeItemClicked &&
+                  onTreeItemClicked({
+                    event: e,
+                    value: value,
+                    itemType,
+                  });
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                onTreeItemDoubleClicked &&
+                  onTreeItemDoubleClicked({
+                    event: e,
+                    value: value,
+                    itemType,
+                  });
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onTreeItemClicked &&
+                  onTreeItemClicked({
+                    event: e,
+                    value: value,
+                    itemType,
+                  });
+              }}
+              itemType={itemType}
+              value={value}
+            >
+              <TreeItemLayout
+                className={mergeClasses(
+                  styles.itemLayout,
+                  selection.has(value) ? styles.itemSelected : undefined
                 )}
-              </TreeItem>
-            </MenuTrigger>
-            <MenuPopover>
-              <MenuList>
-                <MenuItem
-                  data-test="fileExplorer-contextDelete"
-                  onClick={deleteFiles}
-                >
-                  {t('delete')}
-                </MenuItem>
-              </MenuList>
-            </MenuPopover>
-          </Menu>
+                main={{ style: { width: '100%' } }}
+              >
+                <Text wrap={false} truncate={true} className={styles.itemText}>
+                  {document.name}
+                </Text>
+              </TreeItemLayout>
+              {document.type === 'folder' && (
+                <FolderTree
+                  addFolder={addFolder}
+                  onTreeItemClicked={onTreeItemClicked}
+                  selection={selection}
+                  spaceKey={spaceKey}
+                  path={document.path + appContext.platform.pathSep}
+                  level={level + 1}
+                  openItems={openItems}
+                  addNewFolderTarget={addNewFolderTarget}
+                />
+              )}
+            </TreeItem>
+          </MenuTrigger>
         );
       })}
     </Tree>

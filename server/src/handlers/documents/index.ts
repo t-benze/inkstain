@@ -3,14 +3,16 @@ import os from 'os';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
+import { createWriteStream, createReadStream } from 'fs';
+import { PassThrough } from 'stream';
 import multer, { File } from '@koa/multer';
 import {
   SpaceServiceError,
   ErrorCode as SpaceServiceErrorCode,
 } from '~/server/services/SpaceService';
 import logger from '~/server/logger'; // Make sure to import your configured logger
+import archiver from 'archiver';
 
-import { analyzeDocument } from './intelligence';
 import {
   getDocumentAttributes,
   addUpdateDocumentAttributes,
@@ -24,9 +26,38 @@ import {
 } from './annotation';
 
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
-import { searchDocuments } from './search';
-import { Context } from '~/server/types';
+import { Context, MetaData } from '~/server/types';
 import { traverseDirectory, getFullPath } from '~/server/utils';
+
+/**
+ * Zips the contents of the specified folder and returns a buffer.
+ * @param folderPath - The path of the folder to zip.
+ * @returns A promise that resolves with the zip buffer.
+ */
+export const zipFolder = (folderPath: string): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const archive = archiver('zip', {
+      zlib: { level: 9 }, // Sets the compression level.
+    });
+
+    const buffers: Buffer[] = [];
+    const passthrough = new PassThrough();
+
+    passthrough.on('data', (chunk) => buffers.push(chunk));
+    passthrough.on('end', () => resolve(Buffer.concat(buffers)));
+    passthrough.on('error', (err) => reject(err));
+
+    archive.on('error', (err) => reject(err));
+
+    archive.pipe(passthrough);
+
+    // Append files from the directory
+    archive.directory(folderPath, false);
+
+    // Finalize the archive (i.e., we are done appending files but streams have to finish yet)
+    archive.finalize();
+  });
+};
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -493,6 +524,104 @@ const deleteFolder = async (ctx: Context) => {
   }
 };
 
+/**
+ * @swagger
+ * /documents/{spaceKey}/export:
+ *   get:
+ *     summary: Export a document to a different format
+ *     operationId: exportDocument
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The relative path to the document within the space
+ *       - in: query
+ *         name: withData
+ *         schema:
+ *           type: string
+ *         description: 1 to export the document with InkStain data, 0 to export the document without InkStain data
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *         headers:
+ *           Content-Disposition:
+ *             schema:
+ *               type: string
+ *               description: Attachment header with filename
+ *           Content-Type:
+ *             schema:
+ *               type: string
+ *               description: MIME type of the document
+ *       400:
+ *         description: Invalid parameters provided.
+ *       404:
+ *         description: Space or document not found.
+ */
+export const exportDocument = async (ctx: Context) => {
+  const spaceKey = ctx.params.spaceKey;
+  const filePath = (ctx.request.query.path as string) + '.ink';
+  const withData = ctx.request.query.withData === '1';
+
+  try {
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+    const fileMetaStr = await fs.readFile(
+      path.join(spaceRoot, filePath, 'meta.json'),
+      'utf-8'
+    );
+    const meta = JSON.parse(fileMetaStr) as MetaData;
+    const fileName =
+      meta.attributes.title ||
+      (ctx.request.query.path as string).replace(
+        path.basename(ctx.request.query.path as string),
+        ''
+      );
+    const extension = path.extname(ctx.query.path as string);
+    if (withData) {
+      ctx.set(
+        'Content-disposition',
+        `attachment; filename=${fileName}.ink.zip`
+      );
+      ctx.set('Content-type', 'application/zip');
+      ctx.body = await zipFolder(path.join(spaceRoot, filePath));
+    } else {
+      ctx.set(
+        'Content-disposition',
+        `attachment; filename=${meta.attributes.title || fileName}`
+      );
+      ctx.set('Content-type', meta.mimetype);
+      // Stream the file content
+      ctx.body = createReadStream(
+        path.join(spaceRoot, filePath, `content${extension}`)
+      );
+    }
+    // Log the successful operation
+    logger.info(`exported document from ${path.join(filePath, 'content')}`);
+  } catch (error) {
+    if (error instanceof SpaceServiceError) {
+      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
+        ctx.status = 404;
+        ctx.body = error.message;
+        return;
+      }
+    }
+    logger.error(error.message);
+    throw error;
+  }
+};
 // Register routes and export
 export const registerDocumentRoutes = (router: Router) => {
   // document files and folders
@@ -523,6 +652,5 @@ export const registerDocumentRoutes = (router: Router) => {
   router.put('/documents/:spaceKey/annotations', updateDocumentAnnotation);
   router.delete('/documents/:spaceKey/annotations', deleteDocumentAnnotations);
 
-  router.post('/documents/:spaceKey/analyze', analyzeDocument);
-  router.get('/documents/:spaceKey/search', searchDocuments);
+  router.get('/documents/:spaceKey/export', exportDocument);
 };

@@ -6,16 +6,12 @@ The InkStain application is a document management system designed for efficient 
 
 The MenuBar is a condensed top-level navigation component that provides access to core features:
 
-- InkStain Logo: Doubles as a home button, redirecting users to the Main page.
-- Menu Items: Dropdowns for quick access to 'Spaces', 'Recent Documents', 'Settings', and 'Search'.
-- User Profile: Allows users to manage their account settings and log out.
-
 ## Primary Sidebar (Collapsible)
 
 Provides navigational capabilities within the chosen 'Space':
 
-- Space Explorer: A tree view for document and folder navigation.
-- Collapse/Expand Toggle: Allows users to adjust sidebar visibility.
+- File Explorer: A tree view for document and folder navigation.
+- Other views depending on the active document type
 
 ## Main Area
 
@@ -30,7 +26,7 @@ The main area mainly consist of a Tab Container for viewing and editing the open
 
 #### Space Management
 
-A page for managing 'Spaces', where users can organize groups of related documents:
+A view for managing 'Spaces', where users can organize groups of related documents:
 
 - 'Spaces' List: Shows existing 'Spaces', with options like open, edit, and delete.
 - Create 'Space' Button: Initiates the creation of a new 'Space', prompting the user to provide a name.
@@ -38,7 +34,11 @@ A page for managing 'Spaces', where users can organize groups of related documen
 
 #### Search Document
 
-A page to search documents in the active space via tags and document attributes
+A view to search documents in the active space via tags and document attributes
+
+#### PDF Document View
+
+A view for displaying PDF document and tools for annotating and navigating in the document.
 
 ## Secondary Sidebar (Metadata Panel)
 

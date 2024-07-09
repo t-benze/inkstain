@@ -13,12 +13,18 @@
  */
 
 import * as runtime from '../runtime';
+import type { DocumentTextDetection } from '../models/index';
+import {
+  DocumentTextDetectionFromJSON,
+  DocumentTextDetectionToJSON,
+} from '../models/index';
 
 export interface IntelligenceAnalyzeDocumentRequest {
   spaceKey: string;
   path: string;
   pageNum: number;
   body: string;
+  mock?: number;
 }
 
 /**
@@ -31,7 +37,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
   async intelligenceAnalyzeDocumentRaw(
     requestParameters: IntelligenceAnalyzeDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<DocumentTextDetection>> {
     if (
       requestParameters.spaceKey === null ||
       requestParameters.spaceKey === undefined
@@ -74,10 +80,6 @@ export class IntelligenceApi extends runtime.BaseAPI {
 
     const queryParameters: any = {};
 
-    if (requestParameters.spaceKey !== undefined) {
-      queryParameters['spaceKey'] = requestParameters.spaceKey;
-    }
-
     if (requestParameters.path !== undefined) {
       queryParameters['path'] = requestParameters.path;
     }
@@ -86,13 +88,20 @@ export class IntelligenceApi extends runtime.BaseAPI {
       queryParameters['pageNum'] = requestParameters.pageNum;
     }
 
+    if (requestParameters.mock !== undefined) {
+      queryParameters['mock'] = requestParameters.mock;
+    }
+
     const headerParameters: runtime.HTTPHeaders = {};
 
     headerParameters['Content-Type'] = 'text/plain';
 
     const response = await this.request(
       {
-        path: `/intelligence/analyze_document`,
+        path: `/intelligence/{spaceKey}/analyze`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
@@ -101,7 +110,9 @@ export class IntelligenceApi extends runtime.BaseAPI {
       initOverrides
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentTextDetectionFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -110,7 +121,11 @@ export class IntelligenceApi extends runtime.BaseAPI {
   async intelligenceAnalyzeDocument(
     requestParameters: IntelligenceAnalyzeDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<void> {
-    await this.intelligenceAnalyzeDocumentRaw(requestParameters, initOverrides);
+  ): Promise<DocumentTextDetection> {
+    const response = await this.intelligenceAnalyzeDocumentRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
   }
 }
