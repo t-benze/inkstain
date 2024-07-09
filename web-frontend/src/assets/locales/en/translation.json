@@ -54,7 +54,9 @@
     "search_documents": "Search",
     "adding_document": "Adding document",
     "adding_document_failed": "Adding document failed",
-    "adding_document_succeeded": "Adding document succeeded"
+    "adding_document_succeeded": "Adding document succeeded",
+    "export_raw": "Export",
+    "export_with_data": "Export with InkStain data"
   },
   "search_document": {
     "select_tags": "Select tags"

@@ -14,6 +14,8 @@ import { registerDocumentRoutes } from './handlers/documents';
 import { registerSpaceRoutes } from './handlers/space';
 import { registerSystemRoutes } from './handlers/system';
 import { registerTaskRoutes } from './handlers/task';
+import { registerIntelligenceRoutes } from './handlers/intelligence';
+import { registerSearchRoutes } from './handlers/search';
 import swaggerUi from 'swagger-ui-dist';
 import { Sequelize } from 'sequelize';
 import { RequestParamsError } from './handlers/common';
@@ -115,11 +117,13 @@ const router = new Router({
   prefix: '/api/v1',
 });
 
-// Register document routes
+// Register routes
 registerDocumentRoutes(router);
 registerSpaceRoutes(router);
 registerSystemRoutes(router);
 registerTaskRoutes(router);
+registerIntelligenceRoutes(router);
+registerSearchRoutes(router);
 
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());

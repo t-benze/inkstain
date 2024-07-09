@@ -12,6 +12,10 @@ import {
   useToastController,
   useId,
   ProgressBar,
+  Menu,
+  MenuItem,
+  MenuList,
+  MenuPopover,
 } from '@fluentui/react-components';
 import {
   DocumentAddRegular,
@@ -59,7 +63,7 @@ const getFolderPath = (
 };
 
 const useSelection = () => {
-  const lastSelect = React.useRef<{
+  const [lastSelect, setLastSelect] = React.useState<{
     value: string;
     itemType: string;
   } | null>(null);
@@ -84,12 +88,12 @@ const useSelection = () => {
         // No modifier keys: Select only the clicked item (and deselect others)
         setSelection(new Set([value]));
       }
-      lastSelect.current = {
+      setLastSelect({
         value,
         itemType: data.itemType,
-      };
+      });
     },
-    [selection, setSelection]
+    [selection, setSelection, setLastSelect]
   );
 
   return {
@@ -99,6 +103,48 @@ const useSelection = () => {
   } as const;
 };
 
+const ContextMenu = ({
+  lastSelect,
+  deleteFiles,
+  exportFile,
+}: {
+  lastSelect: {
+    value: string;
+    itemType: string;
+  } | null;
+  deleteFiles: () => void;
+  exportFile: (withData: boolean) => void;
+}) => {
+  const { t } = useTranslation();
+  const enableExport = lastSelect && lastSelect?.itemType === 'leaf';
+  return (
+    <MenuPopover>
+      <MenuList>
+        <MenuItem data-test="fileExplorer-contextDelete" onClick={deleteFiles}>
+          {t('delete')}
+        </MenuItem>
+        <MenuItem
+          data-test="fileExplorer-exportDocument"
+          onClick={() => {
+            exportFile(false);
+          }}
+          disabled={!enableExport}
+        >
+          {t('file_explorer.export_raw')}
+        </MenuItem>
+        <MenuItem
+          data-test="fileExplorer-exportDocumentWithData"
+          onClick={() => {
+            exportFile(true);
+          }}
+          disabled={!enableExport}
+        >
+          {t('file_explorer.export_with_data')}
+        </MenuItem>
+      </MenuList>
+    </MenuPopover>
+  );
+};
 export const FileExplorer = ({ space }: FileExplorerProps) => {
   const styles = useStyles();
   const queryClient = useQueryClient();
@@ -145,8 +191,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       if (!file) throw new Error('No file selected');
       const formData = new FormData();
       formData.append('document', file);
-      const folder = lastSelect.current
-        ? getFolderPath(lastSelect.current, appContext.platform.pathSep)
+      const folder = lastSelect
+        ? getFolderPath(lastSelect, appContext.platform.pathSep)
         : '';
       const path =
         folder === ''
@@ -252,8 +298,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
 
   const handleAddFolder = React.useCallback(() => {
     // const folder
-    const targetFolder = lastSelect.current
-      ? getFolderPath(lastSelect.current, appContext.platform.pathSep)
+    const targetFolder = lastSelect
+      ? getFolderPath(lastSelect, appContext.platform.pathSep)
       : '';
     setAddNewFolderTarget(targetFolder);
   }, [setAddNewFolderTarget, lastSelect, appContext.platform.pathSep]);
@@ -282,11 +328,8 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   });
 
   const handleSyncFolder = React.useCallback(() => {
-    if (lastSelect.current) {
-      const folder = getFolderPath(
-        lastSelect.current,
-        appContext.platform.pathSep
-      );
+    if (lastSelect) {
+      const folder = getFolderPath(lastSelect, appContext.platform.pathSep);
       queryClient.invalidateQueries({
         queryKey: ['documents', space.key, folder],
       });
@@ -299,11 +342,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
 
   const deleteFiles = React.useCallback(async () => {
     const filesToDelete =
-      selection.size > 1
-        ? selection
-        : lastSelect.current
-        ? [lastSelect.current.value]
-        : [];
+      selection.size > 1 ? selection : lastSelect ? [lastSelect.value] : [];
     const foldersToRefresh = new Set<string>();
     for (const file of filesToDelete) {
       if (file.endsWith(appContext.platform.pathSep)) {
@@ -339,6 +378,57 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     lastSelect,
     queryClient,
   ]);
+
+  const exportFile = React.useCallback(
+    async (withData: boolean) => {
+      if (lastSelect) {
+        try {
+          console.log('export file', lastSelect.value);
+          const response = await documentsApi.exportDocumentRaw({
+            spaceKey: space.key,
+            path: lastSelect.value,
+            withData: withData ? '1' : '0',
+          });
+
+          if (!response.raw.ok) {
+            throw new Error('Export failed');
+          }
+          // Get the filename from the Content-Disposition header
+          const contentDisposition = response.raw.headers.get(
+            'Content-Disposition'
+          );
+          const filenameMatch =
+            contentDisposition &&
+            contentDisposition.match(/filename="?(.+)"?/i);
+          const filename = filenameMatch
+            ? filenameMatch[1]
+            : 'exported-document';
+
+          // Create a Blob from the response
+          const blob = await response.raw.blob();
+
+          // Create a temporary URL for the Blob
+          const url = window.URL.createObjectURL(blob);
+
+          // Create a temporary anchor element and trigger the download
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+
+          // Clean up
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } catch (error) {
+          console.error('Error exporting document:', error);
+          // Handle the error (e.g., show an error message to the user)
+        }
+      }
+    },
+    [lastSelect, space.key]
+  );
 
   const headerButtons = (
     <>
@@ -437,18 +527,24 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         style={{ display: 'none' }}
         onChange={handleFileInputChange}
       />
-      <FolderTree
-        spaceKey={space.key}
-        path=""
-        selection={selection}
-        openItems={openItems}
-        onOpenChange={handleOpenChange}
-        onTreeItemClicked={handleTreeItemClicked}
-        onTreeItemDoubleClicked={handleTreeItemDoubleClicked}
-        addNewFolderTarget={addNewFolderTarget}
-        addFolder={addFolder}
-        deleteFiles={deleteFiles}
-      />
+      <Menu openOnContext positioning="below-end">
+        <FolderTree
+          spaceKey={space.key}
+          path=""
+          selection={selection}
+          openItems={openItems}
+          onOpenChange={handleOpenChange}
+          onTreeItemClicked={handleTreeItemClicked}
+          onTreeItemDoubleClicked={handleTreeItemDoubleClicked}
+          addNewFolderTarget={addNewFolderTarget}
+          addFolder={addFolder}
+        />
+        <ContextMenu
+          lastSelect={lastSelect}
+          deleteFiles={deleteFiles}
+          exportFile={exportFile}
+        />
+      </Menu>
     </div>
   );
   return (
