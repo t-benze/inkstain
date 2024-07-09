@@ -81,7 +81,10 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
     }
     default:
       return (
-        <div className={classes.defaultView}>
+        <div
+          className={classes.defaultView}
+          data-test="documentView-unsupported"
+        >
           <Image
             width={400}
             height={400}
@@ -103,6 +106,7 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
               {t('open_with_system_app')}
             </Button>
             <Button
+              data-test="documentView-unsupported-closeBtn"
               size="large"
               onClick={() => {
                 appContext.closeDocument(name);

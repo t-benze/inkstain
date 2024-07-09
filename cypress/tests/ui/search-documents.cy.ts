@@ -65,7 +65,7 @@ describe('Search documents in a space', () => {
 
   context('Test Pagination', () => {
     beforeEach(() => {
-      cy.intercept('/api/v1/documents/a116538b/search*', (req) => {
+      cy.intercept('/api/v1/search/a116538b/documents*', (req) => {
         const offset = req.query.offset
           ? parseInt(req.query.offset as string)
           : 0;

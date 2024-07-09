@@ -144,6 +144,7 @@ async function start() {
     const sequelize = new Sequelize({
       dialect: 'sqlite',
       storage: sqlitePath,
+      logging: false,
     });
     await sequelize.authenticate();
     await initDB(sequelize);
