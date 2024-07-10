@@ -3,6 +3,8 @@
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "cypress",
+  "tags": [],
+  "implicitDependencies": ["web-frontend", "server"],
   "targets": {
     "e2eDev": {
       "executor": "nx:run-commands",
@@ -21,8 +23,7 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
+      "executor": "@nx/eslint:lint"
     },
     "component": {
       "executor": "@nx/cypress:cypress",
@@ -38,7 +39,5 @@
         "command": "npx cypress open --component"
       }
     }
-  },
-  "implicitDependencies": ["web-frontend", "server"],
-  "tags": []
+  }
 }

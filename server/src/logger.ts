@@ -25,22 +25,28 @@ const logger = winston.createLogger({
       level: 'error',
     }),
   ],
-  exceptionHandlers: [
-    new DailyRotateFile({
-      filename: path.join(directories.stateDir, 'exception-%DATE%.log'),
-      datePattern: 'YYYY-MM-DD',
-      maxSize: '10m',
-      maxFiles: '7d', // Keep exception logs for 7 days
-    }),
-  ],
-  rejectionHandlers: [
-    new DailyRotateFile({
-      filename: path.join(directories.stateDir, 'rejections-%DATE%.log'),
-      datePattern: 'YYYY-MM-DD',
-      maxSize: '10m',
-      maxFiles: '7d', // Keep rejection logs for 7 days
-    }),
-  ],
+  exceptionHandlers:
+    process.env.NODE_ENV === 'production'
+      ? [
+          new DailyRotateFile({
+            filename: path.join(directories.stateDir, 'exception-%DATE%.log'),
+            datePattern: 'YYYY-MM-DD',
+            maxSize: '10m',
+            maxFiles: '7d', // Keep exception logs for 7 days
+          }),
+        ]
+      : undefined,
+  rejectionHandlers:
+    process.env.NODE_ENV === 'production'
+      ? [
+          new DailyRotateFile({
+            filename: path.join(directories.stateDir, 'rejections-%DATE%.log'),
+            datePattern: 'YYYY-MM-DD',
+            maxSize: '10m',
+            maxFiles: '7d', // Keep rejection logs for 7 days
+          }),
+        ]
+      : undefined,
 });
 
 if (process.env.NODE_ENV === 'development') {
