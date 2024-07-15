@@ -18,7 +18,8 @@
     "paths": {
       "@inkstain/client-api": ["lib/client-api/src/index.ts"],
       "~/server/*": ["server/src/*"],
-      "~/web/*": ["web-frontend/src/*"]
+      "~/web/*": ["web-frontend/src/*"],
+      "~/chrome-extension/*": ["browser-extension/chrome/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

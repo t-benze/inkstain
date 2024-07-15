@@ -1,0 +1,81 @@
+{
+  "name": "chome-extension-inkstain",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "browser-extension/chrome/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "compiler": "babel",
+        "outputPath": "dist/browser-extension/chrome",
+        "index": "browser-extension/chrome/src/index.html",
+        "baseHref": "/",
+        "main": "browser-extension/chrome/src/main.tsx",
+        "tsConfig": "browser-extension/chrome/tsconfig.app.json",
+        "assets": [
+          "browser-extension/chrome/src/favicon.ico",
+          "browser-extension/chrome/src/assets",
+          "browser-extension/chrome/src/service-worker",
+          "browser-extension/chrome/src/manifest.json"
+        ],
+        "styles": ["browser-extension/chrome/src/styles.css"],
+        "scripts": [],
+        "webpackConfig": "browser-extension/chrome/webpack.config.js"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true,
+          "vendorChunk": true
+        },
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "browser-extension/chrome/src/environments/environment.ts",
+              "with": "browser-extension/chrome/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": false,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/webpack:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "chome-extension-inkstain:build",
+        "hmr": true,
+        "proxyConfig": "browser-extension/chrome/proxy.conf.json"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "chome-extension-inkstain:build:development"
+        },
+        "production": {
+          "buildTarget": "chome-extension-inkstain:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "browser-extension/chrome/jest.config.ts"
+      }
+    }
+  }
+}
