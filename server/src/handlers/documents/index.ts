@@ -84,6 +84,12 @@ const upload = multer({
  *         description: |
  *           The relative path within the space.
  *           The path should be URL-encoded.
+ *       - in: query
+ *         name: folderOnly
+ *         schema:
+ *           type: string
+ *           enum: [0, 1]
+ *         description: Whether to only return folders
  *     responses:
  *       200:
  *         description: A list of documents and sub-folders within the space or sub-folder.
@@ -120,6 +126,7 @@ const upload = multer({
 const listDocuments = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
   const filePath = ctx.query.path as string;
+  const folderOnly = ctx.query.folderOnly === '1';
 
   try {
     const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
@@ -128,7 +135,7 @@ const listDocuments = async (ctx: Context) => {
       .filter((file) => file !== '.inkstain')
       .map(async (file) => {
         const isFile = file.endsWith('.ink');
-        file = file.replace('.ink', '');
+        file = isFile ? file.slice(0, file.length - 4) : file;
         return {
           name: file,
           type: isFile ? 'file' : 'folder',
@@ -137,7 +144,12 @@ const listDocuments = async (ctx: Context) => {
         };
       });
     ctx.status = 200;
-    ctx.body = await Promise.all(results);
+    const data = await Promise.all(results);
+    if (folderOnly) {
+      ctx.body = data.filter((item) => item.type === 'folder');
+    } else {
+      ctx.body = data;
+    }
     logger.info(
       `Listed documents in space '${spaceKey}' at path '${filePath || '/'}'`
     );

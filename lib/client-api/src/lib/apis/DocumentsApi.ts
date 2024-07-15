@@ -113,6 +113,7 @@ export interface GetDocumentTagsRequest {
 export interface ListDocumentsRequest {
   spaceKey: string;
   path: string;
+  folderOnly?: ListDocumentsFolderOnlyEnum;
 }
 
 export interface OpenDocumentWithSystemAppRequest {
@@ -1155,6 +1156,10 @@ export class DocumentsApi extends runtime.BaseAPI {
       queryParameters['path'] = requestParameters.path;
     }
 
+    if (requestParameters.folderOnly !== undefined) {
+      queryParameters['folderOnly'] = requestParameters.folderOnly;
+    }
+
     const headerParameters: runtime.HTTPHeaders = {};
 
     const response = await this.request(
@@ -1400,3 +1405,13 @@ export class DocumentsApi extends runtime.BaseAPI {
     await this.updateDocumentAnnotationRaw(requestParameters, initOverrides);
   }
 }
+
+/**
+ * @export
+ */
+export const ListDocumentsFolderOnlyEnum = {
+  _0: '0',
+  _1: '1',
+} as const;
+export type ListDocumentsFolderOnlyEnum =
+  (typeof ListDocumentsFolderOnlyEnum)[keyof typeof ListDocumentsFolderOnlyEnum];

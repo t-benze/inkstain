@@ -1,11 +1,14 @@
 import Koa from 'koa';
 import Router from '@koa/router';
+import cors from '@koa/cors';
+import { Readable } from 'stream';
 import path from 'path';
 import fs from 'fs/promises';
 import YAML from 'js-yaml';
 import mount from 'koa-mount';
 import serve from 'koa-static';
 import send from 'koa-send';
+import fetch from 'node-fetch';
 import { host, port, sqlitePath } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
@@ -110,6 +113,7 @@ app.use(async (ctx, next) => {
     } else {
       logger.error('Unhandled error: ' + JSON.stringify(err));
       ctx.status = err.statusCode || err.status || 500;
+      throw err;
     }
   }
 });
@@ -125,6 +129,46 @@ registerTaskRoutes(router);
 registerIntelligenceRoutes(router);
 registerSearchRoutes(router);
 
+// set up proxy route for html2canvas
+router.get('/proxy', cors(), async (ctx) => {
+  const query = ctx.request.query;
+  const targetUrl = query.url as string;
+  const responseType = query.responseType as string;
+
+  if (!targetUrl) {
+    ctx.status = 400;
+    ctx.body = 'Missing target URL';
+    return;
+  }
+
+  try {
+    const response = await fetch(targetUrl);
+    const contentType =
+      response.headers.get('Content-Type') || 'application/octet-stream';
+
+    if (responseType === 'text') {
+      // For text responseType, convert to data URL
+      const buffer = await response.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const dataUrl = `data:${contentType};base64,${base64}`;
+
+      ctx.body = dataUrl;
+      ctx.set('Content-Type', 'text/plain');
+      ctx.set('Content-Length', Buffer.byteLength(dataUrl).toString());
+    } else {
+      // For blob responseType (default), stream the response
+      ctx.set('Content-Type', contentType);
+      const contentLength = response.headers.get('Content-Length');
+      if (contentLength) {
+        ctx.set('Content-Length', contentLength);
+      }
+      ctx.body = Readable.from(response.body);
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = `Error fetching target URL: ${error.message}`;
+  }
+});
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());
 
