@@ -9,22 +9,19 @@ type ContextType = {
   updateAnnotation: (params: Annotation) => void;
   deleteAnnotations: (id: Array<string>) => void;
   documentPath: string;
-  selectedStylus: StylusOption;
-  strokeColor: string;
-  strokeWidth: number;
   isThumbnail: boolean;
 };
 
-export const defaultContextValue = {
+export const defaultContextValue: ContextType = {
   showLayoutAnalysis: false,
   annotations: {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   addAnnotation: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   updateAnnotation: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   deleteAnnotations: () => {},
   documentPath: '',
-  selectedStylus: 'select' as const,
-  strokeColor: '#000000',
-  strokeWidth: 1,
   isThumbnail: false,
 };
 

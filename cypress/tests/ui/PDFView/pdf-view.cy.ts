@@ -55,23 +55,27 @@ describe('File Explorer for Space', () => {
 
     it('should be able to zoom in and out and fit the page', () => {
       cy.getBySel('pdfViewer-canvas').as('canvas');
-      cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
+      cy.getBySel('pdfViewer-scene').should(
+        'have.attr',
+        'data-initialWidthAdjusted',
+        'true'
+      );
       cy.getBySel('pdfViewer-scene').then(($scene) => {
         const sceneWidth = $scene[0].clientWidth;
         const sceneHeight = $scene[0].clientHeight;
         cy.get('@canvas').then(($canvas) => {
           const baseWidth = $canvas[0].offsetWidth;
-          cy.getBySel('pdfViewer-zoomInBtn').click();
+          cy.getBySel('toolbar-zoomInBtn').click();
           cy.get('@canvas').then(($canvas) => {
             const newWidth = $canvas[0].offsetWidth;
             cy.wrap(newWidth).should('be.greaterThan', baseWidth);
-            cy.getBySel('pdfViewer-zoomOutBtn').click();
+            cy.getBySel('toolbar-zoomOutBtn').click();
             cy.get('@canvas').then(($canvas) => {
               cy.wrap($canvas[0].offsetWidth).should('be.lessThan', newWidth);
             });
           });
 
-          cy.getBySel('pdfViewer-fitWidthBtn').click();
+          cy.getBySel('toolbar-fitWidthBtn').click();
           cy.get('@canvas').then(($canvas) => {
             cy.wrap($canvas[0].offsetWidth).should(
               'be.within',
@@ -80,22 +84,12 @@ describe('File Explorer for Space', () => {
             );
           });
 
-          cy.getBySel('pdfViewer-fitHeightBtn').click();
+          cy.getBySel('toolbar-fitHeightBtn').click();
           cy.get('@canvas').then(($canvas) => {
             cy.wrap($canvas[0].offsetHeight).should(
               'be.within',
               sceneHeight - 10,
               sceneHeight + 10
-            );
-          });
-
-          cy.getBySel('pdfViewer-resetScaleBtn').click();
-          cy.get('@canvas').then(($canvas) => {
-            const pageWidth = window.devicePixelRatio * 612;
-            cy.wrap($canvas[0].offsetWidth).should(
-              'be.within',
-              pageWidth - 10,
-              pageWidth + 10
             );
           });
         });
@@ -133,7 +127,7 @@ describe('File Explorer for Space', () => {
       cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
       cy.getBySel('pdfViewer-scene').then(($scene) => {
         const sceneWidth = $scene[0].clientWidth;
-        cy.getBySel('pdfViewer-fitWidthBtn').click();
+        cy.getBySel('toolbar-fitWidthBtn').click();
         cy.getBySel('pdfViewer-canvas').then(($canvas) => {
           cy.wrap($canvas[0].offsetWidth).should(
             'be.within',

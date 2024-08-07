@@ -9,7 +9,7 @@ import {
   Textarea,
 } from '@fluentui/react-components';
 import { Annotation, DrawingData } from '@inkstain/client-api';
-import { PDFViewerContext } from '../context';
+import { DrawingAnnotationOverlayContext } from './context';
 import { useTranslation } from 'react-i18next';
 import { Selection, SelectionImperativeRef } from './Selection';
 
@@ -36,9 +36,9 @@ const useClasses = makeStyles({
   },
 });
 
-interface PDFPageDrawingLayerProps {
+interface DrawingAnnotationOverlayProps {
   scale: number;
-  canvasDimension: { width: number; height: number } | null;
+  dimension: { width: number; height: number } | null;
   drawings: Array<Annotation> | null;
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
   onAddAnnotation: (data: object, comment?: string) => void;
@@ -194,14 +194,14 @@ const DrawingSelectionPopover = ({
   return (
     <div className={classes.drawingAnnotationPopover}>
       <Textarea
-        data-test="pdfViewer-drawingAnnotationComment"
-        textarea={{ placeholder: t('pdfview.comment_optional') }}
+        data-test="drawingAnnotationComment"
+        textarea={{ placeholder: t('comment_optional') }}
         value={commentInner}
         onChange={(e) => setCommentInner(e.target.value)}
       />
       <div className={classes.drawingAnnotationPopoverBtns}>
         <Button
-          data-test="pdfViewer-drawingAnnotationUpdateBtn"
+          data-test="drawingAnnotationUpdateBtn"
           onClick={() => {
             onUpdateAnnotation(annotation.id, annotation.data, commentInner);
           }}
@@ -209,7 +209,7 @@ const DrawingSelectionPopover = ({
           {t('update')}
         </Button>
         <Button
-          data-test="pdfViewer-drawingAnnotationRemoveBtn"
+          data-test="drawingAnnotationRemoveBtn"
           onClick={() => {
             onRemoveAnnotation(annotation.id);
           }}
@@ -233,14 +233,14 @@ type InteractionMode =
   | 'resizingNorthWest'
   | 'moving';
 
-export const PDFPageDrawingLayer = ({
+export const Overlay = ({
   scale,
-  canvasDimension,
+  dimension,
   drawings,
   onAddAnnotation,
   onRemoveAnnotation,
   onUpdateAnnotation,
-}: PDFPageDrawingLayerProps) => {
+}: DrawingAnnotationOverlayProps) => {
   const classes = useClasses();
   const svgcanvasRef = React.useRef<SVGSVGElement | null>(null);
   const startPointRef = React.useRef<SVGPoint | null>(null);
@@ -250,10 +250,10 @@ export const PDFPageDrawingLayer = ({
   const selectionImperativeRef = React.useRef<SelectionImperativeRef | null>(
     null
   );
-  const pdfViewerContext = React.useContext(PDFViewerContext);
-  const enableDrawing = pdfViewerContext.selectedStylus !== 'select';
-  const strokeColor = pdfViewerContext.strokeColor;
-  const strokeWidth = pdfViewerContext.strokeWidth.toString();
+  const drawingContext = React.useContext(DrawingAnnotationOverlayContext);
+  const enableDrawing = drawingContext.selectedStylus !== 'select';
+  const strokeColor = drawingContext.strokeColor;
+  const strokeWidth = drawingContext.strokeWidth.toString();
 
   const [selection, setSelection] = React.useState<{
     element: SVGGraphicsElement;
@@ -283,7 +283,7 @@ export const PDFPageDrawingLayer = ({
 
   const startDrawing = (svgPoint: DOMPoint) => {
     if (!enableDrawing) return;
-    const shapeType = pdfViewerContext.selectedStylus;
+    const shapeType = drawingContext.selectedStylus;
     switch (shapeType) {
       case 'line':
         currentDrawingShapeRef.current = document.createElementNS(
@@ -353,7 +353,7 @@ export const PDFPageDrawingLayer = ({
       return;
     const currentShape = currentDrawingShapeRef.current;
     const startPoint = startPointRef.current;
-    const shapeType = pdfViewerContext.selectedStylus;
+    const shapeType = drawingContext.selectedStylus;
     switch (shapeType) {
       case 'line': {
         currentShape.setAttribute('x2', svgPoint.x.toFixed(2));
@@ -389,7 +389,7 @@ export const PDFPageDrawingLayer = ({
 
   const drawingEnd = (e: React.MouseEvent) => {
     if (currentDrawingShapeRef.current) {
-      const shapeType = pdfViewerContext.selectedStylus;
+      const shapeType = drawingContext.selectedStylus;
       let isValidShape = true;
       switch (shapeType) {
         case 'line': {
@@ -571,7 +571,8 @@ export const PDFPageDrawingLayer = ({
   };
 
   const handleMouseDown: React.MouseEventHandler<SVGElement> = (e) => {
-    if (e.button !== 0 || !svgcanvasRef.current) return;
+    if (!drawingContext.enable || e.button !== 0 || !svgcanvasRef.current)
+      return;
     const svgCanvas = svgcanvasRef.current;
     const point = svgCanvas.createSVGPoint();
     point.x = e.clientX;
@@ -614,6 +615,7 @@ export const PDFPageDrawingLayer = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!drawingContext.enable) return;
     const point = svgcanvasRef.current!.createSVGPoint();
     point.x = e.clientX;
     point.y = e.clientY;
@@ -644,7 +646,7 @@ export const PDFPageDrawingLayer = ({
   };
 
   const handleMouseUp = (e: React.MouseEvent<SVGSVGElement>) => {
-    console.log('mouse up', interactionMode, selection);
+    if (!drawingContext.enable) return;
     switch (interactionMode) {
       case 'drawing': {
         drawingEnd(e);
@@ -678,15 +680,8 @@ export const PDFPageDrawingLayer = ({
     }
     setInteractionMode(null);
   };
-  // React.useEffect(() => {
-  //   if(selection) {
-
-  //   }
-
-  // }, [])
 
   React.useEffect(() => {
-    console.log('selection effect', selection, interactionMode);
     if (interactionMode === null) {
       if (selection) {
         setOpenDrawingPopover(true);
@@ -698,8 +693,7 @@ export const PDFPageDrawingLayer = ({
     }
   }, [selection, interactionMode]);
 
-  if (!canvasDimension) return null;
-  // console.log('render page ', pageopenDrawingPopover);
+  if (!dimension) return null;
 
   return (
     <Popover
@@ -708,12 +702,12 @@ export const PDFPageDrawingLayer = ({
       positioning={{ positioningRef: popoverPositioningRef }}
     >
       <svg
-        data-test="pdfViewer-drawingLayer"
-        viewBox={`0 0 ${canvasDimension.width} ${canvasDimension.height}`}
+        data-test="annotationOverlay-canvas"
+        viewBox={`0 0 ${dimension.width} ${dimension.height}`}
         className={classes.root}
-        onMouseDown={pdfViewerContext.isThumbnail ? undefined : handleMouseDown}
-        onMouseMove={pdfViewerContext.isThumbnail ? undefined : handleMouseMove}
-        onMouseUp={pdfViewerContext.isThumbnail ? undefined : handleMouseUp}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         ref={svgcanvasRef}
         style={{ cursor: enableDrawing ? 'crosshair' : 'default' }}
       >

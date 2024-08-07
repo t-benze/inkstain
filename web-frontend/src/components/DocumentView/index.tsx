@@ -2,7 +2,8 @@ import * as React from 'react';
 import { SpaceManagementView } from './SpaceManagementView';
 import { SearchDocumentView } from './SearchDocumentView';
 import { PDFView, PDFViewHandle } from '~/web/components/PDFView';
-import { TextView } from './TextView';
+import { TextView } from '~/web/components/TextView';
+import { WebclipView } from '~/web/components/WebclipView';
 import { useTranslation } from 'react-i18next';
 import {
   Image,
@@ -60,6 +61,7 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
         throw new Error('Unknown inkstain document type: ' + inkstainType);
     }
   }
+
   // when rendering an actual document, there must be an active space
   if (appContext.activeSpace === null) {
     throw new Error('Active space is null');
@@ -76,9 +78,13 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
         />
       );
     }
-    case 'txt': {
-      return <TextView name={name} />;
+    case 'inkclip': {
+      return <WebclipView spaceKey={spaceKey} documentPath={name} />;
     }
+    case 'txt': {
+      return <TextView spaceKey={spaceKey} documentPath={name} />;
+    }
+
     default:
       return (
         <div
