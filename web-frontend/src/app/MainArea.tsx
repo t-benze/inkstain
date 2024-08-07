@@ -69,8 +69,13 @@ const TabPanel = ({
 };
 
 export const MainArea = () => {
-  const { closeDocument, documentsAlive, setActiveDocument, activeDocument } =
-    React.useContext(AppContext);
+  const {
+    closeDocument,
+    documentsAlive,
+    setActiveDocument,
+    activeDocument,
+    platform,
+  } = React.useContext(AppContext);
   const classes = useClasses();
   const { t } = useTranslation();
 
@@ -91,15 +96,18 @@ export const MainArea = () => {
         selectedValue={activeDocument}
       >
         {documentsAlive.map((document) => {
+          const displayName = document.name.startsWith('@inkstain')
+            ? t(`system.${document.type}`)
+            : (document.name.split(platform.pathSep).pop() as string);
           return (
             <Tab
               key={document.name}
               value={document.name}
               className={classes.tab}
             >
-              {document.name.startsWith('@inkstain')
-                ? t(`system.${document.type}`)
-                : document.name}
+              {displayName?.length > 20
+                ? `${displayName.slice(0, 20)}...`
+                : displayName}
               <Button
                 appearance="transparent"
                 size="small"

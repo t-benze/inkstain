@@ -12,3 +12,8 @@ export interface Space {
 export type SystemDocumentType =
   | '@inkstain/space-management'
   | '@inkstain/search-document';
+
+export interface DocumentViewProps {
+  spaceKey: string;
+  documentPath: string;
+}

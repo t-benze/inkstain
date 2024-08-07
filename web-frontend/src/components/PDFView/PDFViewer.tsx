@@ -1,7 +1,7 @@
 import 'pdfjs-dist/webpack.mjs';
 import * as React from 'react';
+import { useState } from 'react';
 import { tokens, makeStyles } from '@fluentui/react-components';
-import { useLayoutEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useDocument } from '~/web/hooks/useDocument';
 import { PDFToolbar } from './PDFToolbar';
@@ -10,10 +10,12 @@ import { PDFPageScrollView } from './PDFPageScrollView';
 import { usePDFDocument } from './hooks';
 import { PDFViewerContext } from './context';
 import './viewer.css';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { documentsApi } from '~/web/apiClient';
-import { Annotation } from '@inkstain/client-api';
-import { StylusOption } from './types';
+import { useAnnotations } from '~/web/hooks/useAnnotations';
+import {
+  DrawingAnnotationOverlayContext,
+  useStylus,
+} from '~/web/components/DrawingAnnotationOverlay';
+import { useZoomScale } from '~/web/components/ZoomToolbar';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -43,17 +45,6 @@ const useStyles = makeStyles({
   },
 });
 
-/**
- * The size of a pdf page is measured in points, and 1 point is equal to 1/72 of an inch.
- * Because we want the visual dimension of the pdf canvas to be consistent across devices,and we can
- * only set the scale of the pdf rendering, need to mulitply the scale by the device pixel ratio, i.e.,
- * to have a larger scale on a high resolution device.
- */
-const DEFAULT_SCALE = window.devicePixelRatio || 1;
-const SCALE_STEPS = [
-  0.1, 0.25, 0.5, 0.75, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7, 8,
-].map((step) => step * DEFAULT_SCALE);
-
 export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
   (
     {
@@ -74,10 +65,23 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     });
     const [currentPageNumber, setCurrentPageNumber] =
       useState<number>(initialPage);
-    const [scale, setScale] = useState<number>(DEFAULT_SCALE);
-    const [defaultViewportWidth, setDefaultViewportWidth] = useState<number>(0);
-    const [defaultViewportHeight, setDefaultViewportHeight] =
-      useState<number>(0);
+    const [sceneDimension, setSceneDimension] = useState<{
+      width: number;
+      height: number;
+    } | null>(null);
+    const [contentDimesion, setContentDimension] = useState<{
+      width: number;
+      height: number;
+    } | null>(null);
+
+    const {
+      scale,
+      setScale,
+      handleZoomIn,
+      handleZoomOut,
+      handleZoomFitHeight,
+      handleZoomFitWidth,
+    } = useZoomScale(sceneDimension, contentDimesion);
     const [enableScroll, setEnableScroll] = useState<boolean>(false);
     const handleEnableScrollChange = React.useCallback((enable: boolean) => {
       setEnableScroll(enable);
@@ -92,70 +96,53 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       },
       []
     );
-
-    const handleScaleChange = React.useCallback((newScale: number) => {
-      setScale(newScale);
-    }, []);
-
     const sceneRef = React.useRef<HTMLDivElement>(null);
-    const [sceneWidth, setSceneWidth] = useState<number>(0);
-    const [sceneHeight, setSceneHeight] = useState<number>(0);
-    const windowResizeHandler = React.useCallback(() => {
-      if (sceneRef.current) {
-        if (
-          sceneRef.current.clientWidth === sceneWidth ||
-          sceneRef.current.clientHeight === sceneHeight
-        ) {
-          setSceneWidth(sceneRef.current.clientWidth);
-          setSceneHeight(sceneRef.current.clientHeight);
-        }
-      }
-    }, [sceneRef, sceneWidth, sceneHeight]);
 
-    useLayoutEffect(() => {
+    React.useLayoutEffect(() => {
       if (sceneRef.current) {
-        setSceneWidth(sceneRef.current.clientWidth);
-        setSceneHeight(sceneRef.current.clientHeight);
+        setSceneDimension({
+          width: sceneRef.current.clientWidth,
+          height: sceneRef.current.clientHeight,
+        });
       }
+      const windowResizeHandler = () => {
+        if (sceneRef.current) {
+          setSceneDimension({
+            width: sceneRef.current.clientWidth,
+            height: sceneRef.current.clientHeight,
+          });
+        }
+      };
       window.addEventListener('resize', windowResizeHandler);
       return () => {
         window.removeEventListener('resize', windowResizeHandler);
       };
-    }, [
-      pdfDocument,
-      enableScroll,
-      windowResizeHandler,
-      sceneRef,
-      sceneWidth,
-      sceneHeight,
-    ]);
+    }, [sceneRef, pdfDocument, enableScroll]);
 
     const handleRenderPageCompleted = React.useCallback(
       (pageNum: number, viewport: { width: number; height: number }) => {
         if (pageNum === initialPage) {
+          if (scale === 1 && !contentDimesion) {
+            setContentDimension({
+              width: viewport.width,
+              height: viewport.height,
+            });
+          }
           sceneRef.current?.setAttribute('data-ready', 'true');
         }
-        if (scale === DEFAULT_SCALE) {
-          setDefaultViewportHeight(viewport.height);
-          setDefaultViewportWidth(viewport.width);
-        }
       },
-      [
-        initialPage,
-        setDefaultViewportHeight,
-        setDefaultViewportWidth,
-        sceneRef,
-        scale,
-      ]
+      [initialPage, contentDimesion, sceneRef, scale]
     );
 
-    const hasAdjustedInitScale = React.useRef<boolean>(false);
+    // automatically scale to pdf page to fit the viewport width
+    const [hasAdjustedInitScale, setHasAdjustedInitScale] =
+      React.useState<boolean>(false);
     React.useEffect(() => {
-      if (!hasAdjustedInitScale.current && sceneWidth < defaultViewportWidth) {
-        setScale(DEFAULT_SCALE * (sceneWidth / defaultViewportWidth));
-        hasAdjustedInitScale.current = true;
-      }
-    }, [sceneWidth, defaultViewportWidth]);
+      if (hasAdjustedInitScale || !sceneDimension || !contentDimesion) return;
+      setScale(sceneDimension.width / contentDimesion.width);
+      sceneRef.current?.setAttribute('data-initialWidthAdjusted', 'true');
+      setHasAdjustedInitScale(true);
+    }, [sceneDimension, contentDimesion, hasAdjustedInitScale, setScale]);
 
     React.useImperativeHandle(ref, () => {
       return {
@@ -165,244 +152,101 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       };
     });
 
-    const { data: annotations } = useQuery({
-      queryKey: ['document-annotations', spaceKey, documentPath],
-      queryFn: async () => {
-        const data = await documentsApi.getDocumentAnnotations({
-          spaceKey,
-          path: documentPath,
-        });
-        return data.reduce((acc, annotation) => {
-          if (!acc[annotation.page]) acc[annotation.page] = [];
-          acc[annotation.page].push(annotation);
-          return acc;
-        }, {} as Record<number, Annotation[]>);
-      },
-    });
+    const { annotations, addAnnotation, updateAnnotation, deleteAnnotations } =
+      useAnnotations(spaceKey, documentPath);
 
-    const queryClient = useQueryClient();
-    const addAnnotationMutation = useMutation({
-      mutationFn: async ({
-        data,
-        page,
-        comment,
-      }: {
-        data: object;
-        page: number;
-        comment?: string;
-      }) => {
-        await documentsApi.addDocumentAnnotation({
-          spaceKey: spaceKey,
-          path: documentPath,
-          annotation: {
-            id: '',
-            data,
-            page,
-            comment,
-          },
-        });
-      },
-      onMutate: async ({ data, page, comment }) => {
-        await queryClient.cancelQueries({
-          queryKey: ['document-annotations', spaceKey, documentPath],
-        });
-        const previousData = queryClient.getQueryData<
-          Record<number, Annotation[]>
-        >(['document-annotations', spaceKey, documentPath]);
-        if (previousData) {
-          if (!previousData[page]) {
-            previousData[page] = [];
-          }
-          previousData[page].push({
-            id: '',
-            data,
-            page,
-            comment,
-          });
-        }
-        return { previousData };
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['document-annotations', spaceKey, documentPath],
-        });
-      },
-    });
-    const updateAnnotation = useMutation({
-      mutationFn: async ({
-        id,
-        data,
-        comment,
-        page,
-      }: {
-        data: object;
-        id: string;
-        comment?: string;
-        page: number;
-      }) => {
-        await documentsApi.updateDocumentAnnotation({
-          spaceKey: spaceKey,
-          path: documentPath,
-          annotation: {
-            id,
-            page,
-            data,
-            comment,
-          },
-        });
-      },
-      onMutate: async ({ id, data, comment, page }) => {
-        await queryClient.cancelQueries({
-          queryKey: ['document-annotations', spaceKey, documentPath],
-        });
-        const previousData = queryClient.getQueryData<
-          Record<number, Annotation[]>
-        >(['document-annotations', spaceKey, documentPath]);
-        if (previousData) {
-          const annotations = previousData[page];
-          const index = annotations.findIndex((a) => a.id === id);
-          if (index >= 0) {
-            annotations[index] = {
-              id,
-              data,
-              page,
-              comment,
-            };
-          }
-        }
-        return { previousData };
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['document-annotations', spaceKey, documentPath],
-        });
-      },
-    });
-    const deleteAnnotationsMutation = useMutation({
-      mutationFn: async (ids: Array<string>) => {
-        await documentsApi.deleteDocumentAnnotations({
-          spaceKey: spaceKey,
-          path: documentPath,
-          requestBody: ids,
-        });
-      },
-      onMutate: (ids: Array<string>) => {
-        queryClient.cancelQueries({
-          queryKey: ['document-annotations', spaceKey, documentPath],
-        });
-        const previousData = queryClient.getQueryData<
-          Record<number, Annotation[]>
-        >(['document-annotations', spaceKey, documentPath]);
-        if (previousData) {
-          for (const page in previousData) {
-            previousData[page] = previousData[page].filter(
-              (annotation) => !ids.includes(annotation.id)
-            );
-          }
-        }
-        return { previousData };
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['document-annotations', spaceKey, documentPath],
-        });
-      },
-    });
+    const {
+      stylus,
+      strokeColor,
+      strokeWidth,
+      handleStrokeColorChange,
+      handleStrokeWidthChange,
+      handleStylusChange,
+    } = useStylus();
 
-    const [stylus, setStylus] = useState<StylusOption>('select');
-    const handleStylusChange = React.useCallback((tool: StylusOption) => {
-      setStylus(tool);
-    }, []);
-    const [strokeColor, setStrokeColor] = useState<string>('#000000');
-    const handleStrokeColorChange = React.useCallback((color: string) => {
-      setStrokeColor(color);
-    }, []);
-    const [strokeWidth, setStrokeWidth] = useState<number>(1);
-    const handleStrokeWidthChange = React.useCallback((width: number) => {
-      setStrokeWidth(width);
-    }, []);
-
+    // for high resolution devices, we need to scale the pdf rendering
+    const pdfScale = scale * window.devicePixelRatio;
     return (
       <PDFViewerContext.Provider
         value={{
           showLayoutAnalysis,
           documentPath: documentPath,
           annotations: annotations ? annotations : {},
-          addAnnotation: addAnnotationMutation.mutate,
-          updateAnnotation: updateAnnotation.mutate,
-          deleteAnnotations: deleteAnnotationsMutation.mutate,
-          selectedStylus: stylus,
-          strokeColor: strokeColor,
-          strokeWidth: strokeWidth,
+          addAnnotation: addAnnotation,
+          updateAnnotation: updateAnnotation,
+          deleteAnnotations: deleteAnnotations,
           isThumbnail: false,
         }}
       >
-        <div className={styles.root}>
-          <PDFToolbar
-            strokeColor={strokeColor}
-            onStrokeColorChange={handleStrokeColorChange}
-            strokeWidth={strokeWidth}
-            onStrokeWidthChange={handleStrokeWidthChange}
-            stylus={stylus}
-            onStylusChange={handleStylusChange}
-            onPageChange={(pageNum) => {
-              setCurrentPageNumber(pageNum);
-            }}
-            scale={scale}
-            onScaleChange={handleScaleChange}
-            currentPage={currentPageNumber}
-            numOfPages={pdfDocument?.numPages || 0}
-            sceneWidth={sceneWidth}
-            sceneHeight={sceneHeight}
-            initViewportWidth={defaultViewportWidth}
-            initViewportHeight={defaultViewportHeight}
-            initScale={DEFAULT_SCALE}
-            scaleSteps={SCALE_STEPS}
-            enableScroll={enableScroll}
-            onEnableScrollChange={handleEnableScrollChange}
-            showLayoutAnalysis={showLayoutAnalysis}
-            onShowLayoutAnalysisChange={handleShowLayoutAnalysisChange}
-          />
-          {pdfDocument ? (
-            enableScroll ? (
-              <PDFPageScrollView
-                ref={sceneRef}
-                onPageChange={(pageNum) => {
-                  setCurrentPageNumber(pageNum);
-                }}
-                spaceKey={spaceKey}
-                documentPath={documentPath}
-                document={pdfDocument}
-                scale={scale}
-                currentPageNumber={currentPageNumber}
-                onRenderCompleted={handleRenderPageCompleted}
-                enableTextLayer={enableTextLayer}
-              />
-            ) : (
-              <div
-                data-test="pdfViewer-scene"
-                ref={sceneRef}
-                className={styles.scene}
-              >
-                <PDFPage
+        <DrawingAnnotationOverlayContext.Provider
+          value={{
+            selectedStylus: stylus,
+            strokeColor: strokeColor,
+            strokeWidth: strokeWidth,
+            enable: true,
+            handleStrokeColorChange,
+            handleStrokeWidthChange,
+            handleStylusChange,
+          }}
+        >
+          <div className={styles.root}>
+            <PDFToolbar
+              currentPage={currentPageNumber}
+              numOfPages={pdfDocument?.numPages || 0}
+              enableScroll={enableScroll}
+              onEnableScrollChange={handleEnableScrollChange}
+              onPageChange={(pageNum) => {
+                setCurrentPageNumber(pageNum);
+              }}
+              onZoomFitHeight={handleZoomFitHeight}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onZoomFitWidth={handleZoomFitWidth}
+              showLayoutAnalysis={showLayoutAnalysis}
+              onShowLayoutAnalysisChange={handleShowLayoutAnalysisChange}
+            />
+            {pdfDocument ? (
+              enableScroll ? (
+                <PDFPageScrollView
+                  ref={sceneRef}
+                  onPageChange={(pageNum) => {
+                    setCurrentPageNumber(pageNum);
+                  }}
                   spaceKey={spaceKey}
                   documentPath={documentPath}
-                  pageNumber={currentPageNumber}
-                  scale={scale}
-                  onRenderCompleted={handleRenderPageCompleted}
                   document={pdfDocument}
+                  scale={pdfScale}
+                  currentPageNumber={currentPageNumber}
+                  onRenderCompleted={handleRenderPageCompleted}
                   enableTextLayer={enableTextLayer}
-                  style={{
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
-                    marginTop: 'auto',
-                    marginBottom: 'auto',
-                  }}
                 />
-              </div>
-            )
-          ) : null}
-        </div>
+              ) : (
+                <div
+                  data-initialWidthAdjusted
+                  data-test="pdfViewer-scene"
+                  ref={sceneRef}
+                  className={styles.scene}
+                >
+                  <PDFPage
+                    spaceKey={spaceKey}
+                    documentPath={documentPath}
+                    pageNumber={currentPageNumber}
+                    scale={pdfScale}
+                    onRenderCompleted={handleRenderPageCompleted}
+                    document={pdfDocument}
+                    enableTextLayer={enableTextLayer}
+                    style={{
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                      marginTop: 'auto',
+                      marginBottom: 'auto',
+                    }}
+                  />
+                </div>
+              )
+            ) : null}
+          </div>
+        </DrawingAnnotationOverlayContext.Provider>
       </PDFViewerContext.Provider>
     );
   }

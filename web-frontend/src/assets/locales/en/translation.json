@@ -19,12 +19,25 @@
   "no_active_document": "No active document",
   "open_with_system_app": "Open with system app",
   "close": "Close",
+  "zoom_in": "Zoom in",
+  "zoom_out": "Zoom out",
+  "zoom_fit_width": "Fit width",
+  "zoom_fit_height": "Fit height",
+  "show_document_layout": "Show document layout",
+  "pick_color_tooltip": "Change color",
+  "change_thinkness_tooltip": "Change thickness",
+  "stylus_select": "Select",
+  "stylus_line": "Line",
+  "stylus_rect": "Rectangle",
+  "stylus_ellipse": "Ellipse",
+  "comment_optional": "Comment (optional)",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",
     "title": "Title",
     "author": "Author",
     "tags": "Tags",
+    "url": "Link",
     "documentPath": "Document path"
   },
   "space": {
@@ -64,24 +77,12 @@
   "pdfview": {
     "prevPageBtnTooltip": "Previous page",
     "nextPageBtnTooltip": "Next page",
-    "zoomInBtnTooltip": "Zoom in",
-    "zoomOutBtnTooltip": "Zoom out",
-    "fitWidthBtnTooltip": "Fit width",
-    "fitHeightBtnTooltip": "Fit height",
-    "resetScaleBtnTooltip": "Reset scale",
     "enableScrollBtnTooltip": "Enable scroll",
     "analyzeDocBtnTooltip": "Analyze document",
-    "pickColorTooltip": "Change color",
-    "pickThicknessTooltip": "Change thickness",
     "thumbnail": "Thumbnail",
     "outline": "Outline",
     "annotatedThumbnail": "Annotations",
     "no_outline": "No outline in the document",
-    "comment_optional": "Comment (optional)",
-    "bookmark": "Bookmark",
-    "stylus_select": "Select",
-    "stylus_line": "Line",
-    "stylus_rect": "Rectangle",
-    "stylus_ellipse": "Ellipse"
+    "bookmark": "Bookmark"
   }
 }

@@ -3,7 +3,7 @@ import os from 'os';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
-import { createWriteStream, createReadStream } from 'fs';
+import { createReadStream } from 'fs';
 import { PassThrough } from 'stream';
 import multer, { File } from '@koa/multer';
 import {
@@ -34,7 +34,7 @@ import { traverseDirectory, getFullPath } from '~/server/utils';
  * @param folderPath - The path of the folder to zip.
  * @returns A promise that resolves with the zip buffer.
  */
-export const zipFolder = (folderPath: string): Promise<Buffer> => {
+const zipFolder = (folderPath: string): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const archive = archiver('zip', {
       zlib: { level: 9 }, // Sets the compression level.
@@ -57,6 +57,13 @@ export const zipFolder = (folderPath: string): Promise<Buffer> => {
     // Finalize the archive (i.e., we are done appending files but streams have to finish yet)
     archive.finalize();
   });
+};
+
+const isValidFileName = (filePath: string): boolean => {
+  // List of illegal characters for Windows and Unix-like systems
+  const illegalCharacters = /[/\0<>:"\\|?*]/g;
+  // Check if the file path contains any illegal characters
+  return !illegalCharacters.test(filePath);
 };
 
 const upload = multer({
@@ -325,6 +332,12 @@ const addDocument = async (ctx: Context) => {
   if (!file || !targetPath) {
     ctx.status = 400;
     ctx.body = 'Missing file or target path';
+    return;
+  }
+  const fileName = path.basename(targetPath);
+  if (!isValidFileName(fileName)) {
+    ctx.status = 400;
+    ctx.body = 'Invalid file name';
     return;
   }
 

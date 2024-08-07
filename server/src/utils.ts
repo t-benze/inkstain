@@ -35,7 +35,7 @@ export async function traverseDirectory(
     const stat = await fs.lstat(fullPath);
     if (stat.isDirectory()) {
       if (file.endsWith('.ink')) {
-        const docPath = path.relative(spaceRoot, fullPath).replace('.ink', '');
+        const docPath = path.relative(spaceRoot, fullPath).slice(0, -4);
         documentsToIndex.push(docPath);
       } else {
         traverseDirectory(spaceRoot, fullPath, documentsToIndex);

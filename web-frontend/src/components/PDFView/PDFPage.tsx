@@ -20,8 +20,8 @@ import { AppContext } from '~/web/app/context';
 import { PDFPageTextLayer } from './PDFPageTextLayer';
 import { PDFViewerContext } from './context';
 import { useTranslation } from 'react-i18next';
-import { PDFPageDrawingLayer } from './PDFPageDrawingLayer';
 import { Annotation, AnnotationData } from '@inkstain/client-api';
+import { Overlay as PDFPageDrawingLayer } from '~/web/components/DrawingAnnotationOverlay';
 
 const useClasses = makeStyles({
   root: {
@@ -115,13 +115,14 @@ const BookmarkBtn = ({
                 <Button
                   data-test="pdfViewer-bookmarkUpdateBtn"
                   onClick={(_) => {
-                    onUpdateAnnotation(
-                      bookmark!.id,
-                      {
-                        type: 'bookmark',
-                      },
-                      commentInner
-                    );
+                    bookmark &&
+                      onUpdateAnnotation(
+                        bookmark.id,
+                        {
+                          type: 'bookmark',
+                        },
+                        commentInner
+                      );
                   }}
                 >
                   {t('update')}
@@ -324,7 +325,7 @@ export const PDFPage = ({
       <PDFPageDrawingLayer
         scale={scale}
         drawings={drawings}
-        canvasDimension={canvasDimension}
+        dimension={canvasDimension}
         onAddAnnotation={handleAddAnnotation}
         onUpdateAnnotation={handleUpdateAnnotation}
         onRemoveAnnotation={handleDeleteAnnotation}

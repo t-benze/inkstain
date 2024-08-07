@@ -95,9 +95,11 @@ export const createSpace = async (ctx: Context) => {
       }
       case 'inkstain': {
         const path = (data as { path: string }).path;
-        const space = await ctx.spaceService.importExistingInkStainSpace(path);
-        await ctx.documentService.clearIndex(space);
         const taskId = ctx.taskService.addTask(async (progressCallback) => {
+          const space = await ctx.spaceService.importExistingInkStainSpace(
+            path
+          );
+          await ctx.documentService.clearIndex(space);
           const documentsToIndex = [];
           await traverseDirectory(path, path, documentsToIndex);
           const totalDocuments = documentsToIndex.length;

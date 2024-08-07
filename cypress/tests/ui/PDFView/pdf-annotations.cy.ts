@@ -42,9 +42,9 @@ describe('PDF Annotations', () => {
 
   context('Drawing annotations', () => {
     it('should allow drawing, updating and deleting a line', () => {
-      cy.getBySel('pdfViewer-pickStylusBtn').click();
-      cy.getBySel('pdfViewer-stylus-line').click();
-      cy.getBySel('pdfViewer-drawingLayer').as('drawingLayer');
+      cy.getBySel('toolbar-pickStylusBtn').click();
+      cy.getBySel('toolbar-stylus-line').click();
+      cy.getBySel('annotationOverlay-canvas').as('drawingLayer');
       cy.get('@drawingLayer').trigger('mousedown', {
         button: 0,
         clientX: 700,
@@ -61,15 +61,13 @@ describe('PDF Annotations', () => {
         cy.get('@drawingLayer')
           .find(`[data-annotation-id="${annotationId}"]`)
           .as('annotation');
-        cy.getBySel('pdfViewer-pickStylusBtn').click();
-        cy.getBySel('pdfViewer-stylus-select').click();
+        cy.getBySel('toolbar-pickStylusBtn').click();
+        cy.getBySel('toolbar-stylus-select').click();
         cy.get('@annotation').trigger('mousedown', { button: 0 });
-        cy.getBySel('pdfViewer-drawingAnnotationComment').type(
-          'This is a line'
-        );
-        cy.getBySel('pdfViewer-drawingAnnotationUpdateBtn').click();
+        cy.getBySel('drawingAnnotationComment').type('This is a line');
+        cy.getBySel('drawingAnnotationUpdateBtn').click();
         cy.wait('@updateAnnotation');
-        cy.getBySel('pdfViewer-drawingAnnotationComment').should(
+        cy.getBySel('drawingAnnotationComment').should(
           'have.value',
           'This is a line'
         );
@@ -96,15 +94,15 @@ describe('PDF Annotations', () => {
         });
         cy.get(`[data-mode=resizingNorthWest]`).trigger('mouseup');
         cy.wait('@updateAnnotation');
-        cy.getBySel('pdfViewer-drawingAnnotationRemoveBtn').click();
+        cy.getBySel('drawingAnnotationRemoveBtn').click();
         cy.wait('@deleteAnnotation');
         cy.get('@annotation').should('not.exist');
       });
     });
     it('should allow drawing, updating and deleting a rectangle', () => {
-      cy.getBySel('pdfViewer-pickStylusBtn').click();
-      cy.getBySel('pdfViewer-stylus-rect').click();
-      cy.getBySel('pdfViewer-drawingLayer').as('drawingLayer');
+      cy.getBySel('toolbar-pickStylusBtn').click();
+      cy.getBySel('toolbar-stylus-rect').click();
+      cy.getBySel('annotationOverlay-canvas').as('drawingLayer');
       cy.get('@drawingLayer').trigger('mousedown', {
         button: 0,
         clientX: 700,
@@ -121,15 +119,13 @@ describe('PDF Annotations', () => {
         cy.get('@drawingLayer')
           .find(`[data-annotation-id="${annotationId}"]`)
           .as('annotation');
-        cy.getBySel('pdfViewer-pickStylusBtn').click();
-        cy.getBySel('pdfViewer-stylus-select').click();
+        cy.getBySel('toolbar-pickStylusBtn').click();
+        cy.getBySel('toolbar-stylus-select').click();
         cy.get('@annotation').trigger('mousedown', { button: 0 });
-        cy.getBySel('pdfViewer-drawingAnnotationComment').type(
-          'This is a rectangle'
-        );
-        cy.getBySel('pdfViewer-drawingAnnotationUpdateBtn').click();
+        cy.getBySel('drawingAnnotationComment').type('This is a rectangle');
+        cy.getBySel('drawingAnnotationUpdateBtn').click();
         cy.wait('@updateAnnotation');
-        cy.getBySel('pdfViewer-drawingAnnotationComment').should(
+        cy.getBySel('drawingAnnotationComment').should(
           'have.value',
           'This is a rectangle'
         );
@@ -156,15 +152,15 @@ describe('PDF Annotations', () => {
         });
         cy.get(`[data-mode=resizingNorthWest]`).trigger('mouseup');
         cy.wait('@updateAnnotation');
-        cy.getBySel('pdfViewer-drawingAnnotationRemoveBtn').click();
+        cy.getBySel('drawingAnnotationRemoveBtn').click();
         cy.wait('@deleteAnnotation');
         cy.get('@annotation').should('not.exist');
       });
     });
     it('should allow drawing, updating and deleting an ellipse', () => {
-      cy.getBySel('pdfViewer-pickStylusBtn').click();
-      cy.getBySel('pdfViewer-stylus-ellipse').click();
-      cy.getBySel('pdfViewer-drawingLayer').as('drawingLayer');
+      cy.getBySel('toolbar-pickStylusBtn').click();
+      cy.getBySel('toolbar-stylus-ellipse').click();
+      cy.getBySel('annotationOverlay-canvas').as('drawingLayer');
       cy.get('@drawingLayer').trigger('mousedown', {
         button: 0,
         clientX: 700,
@@ -181,15 +177,13 @@ describe('PDF Annotations', () => {
         cy.get('@drawingLayer')
           .find(`[data-annotation-id="${annotationId}"]`)
           .as('annotation');
-        cy.getBySel('pdfViewer-pickStylusBtn').click();
-        cy.getBySel('pdfViewer-stylus-select').click();
+        cy.getBySel('toolbar-pickStylusBtn').click();
+        cy.getBySel('toolbar-stylus-select').click();
         cy.get('@annotation').trigger('mousedown', { button: 0 });
-        cy.getBySel('pdfViewer-drawingAnnotationComment').type(
-          'This is an ellipse'
-        );
-        cy.getBySel('pdfViewer-drawingAnnotationUpdateBtn').click();
+        cy.getBySel('drawingAnnotationComment').type('This is an ellipse');
+        cy.getBySel('drawingAnnotationUpdateBtn').click();
         cy.wait('@updateAnnotation');
-        cy.getBySel('pdfViewer-drawingAnnotationComment').should(
+        cy.getBySel('drawingAnnotationComment').should(
           'have.value',
           'This is an ellipse'
         );
@@ -216,7 +210,7 @@ describe('PDF Annotations', () => {
         });
         cy.get(`[data-mode=resizingNorthWest]`).trigger('mouseup');
         cy.wait('@updateAnnotation');
-        cy.getBySel('pdfViewer-drawingAnnotationRemoveBtn').click();
+        cy.getBySel('drawingAnnotationRemoveBtn').click();
         cy.wait('@deleteAnnotation');
         cy.get('@annotation').should('not.exist');
       });
