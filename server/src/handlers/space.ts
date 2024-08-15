@@ -88,9 +88,12 @@ export const createSpace = async (ctx: Context) => {
   try {
     switch (type) {
       case 'new': {
-        await ctx.spaceService.createSpace(
+        const space = await ctx.spaceService.createSpace(
           data as { name: string; path: string }
         );
+        ctx.body = {
+          space: space,
+        };
         break;
       }
       case 'inkstain': {

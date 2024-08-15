@@ -25,11 +25,20 @@ const useStyles = makeStyles({
     // ...shorthands.marginBlock('0', '0'),
   },
   list: {
+    height: '60vh',
     ...shorthands.border(
       tokens.strokeWidthThin,
       'solid',
       tokens.colorNeutralStroke3
     ),
+  },
+  listItem: {
+    cursor: 'pointer',
+    paddingLeft: tokens.spacingHorizontalS,
+    paddingTop: tokens.spacingVerticalS,
+    ':hover': {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
   },
 });
 
@@ -137,15 +146,12 @@ export const DirectoryPickerDialog: React.FunctionComponent<
               ) : (
                 <>
                   {directories.map((directory) => (
-                    <div key={directory.path}>
-                      <Button
-                        appearance="subtle"
-                        name={directory.name}
-                        value={directory.path}
-                        onClick={() => setCurrentDirectoryInner(directory.path)}
-                      >
-                        {directory.name}
-                      </Button>
+                    <div
+                      className={styles.listItem}
+                      key={directory.path}
+                      onClick={() => setCurrentDirectoryInner(directory.path)}
+                    >
+                      {directory.name}
                     </div>
                   ))}
                 </>
