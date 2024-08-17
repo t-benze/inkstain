@@ -325,14 +325,17 @@ const openDocumentWithSystemApp = async (ctx: Context) => {
  *         description: Internal server error while adding the document.
  */
 const addDocument = async (ctx: Context) => {
-  const file = ctx.request.file as File; // assuming file is uploaded through a form and handled by middleware
-  const targetPath = ctx.request.query.path as string;
+  const file = ctx.request.file as File | undefined; // assuming file is uploaded through a form and handled by middleware
+  let targetPath = ctx.request.query.path as string | undefined;
   const spaceKey = ctx.params.spaceKey;
 
   if (!file || !targetPath) {
     ctx.status = 400;
     ctx.body = 'Missing file or target path';
     return;
+  }
+  if (targetPath.startsWith(path.sep)) {
+    targetPath = targetPath.replace(path.sep, '');
   }
   const fileName = path.basename(targetPath);
   if (!isValidFileName(fileName)) {

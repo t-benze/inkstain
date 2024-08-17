@@ -30,6 +30,7 @@
   "stylus_line": "Line",
   "stylus_rect": "Rectangle",
   "stylus_ellipse": "Ellipse",
+  "stylus_marker": "Marker",
   "comment_optional": "Comment (optional)",
   "system": {
     "@inkstain/space-management": "Spaces",
@@ -83,6 +84,7 @@
     "outline": "Outline",
     "annotatedThumbnail": "Annotations",
     "no_outline": "No outline in the document",
-    "bookmark": "Bookmark"
+    "bookmark": "Bookmark",
+    "comment_optional": "Comment (optional)"
   }
 }

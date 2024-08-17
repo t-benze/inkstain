@@ -109,21 +109,13 @@ const Main = ({
                   { active: true, currentWindow: true },
                   function (tabs) {
                     if (tabs && tabs[0] && tabs[0].id) {
-                      chrome.tabs.sendMessage(
-                        tabs[0].id,
-                        {
-                          action: 'startClip',
-                          spaceKey,
-                          targetFolder: currentFolder.join(
-                            platformInfo.pathSep
-                          ),
-                          pathSep: platformInfo.pathSep,
-                        },
-                        undefined,
-                        function (response) {
-                          console.log(response);
-                        }
-                      );
+                      chrome.tabs.sendMessage(tabs[0].id, {
+                        action: 'startClip',
+                        spaceKey,
+                        targetFolder: currentFolder.join(platformInfo.pathSep),
+                        pathSep: platformInfo.pathSep,
+                      });
+                      window.close();
                     }
                   }
                 );

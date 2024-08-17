@@ -1,4 +1,4 @@
-export type StylusOption = 'select' | 'line' | 'rect' | 'ellipse';
+export type StylusOption = 'select' | 'line' | 'rect' | 'ellipse' | 'pen';
 
 export interface ToolbarProps {
   stylus: StylusOption;
@@ -8,3 +8,17 @@ export interface ToolbarProps {
   strokeWidth: number;
   onStrokeWidthChange: (width: number) => void;
 }
+
+export type InteractionMode =
+  | 'drawing'
+  | 'resizingHead'
+  | 'resizingTail'
+  | 'resizingNorth'
+  | 'resizingEast'
+  | 'resizingSouth'
+  | 'resizingWest'
+  | 'resizingNorthEast'
+  | 'resizingSouthEast'
+  | 'resizingSouthWest'
+  | 'resizingNorthWest'
+  | 'moving';
