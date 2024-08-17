@@ -141,7 +141,7 @@ export const FolderTree = ({
           (document.type === 'folder' ? appContext.platform.pathSep : '');
         const itemType = document.type === 'folder' ? 'branch' : 'leaf';
         return (
-          <MenuTrigger disableButtonEnhancement>
+          <MenuTrigger disableButtonEnhancement key={document.path}>
             <TreeItem
               data-test={`fileExplorer-${document.type}`}
               onContextMenu={(e) => {

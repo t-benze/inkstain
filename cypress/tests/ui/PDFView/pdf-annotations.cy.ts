@@ -59,7 +59,7 @@ describe('PDF Annotations', () => {
       cy.wait('@addAnnotation').then((interception) => {
         const annotationId = interception.response.body.id;
         cy.get('@drawingLayer')
-          .find(`[data-annotation-id="${annotationId}"]`)
+          .find(`[data-annotation-id="shadow-${annotationId}"]`)
           .as('annotation');
         cy.getBySel('toolbar-pickStylusBtn').click();
         cy.getBySel('toolbar-stylus-select').click();
@@ -83,16 +83,16 @@ describe('PDF Annotations', () => {
         });
         cy.get(`[data-mode=moving]`).trigger('mouseup');
         cy.wait('@updateAnnotation');
-        cy.get(`[data-mode=resizingNorthWest]`).trigger('mousedown', {
+        cy.get(`[data-mode=resizingHead]`).trigger('mousedown', {
           button: 0,
           clientX: 750,
           clientY: 700,
         });
-        cy.get(`[data-mode=resizingNorthWest]`).trigger('mousemove', {
+        cy.get(`[data-mode=resizingHead]`).trigger('mousemove', {
           clientX: 700,
           clientY: 650,
         });
-        cy.get(`[data-mode=resizingNorthWest]`).trigger('mouseup');
+        cy.get(`[data-mode=resizingHead]`).trigger('mouseup');
         cy.wait('@updateAnnotation');
         cy.getBySel('drawingAnnotationRemoveBtn').click();
         cy.wait('@deleteAnnotation');

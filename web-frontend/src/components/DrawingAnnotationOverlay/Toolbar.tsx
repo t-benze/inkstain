@@ -16,6 +16,7 @@ import {
   RectangleLandscapeRegular,
   LineRegular,
   CircleRegular,
+  PenRegular,
 } from '@fluentui/react-icons';
 import { DrawingAnnotationOverlayContext } from './context';
 
@@ -65,12 +66,19 @@ const StylusPickerPopover = ({
   const { t } = useTranslation();
   const classes = useClasses();
   const [open, setOpen] = React.useState(false);
-  const options = ['select', 'line', 'rect', 'ellipse'] as Array<StylusOption>;
+  const options = [
+    'select',
+    'line',
+    'rect',
+    'ellipse',
+    'pen',
+  ] as Array<StylusOption>;
   const optionToIcon = {
     select: <CursorRegular />,
     line: <LineRegular />,
     rect: <RectangleLandscapeRegular />,
     ellipse: <CircleRegular />,
+    pen: <PenRegular />,
   };
   return (
     <Popover
@@ -162,7 +170,7 @@ const StrokeColorPickerPopover = ({
       }}
     >
       <Tooltip
-        content={t('pickColorTooltip')}
+        content={t('pick_color_tooltip')}
         relationship="description"
         positioning="below"
       >
@@ -223,7 +231,7 @@ const StrokeWidthPickerPopover = ({
       }}
     >
       <Tooltip
-        content={t('pickThicknessTooltip')}
+        content={t('change_thinkness_tooltip')}
         relationship="description"
         positioning={'below'}
       >

@@ -199,13 +199,14 @@ export const SpaceManagementView = () => {
       if (!newSpaceName || newSpaceName.length === 0) {
         throw new Error('No space name');
       }
-      return await spacesApi.createSpace({
+      const result = await spacesApi.createSpace({
         type: 'new',
         createSpaceRequest: {
           name: newSpaceName,
           path: selectedDirectory + appContext.platform.pathSep + newSpaceName,
         },
       });
+      return result;
     },
     onMutate: () => {
       dispatchToast(
@@ -224,7 +225,6 @@ export const SpaceManagementView = () => {
     },
     onSuccess: async (data) => {
       if (data.taskId) {
-        // TODO: Show progress
         updateToast({
           content: (
             <Toast>
@@ -273,7 +273,8 @@ export const SpaceManagementView = () => {
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.log('on error', error);
       updateToast({
         content: (
           <Toast>
