@@ -81,6 +81,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       handleZoomOut,
       handleZoomFitHeight,
       handleZoomFitWidth,
+      handleZoomGesture,
     } = useZoomScale(sceneDimension, contentDimesion);
     const [enableScroll, setEnableScroll] = useState<boolean>(false);
     const handleEnableScrollChange = React.useCallback((enable: boolean) => {
@@ -219,11 +220,13 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                   currentPageNumber={currentPageNumber}
                   onRenderCompleted={handleRenderPageCompleted}
                   enableTextLayer={enableTextLayer}
+                  onZoomGesture={handleZoomGesture}
                 />
               ) : (
                 <div
                   data-initialWidthAdjusted
                   data-test="pdfViewer-scene"
+                  onWheel={handleZoomGesture}
                   ref={sceneRef}
                   className={styles.scene}
                 >

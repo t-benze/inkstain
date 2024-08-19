@@ -39,7 +39,7 @@
     "author": "Author",
     "tags": "Tags",
     "url": "Link",
-    "documentPath": "Document path"
+    "documentPath": "Document"
   },
   "space": {
     "_": "Space",
@@ -78,7 +78,7 @@
   "pdfview": {
     "prevPageBtnTooltip": "Previous page",
     "nextPageBtnTooltip": "Next page",
-    "enableScrollBtnTooltip": "Enable scroll",
+    "enableScrollBtnTooltip": "Continuous scrolling",
     "analyzeDocBtnTooltip": "Analyze document",
     "thumbnail": "Thumbnail",
     "outline": "Outline",

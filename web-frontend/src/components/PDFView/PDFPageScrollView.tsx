@@ -17,6 +17,7 @@ export const PDFPageScrollView = React.forwardRef(
       onPageClick,
       virtualizerLength = 5,
       shortListedPages,
+      onZoomGesture,
     }: {
       documentPath: string;
       shortListedPages?: number[];
@@ -32,6 +33,7 @@ export const PDFPageScrollView = React.forwardRef(
       ) => void;
       onPageChange?: (pageNum: number) => void;
       onPageClick?: (pageNum: number) => void;
+      onZoomGesture?: (e: React.WheelEvent) => void;
     },
     ref
   ) => {
@@ -92,11 +94,13 @@ export const PDFPageScrollView = React.forwardRef(
 
     return (
       <VirtualizerScrollView
+        onWheel={onZoomGesture}
         numItems={totalPages}
         itemSize={pageHeight ?? 1000}
         container={{
           //@ts-expect-error - data-test is not a valid prop
           'data-test': 'pdfViewer-scene',
+          onWheel: onZoomGesture,
           role: 'list',
           style: {
             position: 'relative',
