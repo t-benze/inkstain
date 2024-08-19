@@ -139,7 +139,7 @@ const listDocuments = async (ctx: Context) => {
     const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
     const files = await fs.readdir(fullPath);
     const results = files
-      .filter((file) => file !== '.inkstain')
+      .filter((file) => file !== '.inkstain' && file !== '.DS_Store')
       .map(async (file) => {
         const isFile = file.endsWith('.ink');
         file = isFile ? file.slice(0, file.length - 4) : file;
