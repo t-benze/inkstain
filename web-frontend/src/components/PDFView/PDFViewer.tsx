@@ -165,6 +165,40 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       handleStylusChange,
     } = useStylus();
 
+    const changePageScrollDoubleConfirm = React.useRef(false);
+    const handleWheelEventNonCoutinuous = React.useCallback(
+      (e: React.WheelEvent) => {
+        if (e.ctrlKey) {
+          handleZoomGesture(e);
+          return;
+        }
+
+        if (!sceneRef.current) throw new Error('sceneRef.current is null');
+        const scrollTop = sceneRef.current.scrollTop;
+        const scrollHeight = sceneRef.current.scrollHeight;
+        const clientHeight = sceneRef.current.clientHeight;
+        if (scrollTop + clientHeight >= scrollHeight && e.deltaY > 0) {
+          if (changePageScrollDoubleConfirm.current) {
+            sceneRef.current.scrollTop = 0;
+            setCurrentPageNumber(currentPageNumber + 1);
+            changePageScrollDoubleConfirm.current = false;
+          } else {
+            changePageScrollDoubleConfirm.current = true;
+          }
+        }
+        if (scrollTop <= 0 && e.deltaY < 0 && currentPageNumber > 1) {
+          if (changePageScrollDoubleConfirm.current) {
+            setCurrentPageNumber(currentPageNumber - 1);
+            sceneRef.current.scrollTop = scrollHeight - clientHeight;
+            changePageScrollDoubleConfirm.current = false;
+          } else {
+            changePageScrollDoubleConfirm.current = true;
+          }
+        }
+      },
+      [handleZoomGesture, currentPageNumber]
+    );
+
     // for high resolution devices, we need to scale the pdf rendering
     const pdfScale = scale * window.devicePixelRatio;
     return (
@@ -226,7 +260,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                 <div
                   data-initialWidthAdjusted
                   data-test="pdfViewer-scene"
-                  onWheel={handleZoomGesture}
+                  onWheel={handleWheelEventNonCoutinuous}
                   ref={sceneRef}
                   className={styles.scene}
                 >
