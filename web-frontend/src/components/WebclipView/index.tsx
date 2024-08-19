@@ -91,6 +91,7 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
     handleZoomOut,
     handleZoomFitHeight,
     handleZoomFitWidth,
+    handleZoomGesture,
   } = useZoomScale(sceneDimension, imageDimension);
   const {
     strokeColor,
@@ -120,7 +121,11 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
           onZoomOut={handleZoomOut}
           onZoomFitHeight={handleZoomFitHeight}
         />
-        <div className={classes.scene} ref={sceneRef}>
+        <div
+          className={classes.scene}
+          ref={sceneRef}
+          onWheel={handleZoomGesture}
+        >
           {imageDataUrl && sceneDimension ? (
             <ContentView
               spaceKey={spaceKey}
