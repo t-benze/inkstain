@@ -84,9 +84,21 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       handleZoomGesture,
     } = useZoomScale(sceneDimension, contentDimesion);
     const [enableScroll, setEnableScroll] = useState<boolean>(false);
-    const handleEnableScrollChange = React.useCallback((enable: boolean) => {
-      setEnableScroll(enable);
-    }, []);
+    const handleEnableScrollChange = React.useCallback(
+      (enable: boolean) => {
+        if (enable) {
+          // a hack to ensure when changing to scroll mode, the hook inside
+          // PageScrollView to update the scroll position will be triggered
+          const pageNum = currentPageNumber;
+          setCurrentPageNumber(1);
+          setTimeout(() => {
+            setCurrentPageNumber(pageNum);
+          }, 0);
+        }
+        setEnableScroll(enable);
+      },
+      [currentPageNumber]
+    );
     // TODO: enable text layer should be based on user status
     const enableTextLayer = false;
     const [showLayoutAnalysis, setShowLayoutAnalysis] =
@@ -231,6 +243,11 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
               enableScroll={enableScroll}
               onEnableScrollChange={handleEnableScrollChange}
               onPageChange={(pageNum) => {
+                if (!enableScroll) {
+                  if (sceneRef.current) {
+                    sceneRef.current.scrollTop = 0;
+                  }
+                }
                 setCurrentPageNumber(pageNum);
               }}
               onZoomFitHeight={handleZoomFitHeight}

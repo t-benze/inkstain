@@ -142,6 +142,7 @@ export const PDFToolbar = ({
         onKeyUp={(e) => {
           if (e.key === 'Enter') {
             handlePageNumChange();
+            (e.target as HTMLInputElement).blur();
           }
         }}
         onBlur={handlePageNumChange}

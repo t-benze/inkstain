@@ -30,8 +30,8 @@ const useClasses = makeStyles({
   canvas: {},
   bookmartBtn: {
     position: 'absolute',
-    top: '0px',
-    right: '32px',
+    top: '1%',
+    right: '5%',
   },
   bookmarkPopover: {
     display: 'flex',
@@ -87,11 +87,7 @@ const BookmarkBtn = ({
         onOpenChange={handleOpenChange}
       >
         <PopoverTrigger>
-          <Button
-            appearance="transparent"
-            size="small"
-            data-test="pdfViewer-bookmarkBtn"
-          >
+          <div data-test="pdfViewer-bookmarkBtn">
             {isBookmarked ? (
               <BookmarkFilled
                 fontSize={32}
@@ -100,7 +96,7 @@ const BookmarkBtn = ({
             ) : (
               <BookmarkRegular fontSize={32} />
             )}
-          </Button>
+          </div>
         </PopoverTrigger>
         <PopoverSurface>
           <div className={classes.bookmarkPopover}>
