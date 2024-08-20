@@ -116,26 +116,28 @@ export const DocumentTagView = ({ document }: DocumentTagViewProps) => {
         document && !document.type.startsWith('@inkstain') ? (
           <div className={classes.root}>
             <div className={classes.tagList}>
-              <TagGroup
-                onDismiss={(_, { value }) => {
-                  removeTagMutation.mutate(value);
-                }}
-              >
-                {tags?.map((tag) => (
-                  <InteractionTag
-                    data-test="documentTagView-tag"
-                    shape="circular"
-                    appearance="filled"
-                    value={tag}
-                    key={tag}
-                  >
-                    <InteractionTagPrimary hasSecondaryAction>
-                      {tag}
-                    </InteractionTagPrimary>
-                    <InteractionTagSecondary aria-label="remove" />
-                  </InteractionTag>
-                ))}
-              </TagGroup>
+              {tags && tags.length > 0 ? (
+                <TagGroup
+                  onDismiss={(_, { value }) => {
+                    removeTagMutation.mutate(value);
+                  }}
+                >
+                  {tags?.map((tag) => (
+                    <InteractionTag
+                      data-test="documentTagView-tag"
+                      shape="circular"
+                      appearance="filled"
+                      value={tag}
+                      key={tag}
+                    >
+                      <InteractionTagPrimary hasSecondaryAction>
+                        {tag}
+                      </InteractionTagPrimary>
+                      <InteractionTagSecondary aria-label="remove" />
+                    </InteractionTag>
+                  ))}
+                </TagGroup>
+              ) : null}
             </div>
             <div className={classes.addTag}>
               <Input

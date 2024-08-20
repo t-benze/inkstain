@@ -8,6 +8,8 @@
   "remove": "Remove",
   "update": "Update",
   "cancel": "Cancel",
+  "edit": "Edit",
+  "save": "Save",
   "loading": "Loading",
   "next": "Next",
   "choose_a_directory": "Choose a directory",
@@ -30,7 +32,7 @@
   "stylus_line": "Line",
   "stylus_rect": "Rectangle",
   "stylus_ellipse": "Ellipse",
-  "stylus_marker": "Marker",
+  "stylus_pen": "Pen",
   "comment_optional": "Comment (optional)",
   "system": {
     "@inkstain/space-management": "Spaces",

@@ -7,7 +7,7 @@ import { Space } from './SpaceService';
 
 export class DocumentService {
   private sequelize: Sequelize;
-  private systemAttributes = ['title', 'author'];
+  private systemAttributes = ['title', 'author', 'url'];
 
   constructor(sequelize: Sequelize) {
     this.sequelize = sequelize;
