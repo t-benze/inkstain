@@ -6,7 +6,7 @@ export const useZoomScale = (
 ) => {
   const [scale, setScale] = React.useState(1);
   const handleZoomIn = React.useCallback(() => {
-    setScale((prevScale) => Math.min(prevScale * 1.1, 5));
+    setScale((prevScale) => Math.min(prevScale * 1.1, 2.5));
   }, []);
   const handleZoomOut = React.useCallback(() => {
     setScale((prevScale) => Math.max(prevScale / 1.1, 0.1));
@@ -35,7 +35,7 @@ export const useZoomScale = (
     if (e.deltaY > 0) {
       setScale((prevScale) => Math.max(prevScale / 1.1, 0.1));
     } else {
-      setScale((prevScale) => Math.min(prevScale * 1.1, 5));
+      setScale((prevScale) => Math.min(prevScale * 1.1, 2.5));
     }
   }, []);
 
