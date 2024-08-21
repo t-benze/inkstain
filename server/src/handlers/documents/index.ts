@@ -650,6 +650,175 @@ export const exportDocument = async (ctx: Context) => {
     throw error;
   }
 };
+
+/**
+ * @swagger
+ * /documents/{spaceKey}/renameDocument:
+ *   put:
+ *     summary: Rename a document
+ *     tags: [Documents]
+ *     operationId: renameDocument
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The key of the space
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The relative path to the document within the space
+ *       - in: query
+ *         name: newName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The new name for the document
+ *     responses:
+ *       200:
+ *         description: Document renamed successfully.
+ *       400:
+ *         description: Invalid parameters provided.
+ *       404:
+ *         description: Space or document not found.
+ *       409:
+ *         description: A document with the new name already exists.
+ */
+const renameDocument = async (ctx: Context) => {
+  const { spaceKey } = ctx.params;
+  const oldPath = ctx.query.path as string;
+  const newName = ctx.query.newName as string;
+
+  try {
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+    const oldFullPath = path.join(spaceRoot, oldPath) + '.ink';
+    const newPath = path.join(path.dirname(oldPath), newName);
+    const newFullPath = path.join(spaceRoot, newPath) + '.ink';
+
+    try {
+      if (await fs.stat(newFullPath)) {
+        ctx.status = 409;
+        ctx.body = {
+          message: 'A document with the new name already exists.',
+        };
+        return;
+      }
+    } catch (error) {
+      // newFullPath does not exist
+    }
+
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    await ctx.documentService.updateDocumentPath(space, oldPath, newPath);
+    await fs.rename(oldFullPath, newFullPath);
+    ctx.status = 200;
+    ctx.body = { message: 'Document renamed successfully', newPath };
+    logger.info(
+      `Renamed document ${oldPath} to ${newPath} in space ${spaceKey}`
+    );
+  } catch (error) {
+    if (error instanceof SpaceServiceError) {
+      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
+        ctx.status = 404;
+        ctx.body = { message: error.message };
+        return;
+      }
+    }
+    logger.error(`Failed to rename document: ${error.message}`);
+    ctx.status = 500;
+    ctx.body = { message: 'Internal server error' };
+  }
+};
+
+/**
+ * @swagger
+ * /documents/{spaceKey}/renameFolder:
+ *   put:
+ *     summary: Rename a folder
+ *     tags: [Documents]
+ *     operationId: renameFolder
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The key of the space
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The relative path to the folder within the space
+ *       - in: query
+ *         name: newName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The new name for the folder
+ *     responses:
+ *       200:
+ *         description: Folder renamed successfully.
+ *       400:
+ *         description: Invalid parameters provided.
+ *       404:
+ *         description: Space or folder not found.
+ *       409:
+ *         description: A folder with the new name already exists.
+ */
+const renameFolder = async (ctx: Context) => {
+  const { spaceKey } = ctx.params;
+  const oldPath = ctx.query.path as string;
+  const newName = ctx.query.newName as string;
+
+  try {
+    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+    const oldFullPath = path.join(spaceRoot, oldPath);
+    const newPath = path.join(path.dirname(oldPath), newName);
+    const newFullPath = path.join(spaceRoot, newPath);
+
+    try {
+      if (await fs.stat(newFullPath)) {
+        ctx.status = 409;
+        ctx.body = {
+          message: 'A folder with the new name already exists.',
+        };
+        return;
+      }
+    } catch (error) {
+      // newFullPath does not exist
+    }
+
+    const documentsToUpdate = [];
+    await traverseDirectory(spaceRoot, oldFullPath, documentsToUpdate);
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    for (const doc of documentsToUpdate) {
+      await ctx.documentService.updateDocumentPath(
+        space,
+        doc,
+        doc.replace(oldPath, newPath)
+      );
+    }
+    await fs.rename(oldFullPath, newFullPath);
+    ctx.status = 200;
+    ctx.body = { message: 'Folder renamed successfully', newPath };
+    logger.info(`Renamed folder ${oldPath} to ${newPath} in space ${spaceKey}`);
+  } catch (error) {
+    if (error instanceof SpaceServiceError) {
+      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
+        ctx.status = 404;
+        ctx.body = { message: error.message };
+        return;
+      }
+    }
+    logger.error(`Failed to rename folder: ${error.message}`);
+    ctx.status = 500;
+    ctx.body = { message: 'Internal server error' };
+  }
+};
+
 // Register routes and export
 export const registerDocumentRoutes = (router: Router) => {
   // document files and folders
@@ -679,6 +848,10 @@ export const registerDocumentRoutes = (router: Router) => {
   router.post('/documents/:spaceKey/annotations', addDocumentAnnotation);
   router.put('/documents/:spaceKey/annotations', updateDocumentAnnotation);
   router.delete('/documents/:spaceKey/annotations', deleteDocumentAnnotations);
+
+  // document rename
+  router.put('/documents/:spaceKey/renameDocument', renameDocument);
+  router.put('/documents/:spaceKey/renameFolder', renameFolder);
 
   router.get('/documents/:spaceKey/export', exportDocument);
 };

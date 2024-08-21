@@ -127,6 +127,18 @@ export interface RemoveDocumentTagsOperationRequest {
   removeDocumentTagsRequest: RemoveDocumentTagsRequest;
 }
 
+export interface RenameDocumentRequest {
+  spaceKey: string;
+  path: string;
+  newName: string;
+}
+
+export interface RenameFolderRequest {
+  spaceKey: string;
+  path: string;
+  newName: string;
+}
+
 export interface UpdateDocumentAnnotationRequest {
   spaceKey: string;
   path: string;
@@ -1329,6 +1341,156 @@ export class DocumentsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.removeDocumentTagsRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Rename a document
+   */
+  async renameDocumentRaw(
+    requestParameters: RenameDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling renameDocument.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling renameDocument.'
+      );
+    }
+
+    if (
+      requestParameters.newName === null ||
+      requestParameters.newName === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'newName',
+        'Required parameter requestParameters.newName was null or undefined when calling renameDocument.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    if (requestParameters.newName !== undefined) {
+      queryParameters['newName'] = requestParameters.newName;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/renameDocument`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Rename a document
+   */
+  async renameDocument(
+    requestParameters: RenameDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.renameDocumentRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Rename a folder
+   */
+  async renameFolderRaw(
+    requestParameters: RenameFolderRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling renameFolder.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling renameFolder.'
+      );
+    }
+
+    if (
+      requestParameters.newName === null ||
+      requestParameters.newName === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'newName',
+        'Required parameter requestParameters.newName was null or undefined when calling renameFolder.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    if (requestParameters.newName !== undefined) {
+      queryParameters['newName'] = requestParameters.newName;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/renameFolder`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Rename a folder
+   */
+  async renameFolder(
+    requestParameters: RenameFolderRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.renameFolderRaw(requestParameters, initOverrides);
   }
 
   /**

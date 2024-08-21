@@ -35,11 +35,17 @@ interface FolderTreeProps {
   level?: number;
   openItems?: Set<TreeItemValue>;
   onOpenChange?: OnOpenChange;
-  selection: Set<TreeItemValue>;
+  selection: Array<{ value: string; itemType: string }>;
   onTreeItemClicked?: OnTreeItemClicked;
   onTreeItemDoubleClicked?: OnTreeItemClicked;
   addNewFolderTarget: string | null;
-  addFolder: (params: { targetFolder: string; name: string }) => void;
+  onAddNewFolder: (params: { targetFolder: string; name: string }) => void;
+  renameTarget: string | null;
+  onRename: (params: {
+    target: string;
+    newName: string;
+    isFolder: boolean;
+  }) => void;
 }
 
 const useStyles = makeStyles({
@@ -65,7 +71,9 @@ export const FolderTree = ({
   onTreeItemClicked,
   onTreeItemDoubleClicked,
   addNewFolderTarget,
-  addFolder,
+  onAddNewFolder,
+  renameTarget,
+  onRename,
 }: FolderTreeProps) => {
   const styles = useStyles();
   const appContext = React.useContext(AppContext);
@@ -85,10 +93,25 @@ export const FolderTree = ({
   const [newFolderName, setNewFolderName] = React.useState<string>('');
   const newFolderInputRef = React.useRef<HTMLInputElement>(null);
   React.useEffect(() => {
+    setNewFolderName('');
     if (newFolderInputRef.current) {
       newFolderInputRef.current.focus();
     }
   }, [addNewFolderTarget]);
+
+  const [renameTargetValue, setRenameTargetValue] = React.useState<string>('');
+  const renameTargetInputRef = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    if (renameTarget) {
+      const doc = data?.find((d) => d.path === renameTarget);
+      if (doc) {
+        setRenameTargetValue(doc.name);
+        if (renameTargetInputRef.current) {
+          renameTargetInputRef.current.focus();
+        }
+      }
+    }
+  }, [renameTarget, data]);
 
   return isLoading ? (
     <Spinner></Spinner>
@@ -120,25 +143,24 @@ export const FolderTree = ({
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  addFolder({
+                  onAddNewFolder({
                     targetFolder: currentFolder,
                     name: newFolderName,
                   });
-                  setNewFolderName('');
                 }
               }}
               onBlur={() => {
-                addFolder({ targetFolder: currentFolder, name: newFolderName });
-                setNewFolderName('');
+                onAddNewFolder({
+                  targetFolder: currentFolder,
+                  name: newFolderName,
+                });
               }}
             />
           </TreeItemLayout>
         </TreeItem>
       ) : null}
       {data?.map((document) => {
-        const value =
-          document.path +
-          (document.type === 'folder' ? appContext.platform.pathSep : '');
+        const value = document.path;
         const itemType = document.type === 'folder' ? 'branch' : 'leaf';
         return (
           <MenuTrigger disableButtonEnhancement key={document.path}>
@@ -177,24 +199,63 @@ export const FolderTree = ({
               <TreeItemLayout
                 className={mergeClasses(
                   styles.itemLayout,
-                  selection.has(value) ? styles.itemSelected : undefined
+                  selection.some((s) => s.value === value)
+                    ? styles.itemSelected
+                    : undefined
                 )}
                 main={{ style: { width: '100%' } }}
               >
-                <Text wrap={false} truncate={true} className={styles.itemText}>
-                  {document.name}
-                </Text>
+                {renameTarget === value ? (
+                  <Input
+                    size="small"
+                    data-test="fileExplorer-renameInput"
+                    ref={renameTargetInputRef}
+                    value={renameTargetValue}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onChange={(e, data) => {
+                      setRenameTargetValue(data.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onRename({
+                          target: value,
+                          newName: renameTargetValue,
+                          isFolder: document.type === 'folder',
+                        });
+                      }
+                    }}
+                    onBlur={() => {
+                      onRename({
+                        target: value,
+                        newName: renameTargetValue,
+                        isFolder: document.type === 'folder',
+                      });
+                    }}
+                  />
+                ) : (
+                  <Text
+                    wrap={false}
+                    truncate={true}
+                    className={styles.itemText}
+                  >
+                    {document.name}
+                  </Text>
+                )}
               </TreeItemLayout>
               {document.type === 'folder' && (
                 <FolderTree
-                  addFolder={addFolder}
+                  onAddNewFolder={onAddNewFolder}
                   onTreeItemClicked={onTreeItemClicked}
                   selection={selection}
                   spaceKey={spaceKey}
-                  path={document.path + appContext.platform.pathSep}
+                  path={document.path}
                   level={level + 1}
                   openItems={openItems}
                   addNewFolderTarget={addNewFolderTarget}
+                  renameTarget={renameTarget}
+                  onRename={onRename}
                 />
               )}
             </TreeItem>
