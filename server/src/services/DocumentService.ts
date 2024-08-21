@@ -108,6 +108,15 @@ export class DocumentService {
     });
   }
 
+  async updateDocumentPath(space: Space, oldPath: string, newPath: string) {
+    await this.sequelize.transaction(async (transaction) => {
+      await Document.update(
+        { documentPath: newPath },
+        { where: { spaceKey: space.key, documentPath: oldPath }, transaction }
+      );
+    });
+  }
+
   async searchDocuments(
     spaceKey: string,
     query: {

@@ -67,7 +67,12 @@ const useSelection = () => {
     value: string;
     itemType: string;
   } | null>(null);
-  const [selection, setSelection] = React.useState<Set<string>>(new Set());
+  const [selection, setSelection] = React.useState<
+    Array<{
+      value: string;
+      itemType: string;
+    }>
+  >([]);
 
   // TODO: support multi-select properly
   const handleSelected = React.useCallback<OnTreeItemClicked>(
@@ -79,14 +84,14 @@ const useSelection = () => {
       } else if (data.event.ctrlKey || data.event.metaKey) {
         // Use metaKey to support Command key on macOS
         // Ctrl or Command is held: Toggle selection of the clicked item
-        if (selection.has(value)) {
-          selection.delete(value);
+        if (selection.some((item) => item.value === value)) {
+          setSelection(selection.filter((item) => item.value !== value));
         } else {
-          selection.add(value);
+          setSelection([...selection, { value, itemType: data.itemType }]);
         }
       } else {
         // No modifier keys: Select only the clicked item (and deselect others)
-        setSelection(new Set([value]));
+        setSelection([{ value, itemType: data.itemType }]);
       }
       setLastSelect({
         value,
@@ -107,6 +112,7 @@ const ContextMenu = ({
   lastSelect,
   deleteFiles,
   exportFile,
+  rename,
 }: {
   lastSelect: {
     value: string;
@@ -114,6 +120,7 @@ const ContextMenu = ({
   } | null;
   deleteFiles: () => void;
   exportFile: (withData: boolean) => void;
+  rename: () => void;
 }) => {
   const { t } = useTranslation();
   const enableExport = lastSelect && lastSelect?.itemType === 'leaf';
@@ -122,6 +129,9 @@ const ContextMenu = ({
       <MenuList>
         <MenuItem data-test="fileExplorer-contextDelete" onClick={deleteFiles}>
           {t('delete')}
+        </MenuItem>
+        <MenuItem data-test="fileExplorer-contextRename" onClick={rename}>
+          {t('rename')}
         </MenuItem>
         <MenuItem
           data-test="fileExplorer-exportDocument"
@@ -304,7 +314,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     setAddNewFolderTarget(targetFolder);
   }, [setAddNewFolderTarget, lastSelect, appContext.platform.pathSep]);
 
-  const { mutate: addFolder } = useMutation({
+  const { mutate: handleAddNewFolder } = useMutation({
     mutationFn: async ({
       targetFolder,
       name,
@@ -341,25 +351,24 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   }, [lastSelect, appContext.platform.pathSep, space.key, queryClient]);
 
   const deleteFiles = React.useCallback(async () => {
-    const filesToDelete =
-      selection.size > 1 ? selection : lastSelect ? [lastSelect.value] : [];
+    const filesToDelete = selection;
     const foldersToRefresh = new Set<string>();
     for (const file of filesToDelete) {
-      if (file.endsWith(appContext.platform.pathSep)) {
+      if (file.itemType === 'branch') {
         await documentsApi.deleteFolder({
           spaceKey: space.key,
-          path: file,
+          path: file.value,
         });
       } else {
         await documentsApi.deleteDocument({
           spaceKey: space.key,
-          path: file,
+          path: file.value,
         });
       }
       foldersToRefresh.add(
-        file
+        file.value
           .split(appContext.platform.pathSep)
-          .slice(0, file.endsWith(appContext.platform.pathSep) ? -2 : -1)
+          .slice(0, file.value.endsWith(appContext.platform.pathSep) ? -2 : -1)
           .join(appContext.platform.pathSep)
       );
     }
@@ -371,13 +380,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     queryClient.invalidateQueries({
       queryKey: ['searchDocuments', space.key, '', '', 0],
     });
-  }, [
-    selection,
-    appContext.platform.pathSep,
-    space.key,
-    lastSelect,
-    queryClient,
-  ]);
+  }, [selection, appContext.platform.pathSep, space.key, queryClient]);
 
   const exportFile = React.useCallback(
     async (withData: boolean) => {
@@ -428,6 +431,48 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       }
     },
     [lastSelect, space.key]
+  );
+
+  // support rename document or folder
+  const [renameTarget, setRenameTarget] = React.useState<string | null>(null);
+  const handleRenameAction = React.useCallback(() => {
+    if (lastSelect) {
+      setRenameTarget(lastSelect.value);
+    }
+  }, [lastSelect]);
+
+  const handleRename = React.useCallback(
+    async (params: { target: string; newName: string; isFolder: boolean }) => {
+      if (params.target === params.newName) {
+        return;
+      }
+      const parent = params.target
+        .split(appContext.platform.pathSep)
+        .slice(0, -1)
+        .join(appContext.platform.pathSep);
+      try {
+        if (params.isFolder) {
+          await documentsApi.renameFolder({
+            spaceKey: space.key,
+            path: params.target,
+            newName: params.newName,
+          });
+        } else {
+          await documentsApi.renameDocument({
+            spaceKey: space.key,
+            path: params.target,
+            newName: params.newName,
+          });
+        }
+        queryClient.invalidateQueries({
+          queryKey: ['documents', space.key, parent],
+        });
+        setRenameTarget(null);
+      } catch (error) {
+        console.error('Error renaming document or folder:', error);
+      }
+    },
+    [space.key, queryClient, appContext.platform.pathSep]
   );
 
   const headerButtons = (
@@ -537,12 +582,15 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           onTreeItemClicked={handleTreeItemClicked}
           onTreeItemDoubleClicked={handleTreeItemDoubleClicked}
           addNewFolderTarget={addNewFolderTarget}
-          addFolder={addFolder}
+          onAddNewFolder={handleAddNewFolder}
+          renameTarget={renameTarget}
+          onRename={handleRename}
         />
         <ContextMenu
           lastSelect={lastSelect}
           deleteFiles={deleteFiles}
           exportFile={exportFile}
+          rename={handleRenameAction}
         />
       </Menu>
     </div>

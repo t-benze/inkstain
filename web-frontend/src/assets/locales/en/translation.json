@@ -18,6 +18,7 @@
   "document_attributes": "Attributes",
   "apply": "Apply",
   "clear": "Clear",
+  "rename": "Rename",
   "no_active_document": "No active document",
   "open_with_system_app": "Open with system app",
   "close": "Close",

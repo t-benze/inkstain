@@ -26,7 +26,7 @@ describe('File Explorer for Space', () => {
   });
 
   context('Folder Operations', () => {
-    it.only('should allow users to create new folders and organize files', () => {
+    it('should allow users to create new folders and delete folders', () => {
       cy.intercept({
         method: 'POST',
         pathname: '/api/v1/documents/a116538b/addFolder',
@@ -36,9 +36,6 @@ describe('File Explorer for Space', () => {
       cy.getBySel('fileExplorer-newFolderNameInput').blur();
       cy.wait('@addFolder');
       cy.getBySel('fileExplorer-folderTree').contains('New Folder');
-    });
-
-    it('should allow users to delete a folder', () => {
       cy.getBySel('fileExplorer-folderTree')
         .contains('New Folder')
         .rightclick();
@@ -147,6 +144,45 @@ describe('File Explorer for Space', () => {
         .rightclick();
       cy.getBySel('fileExplorer-exportDocumentWithData').click();
       cy.wait('@exportDocument');
+    });
+  });
+
+  context('Rename folders and documents', () => {
+    it('should allow users to rename documents', () => {
+      cy.intercept({
+        method: 'PUT',
+        pathname: '/api/v1/documents/a116538b/renameDocument',
+      }).as('renameDocument');
+      cy.getBySel('fileExplorer-folderTree').contains('test rename').click();
+      cy.getBySel('fileExplorer-folderTree')
+        .contains('test-rename-text.txt')
+        .rightclick();
+      cy.getBySel('fileExplorer-contextRename').click();
+      cy.getBySel('fileExplorer-renameInput').clear();
+      cy.getBySel('fileExplorer-renameInput').type('test-text-renamed-new.txt');
+      cy.getBySel('fileExplorer-renameInput').blur();
+      cy.wait('@renameDocument');
+      cy.getBySel('fileExplorer-folderTree')
+        .contains('test-text-renamed-new.txt')
+        .should('exist');
+    });
+    it('should allow users to rename folders', () => {
+      cy.intercept({
+        method: 'PUT',
+        pathname: '/api/v1/documents/a116538b/renameFolder',
+      }).as('renameFolder');
+      cy.getBySel('fileExplorer-folderTree').contains('test rename').click();
+      cy.getBySel('fileExplorer-folderTree')
+        .contains('test rename')
+        .rightclick();
+      cy.getBySel('fileExplorer-contextRename').click();
+      cy.getBySel('fileExplorer-renameInput').clear();
+      cy.getBySel('fileExplorer-renameInput').type('test rename new');
+      cy.getBySel('fileExplorer-renameInput').blur();
+      cy.wait('@renameFolder');
+      cy.getBySel('fileExplorer-folderTree')
+        .contains('test rename new')
+        .should('exist');
     });
   });
 });
