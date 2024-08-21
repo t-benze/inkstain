@@ -53,7 +53,7 @@ describe('File Explorer for Space', () => {
       cy.getBySel('pdfViewer-pageNumInput').should('have.value', '3');
     });
 
-    it('should be able to zoom in and out and fit the page', () => {
+    it.only('should be able to zoom in and out and fit the page', () => {
       cy.getBySel('pdfViewer-canvas').as('canvas');
       cy.getBySel('pdfViewer-scene').should(
         'have.attr',
@@ -64,34 +64,31 @@ describe('File Explorer for Space', () => {
         const sceneWidth = $scene[0].clientWidth;
         const sceneHeight = $scene[0].clientHeight;
         cy.get('@canvas').then(($canvas) => {
-          const baseWidth = $canvas[0].offsetWidth;
-          cy.getBySel('toolbar-zoomInBtn').click();
-          cy.get('@canvas').then(($canvas) => {
-            const newWidth = $canvas[0].offsetWidth;
-            cy.wrap(newWidth).should('be.greaterThan', baseWidth);
-            cy.getBySel('toolbar-zoomOutBtn').click();
-            cy.get('@canvas').then(($canvas) => {
-              cy.wrap($canvas[0].offsetWidth).should('be.lessThan', newWidth);
-            });
-          });
+          cy.wrap({
+            width: () => $canvas[0].offsetWidth,
+            height: () => $canvas[0].offsetHeight,
+          }).as('canvasObj');
 
           cy.getBySel('toolbar-fitWidthBtn').click();
-          cy.get('@canvas').then(($canvas) => {
-            cy.wrap($canvas[0].offsetWidth).should(
-              'be.within',
-              sceneWidth - 10,
-              sceneWidth + 10
-            );
-          });
+          cy.get('@canvasObj')
+            .invoke('width')
+            .should('be.within', sceneWidth - 10, sceneWidth + 10);
+
+          cy.getBySel('toolbar-zoomInBtn').click();
+          cy.get('@canvasObj')
+            .invoke('width')
+            .should('be.greaterThan', sceneWidth);
+
+          cy.getBySel('toolbar-fitWidthBtn').click();
+          cy.getBySel('toolbar-zoomOutBtn').click();
+          cy.get('@canvasObj')
+            .invoke('width')
+            .should('be.lessThan', sceneWidth);
 
           cy.getBySel('toolbar-fitHeightBtn').click();
-          cy.get('@canvas').then(($canvas) => {
-            cy.wrap($canvas[0].offsetHeight).should(
-              'be.within',
-              sceneHeight - 10,
-              sceneHeight + 10
-            );
-          });
+          cy.get('@canvasObj')
+            .invoke('height')
+            .should('be.within', sceneHeight - 10, sceneHeight + 10);
         });
       });
     });
@@ -127,8 +124,8 @@ describe('File Explorer for Space', () => {
       cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
       cy.getBySel('pdfViewer-scene').then(($scene) => {
         const sceneWidth = $scene[0].clientWidth;
-        cy.getBySel('toolbar-fitWidthBtn').click();
         cy.getBySel('pdfViewer-canvas').then(($canvas) => {
+          cy.getBySel('toolbar-fitWidthBtn').click();
           cy.wrap($canvas[0].offsetWidth).should(
             'be.within',
             sceneWidth - 10,

@@ -8,6 +8,9 @@ Cypress.Commands.add('openApp', (key) => {
 Cypress.Commands.add('getBySel', (selector, options) => {
   return cy.get(`[data-test=${selector}]`, options);
 });
+Cypress.Commands.add('findBySel', (selector, options) => {
+  return cy.find(`[data-test=${selector}]`, options);
+});
 Cypress.Commands.add('getBySelContains', (selector, options) => {
   return cy.get(`[data-test*=${selector}]`, options);
 });

@@ -5,6 +5,7 @@ declare global {
     interface Chainable {
       openApp(spaceKey?: string): void;
       getBySel(selector: string, options?: object): Chainable<JQuery<E>>;
+      findBySel(selector: string, options?: object): Chainable<JQuery<E>>;
       getBySelContains(
         selector: string,
         options?: object
