@@ -314,10 +314,13 @@ export const SearchDocumentView = () => {
   const [attributeFilters, setAttributeFilters] = React.useState<
     Record<string, string> | undefined
   >(undefined);
-  const systemAttributes = platform.systemAttributes;
+  const systemAttributesWithIndex = platform.attributes.attributesWithIndex;
 
   const attributeFilterString = JSON.stringify(attributeFilters);
-  const spaceKey = activeSpace!.key;
+  if (!activeSpace) {
+    throw new Error('No active space');
+  }
+  const spaceKey = activeSpace.key;
 
   const [numOfPagesReached, setNumOfPagesReached] = React.useState(0);
   const { data } = useQuery({
@@ -407,7 +410,7 @@ export const SearchDocumentView = () => {
 
   const { columns, columnSizingOptions } = makeColumns([
     'documentPath',
-    ...systemAttributes,
+    ...systemAttributesWithIndex,
     'tags',
   ]);
 

@@ -24,7 +24,7 @@ import {
   createTableColumn,
 } from '@fluentui/react-components';
 import { DocumentAttribute } from './types';
-import { useNewAttributes } from './AddAttribute';
+import { useNewAttributes } from './useNewAttributes';
 
 const useClasses = makeStyles({
   grid: {
@@ -75,7 +75,7 @@ const NewAttributeNameDropdown = ({
 }) => {
   const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
-  const systemAttributes = appContext.platform.systemAttributes;
+  const attributes = appContext.platform.attributes.attributes;
   return (
     <Dropdown
       data-test="documentAttributesView-attributeNameDropdown"
@@ -89,7 +89,7 @@ const NewAttributeNameDropdown = ({
         });
       }}
     >
-      {systemAttributes.map((attr) => (
+      {attributes.map((attr) => (
         <Option
           key={attr}
           value={attr}

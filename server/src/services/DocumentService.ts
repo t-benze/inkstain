@@ -7,14 +7,18 @@ import { Space } from './SpaceService';
 
 export class DocumentService {
   private sequelize: Sequelize;
-  private systemAttributes = ['title', 'author', 'url'];
+  private attributesWithIndex = ['title', 'author'];
+  private attributes = [...this.attributesWithIndex, 'url'];
 
   constructor(sequelize: Sequelize) {
     this.sequelize = sequelize;
   }
 
-  getSystemAttributes() {
-    return this.systemAttributes;
+  getAttributes() {
+    return {
+      attributesWithIndex: this.attributesWithIndex,
+      attributes: this.attributes,
+    };
   }
 
   async getDocumentTags(spaceKey: string) {
@@ -75,7 +79,7 @@ export class DocumentService {
       }
 
       for (const [key, value] of Object.entries(attributes)) {
-        if (!this.systemAttributes.includes(key)) {
+        if (!this.attributesWithIndex.includes(key)) {
           break;
         }
         const values = Array.isArray(value) ? value : [value];

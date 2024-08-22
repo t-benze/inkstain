@@ -31,6 +31,7 @@ models/HighlightData.ts
 models/ListDirectories200ResponseInner.ts
 models/ListDocuments200ResponseInner.ts
 models/PlatformInfo200Response.ts
+models/PlatformInfo200ResponseAttributes.ts
 models/RemoveDocumentTagsRequest.ts
 models/SearchDocuments200Response.ts
 models/Space.ts
