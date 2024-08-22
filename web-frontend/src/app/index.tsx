@@ -147,8 +147,11 @@ const InkStain = () => {
   const activeDocumentViewRef = React.useRef<unknown>(null);
 
   React.useEffect(() => {
-    if (activeDocument === null && documentsAlive.length > 0) {
-      setActiveDocument(documentsAlive[0].name);
+    const document = documentsAlive.find(
+      (document) => document.name === activeDocument
+    );
+    if (!document) {
+      setActiveDocument(documentsAlive[0] ? documentsAlive[0].name : null);
     }
   }, [documentsAlive, activeDocument]);
 
@@ -171,11 +174,8 @@ const InkStain = () => {
   const handleCloseDocument = React.useCallback(
     (name: string) => {
       closeDocument(name);
-      if (activeDocument === name) {
-        setActiveDocument(null);
-      }
     },
-    [closeDocument, activeDocument, setActiveDocument]
+    [closeDocument]
   );
 
   const setActiveDocumentViewRef = React.useCallback(

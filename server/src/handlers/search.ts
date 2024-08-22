@@ -53,17 +53,11 @@ import { getFullPath } from '~/server/utils';
  *             schema:
  *               type: object
  *               properties:
- *                 systemAttributes:
- *                   type: array
- *                   items:
- *                     type: string
- *                   description: List of system attributes
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/DocumentSearchResult'
  *               required:
- *                 - systemAttributes
  *                 - data
  *       400:
  *         description: Invalid parameters provided.
@@ -114,7 +108,6 @@ export const searchDocuments = async (ctx: Context) => {
 
     ctx.status = 200;
     ctx.body = {
-      systemAttributes: ctx.documentService.getAttributes(),
       data: result,
     };
   } catch (error) {
