@@ -10,6 +10,9 @@ export const AppContext = React.createContext<AppContext>({
     platform: '',
     homedir: '',
     pathSep: '',
-    systemAttributes: [],
+    attributes: {
+      attributesWithIndex: [],
+      attributes: [],
+    },
   },
 });

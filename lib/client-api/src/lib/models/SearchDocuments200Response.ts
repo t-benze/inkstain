@@ -27,12 +27,6 @@ import {
  */
 export interface SearchDocuments200Response {
   /**
-   * List of system attributes
-   * @type {Array<string>}
-   * @memberof SearchDocuments200Response
-   */
-  systemAttributes: Array<string>;
-  /**
    *
    * @type {Array<DocumentSearchResult>}
    * @memberof SearchDocuments200Response
@@ -45,7 +39,6 @@ export interface SearchDocuments200Response {
  */
 export function instanceOfSearchDocuments200Response(value: object): boolean {
   let isInstance = true;
-  isInstance = isInstance && 'systemAttributes' in value;
   isInstance = isInstance && 'data' in value;
 
   return isInstance;
@@ -65,7 +58,6 @@ export function SearchDocuments200ResponseFromJSONTyped(
     return json;
   }
   return {
-    systemAttributes: json['systemAttributes'],
     data: (json['data'] as Array<any>).map(DocumentSearchResultFromJSON),
   };
 }
@@ -80,7 +72,6 @@ export function SearchDocuments200ResponseToJSON(
     return null;
   }
   return {
-    systemAttributes: value.systemAttributes,
     data: (value.data as Array<any>).map(DocumentSearchResultToJSON),
   };
 }
