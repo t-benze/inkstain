@@ -26,25 +26,13 @@ import { SecondarySidebar } from './SecondarySidebar';
 import { Space } from '../types';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
+import { useAppearance } from './hooks/useAppearance';
+
 const queryClient = new QueryClient();
 const useClasses = makeStyles({
   root: {
     height: '100vh',
     overflowY: 'hidden',
-  },
-  menubar: {
-    height: `30px`,
-    boxSizing: 'border-box',
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderBottom(
-      tokens.strokeWidthThin,
-      'solid',
-      tokens.colorNeutralStroke1
-    ),
-    ...shorthands.padding(
-      tokens.spacingVerticalXXS,
-      tokens.spacingHorizontalNone
-    ),
   },
   body: {
     height: `calc(100vh - 30px)`,
@@ -217,6 +205,8 @@ const InkStain = () => {
   }, [spaces, openSpace, activeSpace, handleOpenSystemDocument]);
 
   const toasterId = useId('toaster');
+  const { appearance, setAppearance } = useAppearance();
+
   return platform ? (
     <AppContext.Provider
       value={{
@@ -232,17 +222,17 @@ const InkStain = () => {
         setActiveDocumentViewRef,
         activeDocumentViewRef,
         toasterId,
+        appearance,
+        setAppearance,
       }}
     >
       <div className={classes.root}>
         <Toaster toasterId={toasterId} />
-        <div className={classes.menubar}>
-          <MenuBar />
-        </div>
+        <MenuBar />
         <div className={classes.body}>
-          <PrimarySidebar />
+          <PrimarySidebar display={appearance.showPrimarySidebar} />
           <MainArea />
-          <SecondarySidebar />
+          <SecondarySidebar display={appearance.showSecondarySidebar} />
         </div>
       </div>
     </AppContext.Provider>

@@ -4,30 +4,47 @@ import {
   MenuTrigger,
   MenuList,
   MenuItem,
+  MenuProps,
   MenuPopover,
+  MenuItemCheckbox,
   Button,
+  shorthands,
+  tokens,
+  makeStyles,
 } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
 import { AppContext } from '~/web/app/context';
+import { ViewMenu } from './ViewMenu';
 
-export const MenuBar = () => {
+const useClasses = makeStyles({
+  root: {
+    height: `30px`,
+    boxSizing: 'border-box',
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderBottom(
+      tokens.strokeWidthThin,
+      'solid',
+      tokens.colorNeutralStroke1
+    ),
+    ...shorthands.padding(
+      tokens.spacingVerticalXXS,
+      tokens.spacingHorizontalNone
+    ),
+  },
+});
+
+const FileMenu = () => {
   const { t } = useTranslation();
-  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const { openDocument } = React.useContext(AppContext);
-
-  const toggleSettingsDialog = (): void => {
-    setIsSettingsOpen(!isSettingsOpen);
-  };
 
   const openSpaceManagementPage = () => {
     openDocument('@inkstain/space-management');
   };
 
-  // Menu items will be updated to include opening the SpaceManagementDialog
   return (
     <Menu>
       <MenuTrigger>
-        <Button data-test="menubar-file" appearance="subtle" size="small">
+        <Button data-test="menubar-fileBtn" appearance="subtle" size="small">
           {t('file')}
         </Button>
       </MenuTrigger>
@@ -39,14 +56,20 @@ export const MenuBar = () => {
           >
             {t('space._')}
           </MenuItem>
-          <MenuItem
-            data-test="menuItem-settings"
-            onClick={toggleSettingsDialog}
-          >
-            {t('settings')}
-          </MenuItem>
         </MenuList>
       </MenuPopover>
     </Menu>
+  );
+};
+
+export const MenuBar = () => {
+  const classes = useClasses();
+
+  // Menu items will be updated to include opening the SpaceManagementDialog
+  return (
+    <div className={classes.root}>
+      <FileMenu />
+      <ViewMenu />
+    </div>
   );
 };

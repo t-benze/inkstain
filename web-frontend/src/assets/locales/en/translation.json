@@ -35,6 +35,9 @@
   "stylus_ellipse": "Ellipse",
   "stylus_pen": "Pen",
   "comment_optional": "Comment (optional)",
+  "view": "View",
+  "view_primary_sidebar": "Primary sidebar",
+  "view_secondary_sidebar": "Secondary sidebar",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",

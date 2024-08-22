@@ -40,7 +40,7 @@ const useClasses = makeStyles({
   },
 });
 
-export const SecondarySidebar = () => {
+export const SecondarySidebar = ({ display }: { display: boolean }) => {
   const classes = useClasses();
   const { activeDocument, documentsAlive } = React.useContext(AppContext);
 
@@ -65,7 +65,11 @@ export const SecondarySidebar = () => {
     );
   }
   return (
-    <div data-test="secondarySidebar" className={classes.root}>
+    <div
+      data-test="secondarySidebar"
+      className={classes.root}
+      style={{ display: display ? 'block' : 'none' }}
+    >
       <Accordion
         collapsible={true}
         className={classes.accordion}
