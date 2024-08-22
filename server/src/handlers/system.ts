@@ -35,15 +35,25 @@ const router = new Router();
  *                   type: array
  *                   items:
  *                     type: string
- *                 systemAttributes:
- *                   type: array
- *                   items:
- *                     type: string
+ *                 attributes:
+ *                   type: object
+ *                   properties:
+ *                     attributesWithIndex:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     attributes:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                   required:
+ *                     - attributesWithIndex
+ *                     - attributes
  *               required:
  *                 - platform
  *                 - homedir
  *                 - pathSep
- *                 - systemAttributes
+ *                 - attributes
  */
 const platformInfo = async (ctx) => {
   // const drives = await drivelist.list();
@@ -58,7 +68,7 @@ const platformInfo = async (ctx) => {
     homedir: os.homedir(),
     pathSep: path.sep,
     drives,
-    systemAttributes: ctx.documentService.getSystemAttributes(),
+    attributes: ctx.documentService.getAttributes(),
   };
 };
 

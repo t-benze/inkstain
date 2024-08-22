@@ -114,7 +114,7 @@ export const searchDocuments = async (ctx: Context) => {
 
     ctx.status = 200;
     ctx.body = {
-      systemAttributes: ctx.documentService.getSystemAttributes(),
+      systemAttributes: ctx.documentService.getAttributes(),
       data: result,
     };
   } catch (error) {

@@ -25,6 +25,7 @@ export * from './HighlightData';
 export * from './ListDirectories200ResponseInner';
 export * from './ListDocuments200ResponseInner';
 export * from './PlatformInfo200Response';
+export * from './PlatformInfo200ResponseAttributes';
 export * from './RemoveDocumentTagsRequest';
 export * from './SearchDocuments200Response';
 export * from './Space';
