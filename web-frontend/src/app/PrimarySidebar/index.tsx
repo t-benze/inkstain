@@ -15,6 +15,7 @@ import {
   PDFOutlineView,
   PDFAnnotatedThumbnails,
 } from '~/web/components/PDFView';
+import { Space } from '~/web/types';
 
 const useClasses = makeStyles({
   root: {
@@ -44,7 +45,7 @@ const useClasses = makeStyles({
   },
 });
 
-export const PrimarySidebar = () => {
+export const PrimarySidebar = ({ display }: { display: boolean }) => {
   const classes = useClasses();
   const { activeSpace, activeDocument, documentsAlive } =
     React.useContext(AppContext);
@@ -57,46 +58,43 @@ export const PrimarySidebar = () => {
     setOpenItems(data.openItems);
   };
 
-  if (!activeSpace) {
-    return <div className={classes.root}></div>;
-  }
-  const accordions = [
-    { value: 'file-explorer', view: <FileExplorer space={activeSpace} /> },
-  ];
+  const renderContent = (activeSpace: Space) => {
+    const accordions = [
+      { value: 'file-explorer', view: <FileExplorer space={activeSpace} /> },
+    ];
 
-  if (document && document.type === 'pdf') {
-    accordions.push({
-      value: 'pdf-thumbnail',
-      view: (
-        <PDFThumbnailView
-          width={150}
-          spaceKey={activeSpace.key}
-          documentPath={document.name}
-        />
-      ),
-    });
-    accordions.push({
-      value: 'pdf-outline',
-      view: (
-        <PDFOutlineView
-          spaceKey={activeSpace.key}
-          documentPath={document.name}
-        />
-      ),
-    });
-    accordions.push({
-      value: 'pdf-annotations',
-      view: (
-        <PDFAnnotatedThumbnails
-          width={150}
-          spaceKey={activeSpace.key}
-          documentPath={document.name}
-        />
-      ),
-    });
-  }
-  return (
-    <div data-test="primarySidebar" className={classes.root}>
+    if (document && document.type === 'pdf') {
+      accordions.push({
+        value: 'pdf-thumbnail',
+        view: (
+          <PDFThumbnailView
+            width={150}
+            spaceKey={activeSpace.key}
+            documentPath={document.name}
+          />
+        ),
+      });
+      accordions.push({
+        value: 'pdf-outline',
+        view: (
+          <PDFOutlineView
+            spaceKey={activeSpace.key}
+            documentPath={document.name}
+          />
+        ),
+      });
+      accordions.push({
+        value: 'pdf-annotations',
+        view: (
+          <PDFAnnotatedThumbnails
+            width={150}
+            spaceKey={activeSpace.key}
+            documentPath={document.name}
+          />
+        ),
+      });
+    }
+    return (
       <Accordion
         className={classes.accordion}
         collapsible={true}
@@ -120,6 +118,16 @@ export const PrimarySidebar = () => {
           );
         })}
       </Accordion>
+    );
+  };
+
+  return (
+    <div
+      data-test="primarySidebar"
+      className={classes.root}
+      style={{ display: display ? 'block' : 'none' }}
+    >
+      {activeSpace ? renderContent(activeSpace) : null}
     </div>
   );
 };
