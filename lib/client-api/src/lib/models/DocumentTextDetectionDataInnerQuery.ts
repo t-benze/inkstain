@@ -16,33 +16,33 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface DocumentTextDetectionBlocksInnerQuery
+ * @interface DocumentTextDetectionDataInnerQuery
  */
-export interface DocumentTextDetectionBlocksInnerQuery {
+export interface DocumentTextDetectionDataInnerQuery {
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInnerQuery
+   * @memberof DocumentTextDetectionDataInnerQuery
    */
   alias?: string;
   /**
    *
    * @type {Array<string>}
-   * @memberof DocumentTextDetectionBlocksInnerQuery
+   * @memberof DocumentTextDetectionDataInnerQuery
    */
   pages?: Array<string>;
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInnerQuery
+   * @memberof DocumentTextDetectionDataInnerQuery
    */
   text?: string;
 }
 
 /**
- * Check if a given object implements the DocumentTextDetectionBlocksInnerQuery interface.
+ * Check if a given object implements the DocumentTextDetectionDataInnerQuery interface.
  */
-export function instanceOfDocumentTextDetectionBlocksInnerQuery(
+export function instanceOfDocumentTextDetectionDataInnerQuery(
   value: object
 ): boolean {
   let isInstance = true;
@@ -50,16 +50,16 @@ export function instanceOfDocumentTextDetectionBlocksInnerQuery(
   return isInstance;
 }
 
-export function DocumentTextDetectionBlocksInnerQueryFromJSON(
+export function DocumentTextDetectionDataInnerQueryFromJSON(
   json: any
-): DocumentTextDetectionBlocksInnerQuery {
-  return DocumentTextDetectionBlocksInnerQueryFromJSONTyped(json, false);
+): DocumentTextDetectionDataInnerQuery {
+  return DocumentTextDetectionDataInnerQueryFromJSONTyped(json, false);
 }
 
-export function DocumentTextDetectionBlocksInnerQueryFromJSONTyped(
+export function DocumentTextDetectionDataInnerQueryFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): DocumentTextDetectionBlocksInnerQuery {
+): DocumentTextDetectionDataInnerQuery {
   if (json === undefined || json === null) {
     return json;
   }
@@ -70,8 +70,8 @@ export function DocumentTextDetectionBlocksInnerQueryFromJSONTyped(
   };
 }
 
-export function DocumentTextDetectionBlocksInnerQueryToJSON(
-  value?: DocumentTextDetectionBlocksInnerQuery | null
+export function DocumentTextDetectionDataInnerQueryToJSON(
+  value?: DocumentTextDetectionDataInnerQuery | null
 ): any {
   if (value === undefined) {
     return undefined;

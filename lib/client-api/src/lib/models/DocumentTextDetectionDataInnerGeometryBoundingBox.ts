@@ -16,39 +16,39 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface DocumentTextDetectionBlocksInnerGeometryBoundingBox
+ * @interface DocumentTextDetectionDataInnerGeometryBoundingBox
  */
-export interface DocumentTextDetectionBlocksInnerGeometryBoundingBox {
+export interface DocumentTextDetectionDataInnerGeometryBoundingBox {
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInnerGeometryBoundingBox
+   * @memberof DocumentTextDetectionDataInnerGeometryBoundingBox
    */
   height?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInnerGeometryBoundingBox
+   * @memberof DocumentTextDetectionDataInnerGeometryBoundingBox
    */
   left?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInnerGeometryBoundingBox
+   * @memberof DocumentTextDetectionDataInnerGeometryBoundingBox
    */
   top?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInnerGeometryBoundingBox
+   * @memberof DocumentTextDetectionDataInnerGeometryBoundingBox
    */
   width?: number;
 }
 
 /**
- * Check if a given object implements the DocumentTextDetectionBlocksInnerGeometryBoundingBox interface.
+ * Check if a given object implements the DocumentTextDetectionDataInnerGeometryBoundingBox interface.
  */
-export function instanceOfDocumentTextDetectionBlocksInnerGeometryBoundingBox(
+export function instanceOfDocumentTextDetectionDataInnerGeometryBoundingBox(
   value: object
 ): boolean {
   let isInstance = true;
@@ -56,19 +56,19 @@ export function instanceOfDocumentTextDetectionBlocksInnerGeometryBoundingBox(
   return isInstance;
 }
 
-export function DocumentTextDetectionBlocksInnerGeometryBoundingBoxFromJSON(
+export function DocumentTextDetectionDataInnerGeometryBoundingBoxFromJSON(
   json: any
-): DocumentTextDetectionBlocksInnerGeometryBoundingBox {
-  return DocumentTextDetectionBlocksInnerGeometryBoundingBoxFromJSONTyped(
+): DocumentTextDetectionDataInnerGeometryBoundingBox {
+  return DocumentTextDetectionDataInnerGeometryBoundingBoxFromJSONTyped(
     json,
     false
   );
 }
 
-export function DocumentTextDetectionBlocksInnerGeometryBoundingBoxFromJSONTyped(
+export function DocumentTextDetectionDataInnerGeometryBoundingBoxFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): DocumentTextDetectionBlocksInnerGeometryBoundingBox {
+): DocumentTextDetectionDataInnerGeometryBoundingBox {
   if (json === undefined || json === null) {
     return json;
   }
@@ -80,8 +80,8 @@ export function DocumentTextDetectionBlocksInnerGeometryBoundingBoxFromJSONTyped
   };
 }
 
-export function DocumentTextDetectionBlocksInnerGeometryBoundingBoxToJSON(
-  value?: DocumentTextDetectionBlocksInnerGeometryBoundingBox | null
+export function DocumentTextDetectionDataInnerGeometryBoundingBoxToJSON(
+  value?: DocumentTextDetectionDataInnerGeometryBoundingBox | null
 ): any {
   if (value === undefined) {
     return undefined;

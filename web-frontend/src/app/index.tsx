@@ -3,30 +3,30 @@ import {
   FluentProvider,
   webLightTheme,
   makeStyles,
-  tokens,
-  shorthands,
   Toaster,
   useId,
 } from '@fluentui/react-components';
-
-import { MenuBar } from './MenuBar';
-import { MainArea } from './MainArea';
-import { SystemDocumentType, Document } from '~/web/types';
-
+import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet';
 import {
   QueryClientProvider,
   useQuery,
   QueryClient,
 } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import { MenuBar } from './MenuBar';
+import { MainArea } from './MainArea';
+import { AuthenticationDialog } from '~/web/components/AuthenticationDialog';
+
 import { spacesApi, systemApi } from '~/web/apiClient';
 import { AppContext } from './context';
 import { PrimarySidebar } from './PrimarySidebar';
 import { SecondarySidebar } from './SecondarySidebar';
-import { Space } from '../types';
-import { useTranslation } from 'react-i18next';
-import { Helmet } from 'react-helmet';
 import { useAppearance } from './hooks/useAppearance';
+import { useDocuments } from './hooks/useDocuments';
+import { useSpace } from './hooks/useSpace';
+import { useAuth } from './hooks/useAuth';
 
 const queryClient = new QueryClient();
 const useClasses = makeStyles({
@@ -40,88 +40,6 @@ const useClasses = makeStyles({
     flexDirection: 'row',
   },
 });
-
-const useSpace = () => {
-  const [activeSpace, setActiveSpace] = React.useState<Space | null>(null);
-  const openSpace = React.useCallback(
-    (space: Space) => {
-      if (activeSpace) {
-        if (activeSpace.key === space.key) {
-          return;
-        } else {
-          //TODO: open new at a different tab
-          window.open(
-            `${window.location.origin}/?space=${space.key}`,
-            `inkstain-${space.key}`
-          );
-        }
-      } else {
-        setActiveSpace(space);
-      }
-    },
-    [setActiveSpace, activeSpace]
-  );
-
-  return {
-    openSpace,
-    activeSpace,
-  } as const;
-};
-
-const useDocuments = () => {
-  const [documentsAlive, setDocumentsAlive] = React.useState<Document[]>([]);
-  const openSystemDocument = React.useCallback(
-    (type: SystemDocumentType) => {
-      setDocumentsAlive((documentsAlive) => {
-        if (documentsAlive.find((document) => document.name === type))
-          return documentsAlive;
-        const newDocumentsAlive = [...documentsAlive];
-        newDocumentsAlive.push({ type, name: type });
-        return newDocumentsAlive;
-      });
-    },
-    [setDocumentsAlive]
-  );
-
-  const openDocument = React.useCallback(
-    (name: string) => {
-      setDocumentsAlive((documentsAlive) => {
-        const documentType = name.split('.').pop();
-        if (!documentType)
-          throw new Error('Document type not recognized: ' + name);
-        if (documentsAlive.find((document) => document.name === name))
-          return documentsAlive;
-        const newDocumentsAlive = [...documentsAlive];
-        newDocumentsAlive.push({ type: documentType, name });
-        return newDocumentsAlive;
-      });
-    },
-    [setDocumentsAlive]
-  );
-
-  const closeDocument = React.useCallback(
-    (name: string) => {
-      setDocumentsAlive((documentsAlive) => {
-        const index = documentsAlive.findIndex(
-          (document) => document.name === name
-        );
-        const newDocumentsAlive = [
-          ...documentsAlive.slice(0, index),
-          ...documentsAlive.slice(index + 1),
-        ];
-        return newDocumentsAlive;
-      });
-    },
-    [setDocumentsAlive]
-  );
-
-  return {
-    openSystemDocument,
-    openDocument,
-    closeDocument,
-    documentsAlive,
-  } as const;
-};
 
 const InkStain = () => {
   const classes = useClasses();
@@ -139,51 +57,16 @@ const InkStain = () => {
   });
 
   const { openSpace, activeSpace } = useSpace();
-  const { closeDocument, openSystemDocument, openDocument, documentsAlive } =
-    useDocuments();
-  const [activeDocument, setActiveDocument] = React.useState<string | null>(
-    documentsAlive[0] ? documentsAlive[0].name : null
-  );
-  const activeDocumentViewRef = React.useRef<unknown>(null);
-
-  React.useEffect(() => {
-    const document = documentsAlive.find(
-      (document) => document.name === activeDocument
-    );
-    if (!document) {
-      setActiveDocument(documentsAlive[0] ? documentsAlive[0].name : null);
-    }
-  }, [documentsAlive, activeDocument]);
-
-  const handleOpenSystemDocument = React.useCallback(
-    (type: SystemDocumentType) => {
-      openSystemDocument(type);
-      setActiveDocument(type);
-    },
-    [openSystemDocument, setActiveDocument]
-  );
-
-  const handleOpenDocument = React.useCallback(
-    (name: string) => {
-      openDocument(name);
-      setActiveDocument(name);
-    },
-    [openDocument, setActiveDocument]
-  );
-
-  const handleCloseDocument = React.useCallback(
-    (name: string) => {
-      closeDocument(name);
-    },
-    [closeDocument]
-  );
-
-  const setActiveDocumentViewRef = React.useCallback(
-    (documentViewRef: unknown) => {
-      activeDocumentViewRef.current = documentViewRef;
-    },
-    []
-  );
+  const {
+    closeDocument,
+    openSystemDocument,
+    openDocument,
+    documentsAlive,
+    activeDocument,
+    setActiveDocument,
+    activeDocumentViewRef,
+    setActiveDocumentViewRef,
+  } = useDocuments();
 
   React.useEffect(() => {
     if (!activeSpace) {
@@ -197,28 +80,38 @@ const InkStain = () => {
           }
         }
       } else {
-        handleOpenSystemDocument('@inkstain/space-management');
+        openSystemDocument('@inkstain/space-management');
       }
     } else {
-      handleOpenSystemDocument('@inkstain/search-document');
+      openSystemDocument('@inkstain/search-document');
     }
-  }, [spaces, openSpace, activeSpace, handleOpenSystemDocument]);
+  }, [spaces, openSpace, activeSpace, openSystemDocument]);
 
   const toasterId = useId('toaster');
   const { appearance, setAppearance } = useAppearance();
+  const {
+    showAuthDialog,
+    setShowAuthDialog,
+    startAuth,
+    userInfo,
+    signOut,
+    onSignInSuccess,
+  } = useAuth();
 
   return platform ? (
     <AppContext.Provider
       value={{
+        startAuth,
+        userInfo,
+        signOut,
         platform,
-        openSystemDocument: handleOpenSystemDocument,
-        openDocument: handleOpenDocument,
-        closeDocument: handleCloseDocument,
+        activeDocument,
+        openSystemDocument,
+        openDocument,
+        closeDocument,
         activeSpace,
         openSpace,
         documentsAlive,
-        activeDocument,
-        setActiveDocument,
         setActiveDocumentViewRef,
         activeDocumentViewRef,
         toasterId,
@@ -231,9 +124,14 @@ const InkStain = () => {
         <MenuBar />
         <div className={classes.body}>
           <PrimarySidebar display={appearance.showPrimarySidebar} />
-          <MainArea />
+          <MainArea onActiveDocumentChange={setActiveDocument} />
           <SecondarySidebar display={appearance.showSecondarySidebar} />
         </div>
+        <AuthenticationDialog
+          onSignInSuccess={onSignInSuccess}
+          open={showAuthDialog}
+          onOpenChange={setShowAuthDialog}
+        />
       </div>
     </AppContext.Provider>
   ) : null;

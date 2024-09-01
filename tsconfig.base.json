@@ -17,6 +17,9 @@
     "types": ["cypress", "node"],
     "paths": {
       "@inkstain/client-api": ["lib/client-api/src/index.ts"],
+      "@inkstain/intelligence-proxy-api": [
+        "lib/intelligence-proxy-api/src/index.ts"
+      ],
       "~/server/*": ["server/src/*"],
       "~/web/*": ["web-frontend/src/*"],
       "~/chrome-extension/*": ["browser-extension/chrome/src/*"]

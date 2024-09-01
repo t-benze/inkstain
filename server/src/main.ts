@@ -1,32 +1,26 @@
 import Koa from 'koa';
 import Router from '@koa/router';
-import cors from '@koa/cors';
-import { Readable } from 'stream';
 import path from 'path';
 import fs from 'fs/promises';
 import YAML from 'js-yaml';
 import mount from 'koa-mount';
 import serve from 'koa-static';
 import send from 'koa-send';
-import fetch from 'node-fetch';
 import { host, port, sqlitePath } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
 import AJV from 'ajv';
-import { registerDocumentRoutes } from './handlers/documents';
-import { registerSpaceRoutes } from './handlers/space';
-import { registerSystemRoutes } from './handlers/system';
-import { registerTaskRoutes } from './handlers/task';
-import { registerIntelligenceRoutes } from './handlers/intelligence';
-import { registerSearchRoutes } from './handlers/search';
 import swaggerUi from 'swagger-ui-dist';
 import { Sequelize } from 'sequelize';
-import { RequestParamsError } from './handlers/common';
 import { SpaceService } from './services/SpaceService';
 import { DocumentService } from './services/DocumentService';
 import { TaskService } from './services/TaskService';
+import { AuthService } from './services/AuthService';
+import { IntelligenceService } from './services/IntelligenceService';
 import { initDB } from './db';
 import { Context } from './types';
+import { registerRoutes } from './handlers';
+import { AWSProxy } from './AWSProxy';
 const app = new Koa<Koa.DefaultState, Context>();
 
 app.use(async (ctx, next) => {
@@ -104,71 +98,33 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (err) {
-    if (err instanceof RequestParamsError) {
-      ctx.status = 400;
-      ctx.body = {
-        message: err.message,
-        errors: err.errors,
-      };
-    } else {
-      logger.error('Unhandled error: ' + JSON.stringify(err));
-      ctx.status = err.statusCode || err.status || 500;
-      throw err;
-    }
+    ctx.status = err.statusCode || err.status || 500;
+    ctx.body = {
+      message: err.message || 'Internal server error',
+      error: err.code,
+    };
+    ctx.app.emit('error', err, ctx);
   }
 });
+
+app.on('error', (err: Error, ctx: Context) => {
+  logger.error(
+    'Unhandled error in request: ' +
+      ctx.request.method +
+      ' ' +
+      ctx.request.url +
+      ' - ' +
+      err.message
+  );
+});
+
 const router = new Router({
   prefix: '/api/v1',
 });
 
 // Register routes
-registerDocumentRoutes(router);
-registerSpaceRoutes(router);
-registerSystemRoutes(router);
-registerTaskRoutes(router);
-registerIntelligenceRoutes(router);
-registerSearchRoutes(router);
+registerRoutes(router);
 
-// set up proxy route for html2canvas
-router.get('/proxy', cors(), async (ctx) => {
-  const query = ctx.request.query;
-  const targetUrl = query.url as string;
-  const responseType = query.responseType as string;
-
-  if (!targetUrl) {
-    ctx.status = 400;
-    ctx.body = 'Missing target URL';
-    return;
-  }
-
-  try {
-    const response = await fetch(targetUrl);
-    const contentType =
-      response.headers.get('Content-Type') || 'application/octet-stream';
-
-    if (responseType === 'text') {
-      // For text responseType, convert to data URL
-      const buffer = await response.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      const dataUrl = `data:${contentType};base64,${base64}`;
-
-      ctx.body = dataUrl;
-      ctx.set('Content-Type', 'text/plain');
-      ctx.set('Content-Length', Buffer.byteLength(dataUrl).toString());
-    } else {
-      // For blob responseType (default), stream the response
-      ctx.set('Content-Type', contentType);
-      const contentLength = response.headers.get('Content-Length');
-      if (contentLength) {
-        ctx.set('Content-Length', contentLength);
-      }
-      ctx.body = Readable.from(response.body);
-    }
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = `Error fetching target URL: ${error.message}`;
-  }
-});
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());
 
@@ -196,6 +152,12 @@ async function start() {
     app.context.spaceService = new SpaceService();
     app.context.documentService = new DocumentService(sequelize);
     app.context.taskService = new TaskService();
+    const awsProxy = new AWSProxy();
+    app.context.authService = new AuthService(awsProxy);
+    app.context.intelligenceService = new IntelligenceService(
+      app.context.spaceService,
+      awsProxy
+    );
   } catch (e) {
     logger.error('Failed to load schema');
     throw e;

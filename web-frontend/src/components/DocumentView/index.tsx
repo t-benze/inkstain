@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { SpaceManagementView } from './SpaceManagementView';
 import { SearchDocumentView } from './SearchDocumentView';
+import { SettingsView } from './SettingsView';
 import { PDFView, PDFViewHandle } from '~/web/components/PDFView';
 import { TextView } from '~/web/components/TextView';
 import { WebclipView } from '~/web/components/WebclipView';
@@ -57,6 +58,8 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
         return <SpaceManagementView />;
       case 'search-document':
         return <SearchDocumentView />;
+      case 'settings':
+        return <SettingsView />;
       default:
         throw new Error('Unknown inkstain document type: ' + inkstainType);
     }

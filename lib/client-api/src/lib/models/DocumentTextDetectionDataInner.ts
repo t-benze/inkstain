@@ -13,127 +13,127 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { DocumentTextDetectionBlocksInnerGeometry } from './DocumentTextDetectionBlocksInnerGeometry';
+import type { DocumentTextDetectionDataInnerGeometry } from './DocumentTextDetectionDataInnerGeometry';
 import {
-  DocumentTextDetectionBlocksInnerGeometryFromJSON,
-  DocumentTextDetectionBlocksInnerGeometryFromJSONTyped,
-  DocumentTextDetectionBlocksInnerGeometryToJSON,
-} from './DocumentTextDetectionBlocksInnerGeometry';
-import type { DocumentTextDetectionBlocksInnerQuery } from './DocumentTextDetectionBlocksInnerQuery';
+  DocumentTextDetectionDataInnerGeometryFromJSON,
+  DocumentTextDetectionDataInnerGeometryFromJSONTyped,
+  DocumentTextDetectionDataInnerGeometryToJSON,
+} from './DocumentTextDetectionDataInnerGeometry';
+import type { DocumentTextDetectionDataInnerQuery } from './DocumentTextDetectionDataInnerQuery';
 import {
-  DocumentTextDetectionBlocksInnerQueryFromJSON,
-  DocumentTextDetectionBlocksInnerQueryFromJSONTyped,
-  DocumentTextDetectionBlocksInnerQueryToJSON,
-} from './DocumentTextDetectionBlocksInnerQuery';
-import type { DocumentTextDetectionBlocksInnerRelationshipsInner } from './DocumentTextDetectionBlocksInnerRelationshipsInner';
+  DocumentTextDetectionDataInnerQueryFromJSON,
+  DocumentTextDetectionDataInnerQueryFromJSONTyped,
+  DocumentTextDetectionDataInnerQueryToJSON,
+} from './DocumentTextDetectionDataInnerQuery';
+import type { DocumentTextDetectionDataInnerRelationshipsInner } from './DocumentTextDetectionDataInnerRelationshipsInner';
 import {
-  DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSON,
-  DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSONTyped,
-  DocumentTextDetectionBlocksInnerRelationshipsInnerToJSON,
-} from './DocumentTextDetectionBlocksInnerRelationshipsInner';
+  DocumentTextDetectionDataInnerRelationshipsInnerFromJSON,
+  DocumentTextDetectionDataInnerRelationshipsInnerFromJSONTyped,
+  DocumentTextDetectionDataInnerRelationshipsInnerToJSON,
+} from './DocumentTextDetectionDataInnerRelationshipsInner';
 
 /**
  *
  * @export
- * @interface DocumentTextDetectionBlocksInner
+ * @interface DocumentTextDetectionDataInner
  */
-export interface DocumentTextDetectionBlocksInner {
+export interface DocumentTextDetectionDataInner {
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   blockType?: string;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   columnIndex?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   columnSpan?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   confidence?: number;
   /**
    *
    * @type {Array<string>}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   entityTypes?: Array<string>;
   /**
    *
-   * @type {DocumentTextDetectionBlocksInnerGeometry}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @type {DocumentTextDetectionDataInnerGeometry}
+   * @memberof DocumentTextDetectionDataInner
    */
-  geometry?: DocumentTextDetectionBlocksInnerGeometry;
+  geometry?: DocumentTextDetectionDataInnerGeometry;
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   id?: string;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   page?: number;
   /**
    *
-   * @type {DocumentTextDetectionBlocksInnerQuery}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @type {DocumentTextDetectionDataInnerQuery}
+   * @memberof DocumentTextDetectionDataInner
    */
-  query?: DocumentTextDetectionBlocksInnerQuery;
+  query?: DocumentTextDetectionDataInnerQuery;
   /**
    *
-   * @type {Array<DocumentTextDetectionBlocksInnerRelationshipsInner>}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @type {Array<DocumentTextDetectionDataInnerRelationshipsInner>}
+   * @memberof DocumentTextDetectionDataInner
    */
-  relationships?: Array<DocumentTextDetectionBlocksInnerRelationshipsInner>;
+  relationships?: Array<DocumentTextDetectionDataInnerRelationshipsInner>;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   rowIndex?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   rowSpan?: number;
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   selectionStatus?: string;
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   text?: string;
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInner
+   * @memberof DocumentTextDetectionDataInner
    */
   textType?: string;
 }
 
 /**
- * Check if a given object implements the DocumentTextDetectionBlocksInner interface.
+ * Check if a given object implements the DocumentTextDetectionDataInner interface.
  */
-export function instanceOfDocumentTextDetectionBlocksInner(
+export function instanceOfDocumentTextDetectionDataInner(
   value: object
 ): boolean {
   let isInstance = true;
@@ -141,16 +141,16 @@ export function instanceOfDocumentTextDetectionBlocksInner(
   return isInstance;
 }
 
-export function DocumentTextDetectionBlocksInnerFromJSON(
+export function DocumentTextDetectionDataInnerFromJSON(
   json: any
-): DocumentTextDetectionBlocksInner {
-  return DocumentTextDetectionBlocksInnerFromJSONTyped(json, false);
+): DocumentTextDetectionDataInner {
+  return DocumentTextDetectionDataInnerFromJSONTyped(json, false);
 }
 
-export function DocumentTextDetectionBlocksInnerFromJSONTyped(
+export function DocumentTextDetectionDataInnerFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): DocumentTextDetectionBlocksInner {
+): DocumentTextDetectionDataInner {
   if (json === undefined || json === null) {
     return json;
   }
@@ -162,16 +162,16 @@ export function DocumentTextDetectionBlocksInnerFromJSONTyped(
     entityTypes: !exists(json, 'EntityTypes') ? undefined : json['EntityTypes'],
     geometry: !exists(json, 'Geometry')
       ? undefined
-      : DocumentTextDetectionBlocksInnerGeometryFromJSON(json['Geometry']),
+      : DocumentTextDetectionDataInnerGeometryFromJSON(json['Geometry']),
     id: !exists(json, 'Id') ? undefined : json['Id'],
     page: !exists(json, 'Page') ? undefined : json['Page'],
     query: !exists(json, 'Query')
       ? undefined
-      : DocumentTextDetectionBlocksInnerQueryFromJSON(json['Query']),
+      : DocumentTextDetectionDataInnerQueryFromJSON(json['Query']),
     relationships: !exists(json, 'Relationships')
       ? undefined
       : (json['Relationships'] as Array<any>).map(
-          DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSON
+          DocumentTextDetectionDataInnerRelationshipsInnerFromJSON
         ),
     rowIndex: !exists(json, 'RowIndex') ? undefined : json['RowIndex'],
     rowSpan: !exists(json, 'RowSpan') ? undefined : json['RowSpan'],
@@ -183,8 +183,8 @@ export function DocumentTextDetectionBlocksInnerFromJSONTyped(
   };
 }
 
-export function DocumentTextDetectionBlocksInnerToJSON(
-  value?: DocumentTextDetectionBlocksInner | null
+export function DocumentTextDetectionDataInnerToJSON(
+  value?: DocumentTextDetectionDataInner | null
 ): any {
   if (value === undefined) {
     return undefined;
@@ -198,15 +198,15 @@ export function DocumentTextDetectionBlocksInnerToJSON(
     ColumnSpan: value.columnSpan,
     Confidence: value.confidence,
     EntityTypes: value.entityTypes,
-    Geometry: DocumentTextDetectionBlocksInnerGeometryToJSON(value.geometry),
+    Geometry: DocumentTextDetectionDataInnerGeometryToJSON(value.geometry),
     Id: value.id,
     Page: value.page,
-    Query: DocumentTextDetectionBlocksInnerQueryToJSON(value.query),
+    Query: DocumentTextDetectionDataInnerQueryToJSON(value.query),
     Relationships:
       value.relationships === undefined
         ? undefined
         : (value.relationships as Array<any>).map(
-            DocumentTextDetectionBlocksInnerRelationshipsInnerToJSON
+            DocumentTextDetectionDataInnerRelationshipsInnerToJSON
           ),
     RowIndex: value.rowIndex,
     RowSpan: value.rowSpan,

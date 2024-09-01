@@ -9,8 +9,8 @@ import {
   PopoverSurface,
 } from '@fluentui/react-components';
 import {
-  DocumentTextDetectionBlocksInner,
-  DocumentTextDetectionBlocksInnerGeometryBoundingBox,
+  DocumentTextDetectionDataInner,
+  DocumentTextDetectionDataInnerGeometryBoundingBox,
 } from '@inkstain/client-api';
 import { PDFViewerContext } from './context';
 const useClasses = makeStyles({
@@ -38,7 +38,7 @@ function toCSSPercentage(value: number): string {
 }
 
 function boundingBoxStyle(
-  boundingBox: DocumentTextDetectionBlocksInnerGeometryBoundingBox
+  boundingBox: DocumentTextDetectionDataInnerGeometryBoundingBox
 ): React.CSSProperties {
   return {
     position: 'absolute',
@@ -54,7 +54,7 @@ function boundingBoxStyle(
 const LineBlock = ({
   lineBlock,
 }: {
-  lineBlock: DocumentTextDetectionBlocksInner;
+  lineBlock: DocumentTextDetectionDataInner;
 }) => {
   const boundingBox = lineBlock.geometry?.boundingBox;
   const style = boundingBox ? boundingBoxStyle(boundingBox) : {};
@@ -69,7 +69,7 @@ const LineBlock = ({
 const LayoutBlock = ({
   layoutBlock,
 }: {
-  layoutBlock: DocumentTextDetectionBlocksInner;
+  layoutBlock: DocumentTextDetectionDataInner;
 }) => {
   const context = React.useContext(PDFViewerContext);
   const classes = useClasses();
@@ -106,30 +106,28 @@ export const PDFPageTextLayer = ({
       if (canvasRef.current === null) {
         throw new Error('Canvas ref is null');
       }
-      const base64Data = canvasRef.current
-        .toDataURL('image/jpeg')
-        .split(',')[1]; // Remove the data URL prefix
+      const base64Data = canvasRef.current.toDataURL('image/png').split(',')[1]; // Remove the data URL prefix
       const analyzedResult = await intelligenceApi.intelligenceAnalyzeDocument({
         spaceKey,
         path: documentPath,
         pageNum,
         body: base64Data,
-        // mock: 1,
       });
+      console.log('analyzedResult', analyzedResult);
       const blockIdToIndex: Record<string, number> = {};
-      analyzedResult.blocks?.forEach((block, index) => {
+      analyzedResult.forEach((block, index) => {
         blockIdToIndex[block['id'] as string] = index;
       });
-      const lineBlocks = analyzedResult.blocks
-        ? analyzedResult.blocks.filter((block) => block.blockType === 'LINE')
+      const lineBlocks = analyzedResult
+        ? analyzedResult.filter((block) => block.blockType === 'LINE')
         : [];
-      const layoutBlocks = analyzedResult.blocks
-        ? analyzedResult.blocks.filter((block) =>
+      const layoutBlocks = analyzedResult
+        ? analyzedResult.filter((block) =>
             block.blockType?.startsWith('LAYOUT')
           )
         : [];
       layoutBlocks.forEach((block) => {
-        const blocks = analyzedResult.blocks;
+        const blocks = analyzedResult;
         if (!blocks) return;
         const children = block.relationships?.find((r) => r.type === 'CHILD');
         if (children) {

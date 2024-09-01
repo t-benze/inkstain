@@ -129,6 +129,7 @@ const Main = ({
     </AppContext.Provider>
   );
 };
+
 const InkStain = () => {
   const { t } = useTranslation();
   const classes = useClasses();

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import 'dotenv/config';
 
 export const env =
   (process.env.NODE_ENV as 'development' | 'production' | 'test') ??
@@ -35,3 +36,8 @@ export const sqlitePath = path.join(
   directories.dataDir,
   env == 'production' ? 'inkstain.sqlite' : `inkstain.${env}.sqlite`
 );
+
+export const cognitoUserPoolId = process.env.AWS_COGNITO_USER_POOL_ID;
+export const cognitoUserPoolClientId =
+  process.env.AWS_COGNITO_USER_POOL_CLIENT_ID;
+export const intelligenceAPIBase = process.env.AWS_INTELLIGENCE_ENDPOINT;
