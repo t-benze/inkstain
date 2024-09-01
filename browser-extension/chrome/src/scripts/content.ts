@@ -53,7 +53,7 @@ function highlightElement(
     e.preventDefault();
     const canvas = await html2Canvas(element, {
       scale: 1.5,
-      proxy: 'http://localhost:6060/api/v1/proxy',
+      proxy: 'http://localhost:6060/api/v1/proxy/static',
     });
     onImageCapture(canvas.toDataURL());
   };

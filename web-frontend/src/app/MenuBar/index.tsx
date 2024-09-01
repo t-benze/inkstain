@@ -1,20 +1,7 @@
 import * as React from 'react';
-import {
-  Menu,
-  MenuTrigger,
-  MenuList,
-  MenuItem,
-  MenuProps,
-  MenuPopover,
-  MenuItemCheckbox,
-  Button,
-  shorthands,
-  tokens,
-  makeStyles,
-} from '@fluentui/react-components';
-import { useTranslation } from 'react-i18next';
-import { AppContext } from '~/web/app/context';
+import { shorthands, tokens, makeStyles } from '@fluentui/react-components';
 import { ViewMenu } from './ViewMenu';
+import { FileMenu } from './FileMenu';
 
 const useClasses = makeStyles({
   root: {
@@ -32,35 +19,6 @@ const useClasses = makeStyles({
     ),
   },
 });
-
-const FileMenu = () => {
-  const { t } = useTranslation();
-  const { openDocument } = React.useContext(AppContext);
-
-  const openSpaceManagementPage = () => {
-    openDocument('@inkstain/space-management');
-  };
-
-  return (
-    <Menu>
-      <MenuTrigger>
-        <Button data-test="menubar-fileBtn" appearance="subtle" size="small">
-          {t('file')}
-        </Button>
-      </MenuTrigger>
-      <MenuPopover>
-        <MenuList>
-          <MenuItem
-            data-test="menuItem-space"
-            onClick={openSpaceManagementPage}
-          >
-            {t('space._')}
-          </MenuItem>
-        </MenuList>
-      </MenuPopover>
-    </Menu>
-  );
-};
 
 export const MenuBar = () => {
   const classes = useClasses();

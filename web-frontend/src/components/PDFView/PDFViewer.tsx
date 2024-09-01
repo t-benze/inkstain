@@ -16,6 +16,7 @@ import {
   useStylus,
 } from '~/web/components/DrawingAnnotationOverlay';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
+import { AppContext } from '~/web/app/context';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -57,6 +58,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     ref
   ) => {
     const styles = useStyles();
+    const appContext = React.useContext(AppContext);
     const url = useDocument(documentPath);
     const pdfDocument = usePDFDocument({
       url,
@@ -99,8 +101,8 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       },
       [currentPageNumber]
     );
-    // TODO: enable text layer should be based on user status
-    const enableTextLayer = false;
+    const enableTextLayer = appContext.userInfo !== undefined;
+    console.log('enableTextLayer', enableTextLayer);
     const [showLayoutAnalysis, setShowLayoutAnalysis] =
       useState<boolean>(false);
     const handleShowLayoutAnalysisChange = React.useCallback(

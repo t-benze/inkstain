@@ -13,10 +13,10 @@
  */
 
 import * as runtime from '../runtime';
-import type { DocumentTextDetection } from '../models/index';
+import type { DocumentTextDetectionDataInner } from '../models/index';
 import {
-  DocumentTextDetectionFromJSON,
-  DocumentTextDetectionToJSON,
+  DocumentTextDetectionDataInnerFromJSON,
+  DocumentTextDetectionDataInnerToJSON,
 } from '../models/index';
 
 export interface IntelligenceAnalyzeDocumentRequest {
@@ -37,7 +37,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
   async intelligenceAnalyzeDocumentRaw(
     requestParameters: IntelligenceAnalyzeDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<DocumentTextDetection>> {
+  ): Promise<runtime.ApiResponse<Array<DocumentTextDetectionDataInner>>> {
     if (
       requestParameters.spaceKey === null ||
       requestParameters.spaceKey === undefined
@@ -111,7 +111,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      DocumentTextDetectionFromJSON(jsonValue)
+      jsonValue.map(DocumentTextDetectionDataInnerFromJSON)
     );
   }
 
@@ -121,7 +121,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
   async intelligenceAnalyzeDocument(
     requestParameters: IntelligenceAnalyzeDocumentRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<DocumentTextDetection> {
+  ): Promise<Array<DocumentTextDetectionDataInner>> {
     const response = await this.intelligenceAnalyzeDocumentRaw(
       requestParameters,
       initOverrides

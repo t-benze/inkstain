@@ -199,8 +199,12 @@ export const PDFPage = ({
     width: number;
     height: number;
   } | null>(null);
+  const [renderingStatus, setRenderingStatus] = React.useState<
+    'idle' | 'rendering' | 'completed' | 'failed'
+  >('idle');
 
   React.useEffect(() => {
+    setRenderingStatus('rendering');
     document.getPage(pageNumber).then(async (pdfPage) => {
       const viewport = pdfPage.getViewport({ scale });
       const canvas = canvasRef.current;
@@ -235,7 +239,9 @@ export const PDFPage = ({
       try {
         await renderTaskRef.current.promise;
         onRenderCompleted?.(pageNumber, viewport);
+        setRenderingStatus('completed');
       } catch (e) {
+        setRenderingStatus('failed');
         if (e instanceof RenderingCancelledException) {
           console.log('Rendering cancelled, page number: ', pageNumber);
         } else {
@@ -255,7 +261,6 @@ export const PDFPage = ({
     scale,
     onRenderCompleted,
     appContext.activeSpace,
-    appContext.activeDocument,
   ]);
 
   const handleAddAnnotation = React.useCallback(
@@ -291,6 +296,7 @@ export const PDFPage = ({
   const drawings = annotations
     ? annotations.filter((a) => a.data.type === 'drawing')
     : null;
+  console.log('enableTextLayer', enableTextLayer);
   return (
     <div
       role={role}
@@ -310,7 +316,7 @@ export const PDFPage = ({
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
-      {enableTextLayer ? (
+      {enableTextLayer && renderingStatus === 'completed' ? (
         <PDFPageTextLayer
           canvasRef={canvasRef}
           spaceKey={spaceKey}
@@ -318,22 +324,24 @@ export const PDFPage = ({
           pageNum={pageNumber}
         />
       ) : null}
-      <PDFPageDrawingLayer
-        scale={scale}
-        drawings={drawings}
-        dimension={canvasDimension}
-        onAddAnnotation={handleAddAnnotation}
-        onUpdateAnnotation={handleUpdateAnnotation}
-        onRemoveAnnotation={handleDeleteAnnotation}
-      />
-      {!pdfViewerContext.isThumbnail && (
+      {renderingStatus === 'completed' ? (
+        <PDFPageDrawingLayer
+          scale={scale}
+          drawings={drawings}
+          dimension={canvasDimension}
+          onAddAnnotation={handleAddAnnotation}
+          onUpdateAnnotation={handleUpdateAnnotation}
+          onRemoveAnnotation={handleDeleteAnnotation}
+        />
+      ) : null}
+      {renderingStatus === 'completed' && !pdfViewerContext.isThumbnail ? (
         <BookmarkBtn
           bookmark={bookmark}
           onAddAnnotation={handleAddAnnotation}
           onUpdateAnnotation={handleUpdateAnnotation}
           onRemoveAnnotation={handleDeleteAnnotation}
         />
-      )}
+      ) : null}
     </div>
   );
 };

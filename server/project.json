@@ -48,6 +48,7 @@
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
       "options": {
+        "port": 9200,
         "buildTarget": "server:build:production"
       },
       "configurations": {

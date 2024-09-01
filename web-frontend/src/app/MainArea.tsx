@@ -68,21 +68,20 @@ const TabPanel = ({
   );
 };
 
-export const MainArea = () => {
-  const {
-    closeDocument,
-    documentsAlive,
-    setActiveDocument,
-    activeDocument,
-    platform,
-  } = React.useContext(AppContext);
+export const MainArea = ({
+  onActiveDocumentChange,
+}: {
+  onActiveDocumentChange: (name: string) => void;
+}) => {
+  const { closeDocument, documentsAlive, platform, activeDocument } =
+    React.useContext(AppContext);
   const classes = useClasses();
   const { t } = useTranslation();
 
   const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
     const document = documentsAlive.find((doc) => doc.name === data.value);
     if (document) {
-      setActiveDocument(document.name);
+      onActiveDocumentChange(document.name);
     }
   };
 

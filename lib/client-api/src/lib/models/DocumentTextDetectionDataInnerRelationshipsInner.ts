@@ -16,27 +16,27 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface DocumentTextDetectionBlocksInnerRelationshipsInner
+ * @interface DocumentTextDetectionDataInnerRelationshipsInner
  */
-export interface DocumentTextDetectionBlocksInnerRelationshipsInner {
+export interface DocumentTextDetectionDataInnerRelationshipsInner {
   /**
    *
    * @type {Array<string>}
-   * @memberof DocumentTextDetectionBlocksInnerRelationshipsInner
+   * @memberof DocumentTextDetectionDataInnerRelationshipsInner
    */
   ids?: Array<string>;
   /**
    *
    * @type {string}
-   * @memberof DocumentTextDetectionBlocksInnerRelationshipsInner
+   * @memberof DocumentTextDetectionDataInnerRelationshipsInner
    */
   type?: string;
 }
 
 /**
- * Check if a given object implements the DocumentTextDetectionBlocksInnerRelationshipsInner interface.
+ * Check if a given object implements the DocumentTextDetectionDataInnerRelationshipsInner interface.
  */
-export function instanceOfDocumentTextDetectionBlocksInnerRelationshipsInner(
+export function instanceOfDocumentTextDetectionDataInnerRelationshipsInner(
   value: object
 ): boolean {
   let isInstance = true;
@@ -44,19 +44,19 @@ export function instanceOfDocumentTextDetectionBlocksInnerRelationshipsInner(
   return isInstance;
 }
 
-export function DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSON(
+export function DocumentTextDetectionDataInnerRelationshipsInnerFromJSON(
   json: any
-): DocumentTextDetectionBlocksInnerRelationshipsInner {
-  return DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSONTyped(
+): DocumentTextDetectionDataInnerRelationshipsInner {
+  return DocumentTextDetectionDataInnerRelationshipsInnerFromJSONTyped(
     json,
     false
   );
 }
 
-export function DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSONTyped(
+export function DocumentTextDetectionDataInnerRelationshipsInnerFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): DocumentTextDetectionBlocksInnerRelationshipsInner {
+): DocumentTextDetectionDataInnerRelationshipsInner {
   if (json === undefined || json === null) {
     return json;
   }
@@ -66,8 +66,8 @@ export function DocumentTextDetectionBlocksInnerRelationshipsInnerFromJSONTyped(
   };
 }
 
-export function DocumentTextDetectionBlocksInnerRelationshipsInnerToJSON(
-  value?: DocumentTextDetectionBlocksInnerRelationshipsInner | null
+export function DocumentTextDetectionDataInnerRelationshipsInnerToJSON(
+  value?: DocumentTextDetectionDataInnerRelationshipsInner | null
 ): any {
   if (value === undefined) {
     return undefined;

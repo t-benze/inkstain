@@ -16,27 +16,27 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface DocumentTextDetectionBlocksInnerGeometryPolygonInner
+ * @interface DocumentTextDetectionDataInnerGeometryPolygonInner
  */
-export interface DocumentTextDetectionBlocksInnerGeometryPolygonInner {
+export interface DocumentTextDetectionDataInnerGeometryPolygonInner {
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInnerGeometryPolygonInner
+   * @memberof DocumentTextDetectionDataInnerGeometryPolygonInner
    */
   x?: number;
   /**
    *
    * @type {number}
-   * @memberof DocumentTextDetectionBlocksInnerGeometryPolygonInner
+   * @memberof DocumentTextDetectionDataInnerGeometryPolygonInner
    */
   y?: number;
 }
 
 /**
- * Check if a given object implements the DocumentTextDetectionBlocksInnerGeometryPolygonInner interface.
+ * Check if a given object implements the DocumentTextDetectionDataInnerGeometryPolygonInner interface.
  */
-export function instanceOfDocumentTextDetectionBlocksInnerGeometryPolygonInner(
+export function instanceOfDocumentTextDetectionDataInnerGeometryPolygonInner(
   value: object
 ): boolean {
   let isInstance = true;
@@ -44,19 +44,19 @@ export function instanceOfDocumentTextDetectionBlocksInnerGeometryPolygonInner(
   return isInstance;
 }
 
-export function DocumentTextDetectionBlocksInnerGeometryPolygonInnerFromJSON(
+export function DocumentTextDetectionDataInnerGeometryPolygonInnerFromJSON(
   json: any
-): DocumentTextDetectionBlocksInnerGeometryPolygonInner {
-  return DocumentTextDetectionBlocksInnerGeometryPolygonInnerFromJSONTyped(
+): DocumentTextDetectionDataInnerGeometryPolygonInner {
+  return DocumentTextDetectionDataInnerGeometryPolygonInnerFromJSONTyped(
     json,
     false
   );
 }
 
-export function DocumentTextDetectionBlocksInnerGeometryPolygonInnerFromJSONTyped(
+export function DocumentTextDetectionDataInnerGeometryPolygonInnerFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): DocumentTextDetectionBlocksInnerGeometryPolygonInner {
+): DocumentTextDetectionDataInnerGeometryPolygonInner {
   if (json === undefined || json === null) {
     return json;
   }
@@ -66,8 +66,8 @@ export function DocumentTextDetectionBlocksInnerGeometryPolygonInnerFromJSONType
   };
 }
 
-export function DocumentTextDetectionBlocksInnerGeometryPolygonInnerToJSON(
-  value?: DocumentTextDetectionBlocksInnerGeometryPolygonInner | null
+export function DocumentTextDetectionDataInnerGeometryPolygonInnerToJSON(
+  value?: DocumentTextDetectionDataInnerGeometryPolygonInner | null
 ): any {
   if (value === undefined) {
     return undefined;

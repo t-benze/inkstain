@@ -1,0 +1,82 @@
+components:
+  schemas:
+    BaseResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          nullable: true
+    ProxyRequestOperationEnum:
+      type: string
+      enum:
+        - signUp
+        - confirmSignUp
+        - signIn
+        - signOut
+        - forgotPassword
+        - confirmForgotPassword
+        - authStatus
+    UserInfo:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - email
+    SignUpRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - password
+        - email
+    ConfirmSignUpRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        username:
+          type: string
+      required:
+        - code
+        - username
+    SignInRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - password
+        - username
+    ForgotPasswordRequest:
+      type: object
+      properties:
+        username:
+          type: string
+      required:
+        - username
+    ConfirmForgotPasswordRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        code:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - code
+        - newPassword
+        - username
+
