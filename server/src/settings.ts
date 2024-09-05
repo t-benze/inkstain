@@ -37,6 +37,11 @@ export const sqlitePath = path.join(
   env == 'production' ? 'inkstain.sqlite' : `inkstain.${env}.sqlite`
 );
 
+export const tokensFile = path.join(
+  directories.stateDir,
+  env == 'production' ? 'tokens.json' : `tokens.${env}.json`
+);
+
 export const cognitoUserPoolId = process.env.AWS_COGNITO_USER_POOL_ID;
 export const cognitoUserPoolClientId =
   process.env.AWS_COGNITO_USER_POOL_CLIENT_ID;

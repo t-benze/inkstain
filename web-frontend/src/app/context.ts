@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  PlatformInfo200Response as PlatformData,
-  UserInfo,
-} from '@inkstain/client-api';
+import { PlatformInfo200Response as PlatformData } from '@inkstain/client-api';
 import { Space, Document, SystemDocumentType } from '~/web/types';
 import { Appearance } from './types';
 
@@ -20,9 +17,7 @@ export type ContextType = {
   activeDocument: string | null;
   setActiveDocumentViewRef: (view: unknown) => void;
   activeDocumentViewRef: React.MutableRefObject<unknown>;
-  startAuth: () => void;
-  userInfo: UserInfo | undefined | null;
-  signOut: () => void;
+  showAuthDialog: (show?: boolean) => void;
 };
 
 export const AppContext = React.createContext<ContextType>({} as ContextType);
