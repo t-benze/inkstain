@@ -2,9 +2,9 @@ import * as React from 'react';
 import { authApi } from '~/web/apiClient';
 import { ResponseError } from '@inkstain/client-api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { SignInRequest } from '@inkstain/client-api';
 
 export const useAuth = () => {
-  const [showAuthDialog, setShowAuthDialog] = React.useState(false);
   const queryClient = useQueryClient();
   const { data: userInfo } = useQuery({
     queryKey: ['userInfo'],
@@ -20,14 +20,25 @@ export const useAuth = () => {
     },
   });
 
-  const startAuth = React.useCallback(() => {
-    setShowAuthDialog(true);
-  }, []);
-
   const onSignInSuccess = React.useCallback(() => {
-    setShowAuthDialog(false);
     queryClient.invalidateQueries({ queryKey: ['userInfo'] });
   }, [queryClient]);
+
+  const signIn = React.useCallback(
+    (signInRequest: SignInRequest) => {
+      return authApi
+        .signIn({
+          signInRequest,
+        })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['userInfo'] });
+        })
+        .catch((error: ResponseError) => {
+          return false;
+        });
+    },
+    [queryClient]
+  );
 
   const signOut = React.useCallback(() => {
     return authApi
@@ -45,10 +56,7 @@ export const useAuth = () => {
   }, [queryClient]);
 
   return {
-    showAuthDialog,
     onSignInSuccess,
-    setShowAuthDialog,
-    startAuth,
     userInfo,
     signOut,
   };

@@ -60,6 +60,9 @@
   "passwords_do_not_match": "Passwords do not match",
   "invalid_email_format": "Invalid email format",
   "confirmation_code": "Confirmation code",
+  "confirmation_code_is_required": "Confirmation code is required",
+  "username_is_required": "Username is required",
+  "password_is_required": "Password is required",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",

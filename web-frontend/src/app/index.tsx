@@ -89,21 +89,11 @@ const InkStain = () => {
 
   const toasterId = useId('toaster');
   const { appearance, setAppearance } = useAppearance();
-  const {
-    showAuthDialog,
-    setShowAuthDialog,
-    startAuth,
-    userInfo,
-    signOut,
-    onSignInSuccess,
-  } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = React.useState(false);
 
   return platform ? (
     <AppContext.Provider
       value={{
-        startAuth,
-        userInfo,
-        signOut,
         platform,
         activeDocument,
         openSystemDocument,
@@ -117,6 +107,7 @@ const InkStain = () => {
         toasterId,
         appearance,
         setAppearance,
+        showAuthDialog: (show = true) => setShowAuthDialog(show),
       }}
     >
       <div className={classes.root}>
@@ -128,7 +119,6 @@ const InkStain = () => {
           <SecondarySidebar display={appearance.showSecondarySidebar} />
         </div>
         <AuthenticationDialog
-          onSignInSuccess={onSignInSuccess}
           open={showAuthDialog}
           onOpenChange={setShowAuthDialog}
         />

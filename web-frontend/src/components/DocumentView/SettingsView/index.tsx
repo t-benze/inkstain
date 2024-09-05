@@ -9,6 +9,8 @@ import {
   Title2,
 } from '@fluentui/react-components';
 import { AppContext } from '~/web/app/context';
+import { useUser, useSignOut } from '~/web/hooks/auth';
+
 const useClasses = makeStyles({
   root: {
     ...shorthands.padding(tokens.spacingVerticalS),
@@ -33,7 +35,9 @@ const useClasses = makeStyles({
 });
 
 const AccountSettings = () => {
-  const { userInfo, startAuth, signOut } = React.useContext(AppContext);
+  const { showAuthDialog } = React.useContext(AppContext);
+  const { userInfo } = useUser();
+  const signOut = useSignOut();
   const classes = useClasses();
   const { t } = useTranslation();
   return (
@@ -44,18 +48,22 @@ const AccountSettings = () => {
       <div className={classes.sectionContent}>
         {!userInfo && (
           <Button
+            data-test="settingsView-signInBtn"
             onClick={() => {
-              startAuth();
+              showAuthDialog();
             }}
           >
             {t('sign_in')}
           </Button>
         )}
         {userInfo && (
-          <Body2>{t('sing_in_as', { username: userInfo.username })}</Body2>
+          <Body2 data-test="settingsView-userInfo">
+            {t('sing_in_as', { username: userInfo.username })}
+          </Body2>
         )}
         {userInfo && (
           <Button
+            data-test="settingsView-signOutBtn"
             onClick={() => {
               signOut();
             }}

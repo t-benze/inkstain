@@ -17,6 +17,7 @@ import {
 } from '~/web/components/DrawingAnnotationOverlay';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
 import { AppContext } from '~/web/app/context';
+import { useUser } from '~/web/hooks/auth';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -75,7 +76,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       width: number;
       height: number;
     } | null>(null);
-
+    const { isAuthenticated } = useUser();
     const {
       scale,
       setScale,
@@ -101,8 +102,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       },
       [currentPageNumber]
     );
-    const enableTextLayer = appContext.userInfo !== undefined;
-    console.log('enableTextLayer', enableTextLayer);
+    const enableTextLayer = isAuthenticated;
     const [showLayoutAnalysis, setShowLayoutAnalysis] =
       useState<boolean>(false);
     const handleShowLayoutAnalysisChange = React.useCallback(

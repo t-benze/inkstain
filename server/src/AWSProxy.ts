@@ -10,8 +10,8 @@ import {
 import {
   cognitoUserPoolId,
   cognitoUserPoolClientId,
-  directories,
   intelligenceAPIBase,
+  tokensFile,
 } from '~/server/settings';
 import fs from 'fs/promises';
 import {
@@ -24,7 +24,6 @@ import {
   ConfirmForgotPasswordRequest,
   DocumentTextDetectionDataInner,
 } from '~/server/types';
-const tokensFile = path.join(directories.stateDir, 'tokens.json');
 
 type Tokens = {
   idToken: string;

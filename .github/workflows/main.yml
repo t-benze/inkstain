@@ -35,8 +35,8 @@ jobs:
         with:
           name: build
           path: dist
-      # - name: component test
-      #   run: npx nx run cypress:component
+      - name: Copy env file
+        run: cp .env.example .env
       - name: e2e test
         run: npx nx run cypress:e2e
 
@@ -53,7 +53,7 @@ jobs:
         with:
           name: build
           path: dist
-      # - name: component test
-      #   run: npx nx run cypress:component
+      - name: Copy env file
+        run: copy .env.example .env
       - name: e2e test
         run: npx nx run cypress:e2e
