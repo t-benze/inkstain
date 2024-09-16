@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/AuthApi.ts
 apis/DocumentsApi.ts
 apis/IntelligenceApi.ts
@@ -32,6 +31,9 @@ models/DocumentTextDetectionDataInnerRelationshipsInner.ts
 models/DrawingData.ts
 models/ForgotPasswordRequest.ts
 models/HighlightData.ts
+models/IntelligenceAnalyzeDocument200Response.ts
+models/IntelligenceAnalyzeDocumentRequest.ts
+models/IntelligenceDocLayoutStatus200Response.ts
 models/ListDirectories200ResponseInner.ts
 models/ListDocuments200ResponseInner.ts
 models/PlatformInfo200Response.ts

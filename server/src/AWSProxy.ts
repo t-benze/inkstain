@@ -1,4 +1,3 @@
-import path from 'path';
 import {
   CognitoUserPool,
   CognitoUserAttribute,
@@ -234,7 +233,11 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
       },
     });
     if (!response.ok) {
-      throw new Error(response.statusText);
+      throw new Error(
+        `Intelligence API error: ${response.statusText} ${response.headers.get(
+          'x-amzn-ErrorType'
+        )}; RequestId: ${response.headers.get('x-amzn-RequestId')}`
+      );
     }
     const data = (await response.json()) as DocumentTextDetectionDataInner[];
     return data;

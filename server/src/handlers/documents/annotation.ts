@@ -76,7 +76,8 @@ export const getDocumentAnnotations = async (ctx: Context) => {
   const documentPath = ctx.query.path as string;
   const documentDirectory = documentPath + '.ink';
 
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const spaceRoot = space.path;
   const annotationsFilePath = path.join(
     spaceRoot,
     documentDirectory,
@@ -144,7 +145,8 @@ export const addDocumentAnnotation = async (ctx: Context) => {
   const documentPath = ctx.query.path as string;
   const documentDirectory = documentPath + '.ink';
 
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const spaceRoot = space.path;
   const annotationsFilePath = path.join(
     spaceRoot,
     documentDirectory,
@@ -223,7 +225,8 @@ export const updateDocumentAnnotation = async (ctx: Context) => {
   const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    const spaceRoot = space.path;
     const annotationsFilePath = path.join(
       spaceRoot,
       documentDirectory,
@@ -301,7 +304,8 @@ export const deleteDocumentAnnotations = async (ctx: Context) => {
   const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    const spaceRoot = space.path;
     const annotationsFilePath = path.join(
       spaceRoot,
       documentDirectory,

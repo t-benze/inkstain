@@ -1,13 +1,10 @@
+import { Space } from '@inkstain/client-api';
 export interface Document {
   type: string;
   name: string;
 }
 
-export interface Space {
-  key: string;
-  name: string;
-  path: string;
-}
+export { Space };
 
 export type SystemDocumentType =
   | '@inkstain/space-management'

@@ -15,6 +15,7 @@ import {
 } from '@fluentui/react-components';
 import { AppContext } from '~/web/app/context';
 import { documentsApi } from '~/web/apiClient';
+import { DocumentViewContext } from './context';
 
 interface DocumentViewProps {
   type: string;
@@ -64,67 +65,75 @@ export const DocumentView = ({ type, name, isActive }: DocumentViewProps) => {
         throw new Error('Unknown inkstain document type: ' + inkstainType);
     }
   }
-
   // when rendering an actual document, there must be an active space
   if (appContext.activeSpace === null) {
     throw new Error('Active space is null');
   }
 
-  const spaceKey = appContext.activeSpace.key;
-  switch (type) {
-    case 'pdf': {
-      return (
-        <PDFView
-          spaceKey={spaceKey}
-          documentPath={name}
-          ref={documentViewRef as React.MutableRefObject<PDFViewHandle>}
-        />
-      );
-    }
-    case 'inkclip': {
-      return <WebclipView spaceKey={spaceKey} documentPath={name} />;
-    }
-    case 'txt': {
-      return <TextView spaceKey={spaceKey} documentPath={name} />;
-    }
-
-    default:
-      return (
-        <div
-          className={classes.defaultView}
-          data-test="documentView-unsupported"
-        >
-          <Image
-            width={400}
-            height={400}
-            src={'/static/assets/images/unsupported.svg'}
+  const renderView = (spaceKey: string) => {
+    switch (type) {
+      case 'pdf': {
+        return (
+          <PDFView
+            spaceKey={spaceKey}
+            documentPath={name}
+            ref={documentViewRef as React.MutableRefObject<PDFViewHandle>}
           />
-          <Subtitle1>{`${t('error_unsupported_file_type', {
-            type,
-          })}`}</Subtitle1>
-          <div className={classes.defaultViewButtons}>
-            <Button
-              size="large"
-              onClick={() => {
-                documentsApi.openDocumentWithSystemApp({
-                  spaceKey,
-                  path: name,
-                });
-              }}
-            >
-              {t('open_with_system_app')}
-            </Button>
-            <Button
-              data-test="documentView-unsupported-closeBtn"
-              size="large"
-              onClick={() => {
-                appContext.closeDocument(name);
-              }}
-            >
-              {t('close')}
-            </Button>
+        );
+      }
+      case 'inkclip': {
+        return <WebclipView spaceKey={spaceKey} documentPath={name} />;
+      }
+      case 'txt': {
+        return <TextView spaceKey={spaceKey} documentPath={name} />;
+      }
+
+      default:
+        return (
+          <div
+            className={classes.defaultView}
+            data-test="documentView-unsupported"
+          >
+            <Image
+              width={400}
+              height={400}
+              src={'/static/assets/images/unsupported.svg'}
+            />
+            <Subtitle1>{`${t('error_unsupported_file_type', {
+              type,
+            })}`}</Subtitle1>
+            <div className={classes.defaultViewButtons}>
+              <Button
+                size="large"
+                onClick={() => {
+                  documentsApi.openDocumentWithSystemApp({
+                    spaceKey,
+                    path: name,
+                  });
+                }}
+              >
+                {t('open_with_system_app')}
+              </Button>
+              <Button
+                data-test="documentView-unsupported-closeBtn"
+                size="large"
+                onClick={() => {
+                  appContext.closeDocument(name);
+                }}
+              >
+                {t('close')}
+              </Button>
+            </div>
           </div>
-        </div>
-      );
-  }
+        );
+    }
+  };
+
+  return (
+    <DocumentViewContext.Provider
+      value={{ space: appContext.activeSpace, document: { type, name } }}
+    >
+      {renderView(appContext.activeSpace.key)}
+    </DocumentViewContext.Provider>
+  );
 };
