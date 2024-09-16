@@ -14,8 +14,6 @@ import {
   ChevronDownRegular,
   InsertFilled,
   InsertRegular,
-  GlassesRegular,
-  GlassesFilled,
 } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { Toolbar as StylusToolbar } from '~/web/components/DrawingAnnotationOverlay';
@@ -23,6 +21,7 @@ import {
   ZoomToolbar,
   ToolbarProps as ZoomToolbarProps,
 } from '~/web/components/ZoomToolbar';
+import { DocLayoutAnalysisControl } from './DocLayoutAnalysisControl';
 
 interface PDFToolbarProps extends ZoomToolbarProps {
   numOfPages: number;
@@ -173,20 +172,7 @@ export const PDFToolbar = ({
       <ToolbarDivider />
       <StylusToolbar />
       <ToolbarDivider />
-      <ToolbarButtonWithTooltip
-        content={t('pdfview.analyzeDocBtnTooltip')}
-        dataTest="pdfViewer-analyzeDocBtn"
-        icon={
-          showLayoutAnalysis ? (
-            <GlassesFilled color={tokens.colorBrandForeground1} />
-          ) : (
-            <GlassesRegular />
-          )
-        }
-        onClick={() => {
-          onShowLayoutAnalysisChange(!showLayoutAnalysis);
-        }}
-      />
+      <DocLayoutAnalysisControl />
     </Toolbar>
   );
 };

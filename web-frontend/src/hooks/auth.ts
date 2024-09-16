@@ -42,10 +42,12 @@ export const useSignIn = () => {
       .signIn({ signInRequest })
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ['userInfo'] });
+        return true;
       })
       .catch(async (error: ResponseError) => {
         const errorResponse = await error.response.json();
         setErrorMsg(errorResponse.message || error.response.statusText);
+        return false;
       });
   };
 

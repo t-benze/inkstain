@@ -17,6 +17,7 @@ import { DocumentService } from './services/DocumentService';
 import { TaskService } from './services/TaskService';
 import { AuthService } from './services/AuthService';
 import { IntelligenceService } from './services/IntelligenceService';
+import { PDFService } from './services/PDFService';
 import { initDB } from './db';
 import { Context } from './types';
 import { registerRoutes } from './handlers';
@@ -154,8 +155,11 @@ async function start() {
     app.context.taskService = new TaskService();
     const awsProxy = new AWSProxy();
     app.context.authService = new AuthService(awsProxy);
+    app.context.pdfService = new PDFService();
     app.context.intelligenceService = new IntelligenceService(
       app.context.spaceService,
+      app.context.taskService,
+      app.context.pdfService,
       awsProxy
     );
   } catch (e) {

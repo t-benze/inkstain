@@ -3,12 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import * as settings from '~/server/settings';
 import logger from '../logger';
-
-export interface Space {
-  key: string;
-  name: string;
-  path: string;
-}
+import { Space } from '~/server/types';
 
 export enum ErrorCode {
   SPACE_ALREADY_EXISTS = 1,

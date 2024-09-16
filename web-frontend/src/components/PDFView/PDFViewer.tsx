@@ -59,7 +59,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     ref
   ) => {
     const styles = useStyles();
-    const appContext = React.useContext(AppContext);
     const url = useDocument(documentPath);
     const pdfDocument = usePDFDocument({
       url,

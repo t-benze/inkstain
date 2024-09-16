@@ -1,6 +1,8 @@
 import path from 'path';
 import { SpaceService } from '~/server/services/SpaceService';
 import fs from 'fs/promises';
+import { Space } from '~/server/types';
+
 // Helper function to get the full file path
 export const getFullPath = async (
   spaceService: SpaceService,
@@ -20,9 +22,13 @@ export const getFullPath = async (
       `Invalid file path: ${space.path}, ${documentPath}, ${resolvedPath}, ${relative}`
     );
   }
-
   return resolvedPath;
 };
+
+export function getDocumentPath(space: Space, documentPath: string) {
+  const documentDirectory = documentPath + '.ink';
+  return path.join(space.path, documentDirectory);
+}
 
 export async function traverseDirectory(
   spaceRoot: string,

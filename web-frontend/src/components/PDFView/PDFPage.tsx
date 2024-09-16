@@ -296,7 +296,6 @@ export const PDFPage = ({
   const drawings = annotations
     ? annotations.filter((a) => a.data.type === 'drawing')
     : null;
-  console.log('enableTextLayer', enableTextLayer);
   return (
     <div
       role={role}

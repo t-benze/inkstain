@@ -132,8 +132,10 @@ const SignInForm = ({
         appearance="primary"
         onClick={() => {
           if (validate()) {
-            signIn({ username, password }).then(() => {
-              showAuthDialog(false);
+            signIn({ username, password }).then((success) => {
+              if (success) {
+                showAuthDialog(false);
+              }
             });
           }
         }}

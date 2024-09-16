@@ -7,7 +7,7 @@ import {
   ErrorCode as SpaceServiceErrorCode,
 } from '~/server/services/SpaceService';
 import { Context } from '~/server/types';
-import { getFullPath } from '~/server/utils';
+import { getDocumentPath } from '~/server/utils';
 
 /**
  * @swagger
@@ -90,14 +90,11 @@ export const searchDocuments = async (ctx: Context) => {
       limit: limit ? parseInt(limit) : undefined,
     });
 
+    const space = await ctx.spaceService.getSpace(spaceKey);
     const result = await Promise.all(
       documents.map(async (doc) => {
-        const filePath = await getFullPath(
-          ctx.spaceService,
-          spaceKey,
-          doc.documentPath
-        );
-        const metaFile = path.join(filePath + '.ink', 'meta.json');
+        const filePath = await getDocumentPath(space, doc.documentPath);
+        const metaFile = path.join(filePath, 'meta.json');
         const meta = JSON.parse(await fs.readFile(metaFile, 'utf-8'));
         return {
           documentPath: doc.documentPath,

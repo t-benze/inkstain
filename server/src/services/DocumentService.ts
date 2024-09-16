@@ -3,7 +3,7 @@ import { Sequelize, Op, Includeable } from 'sequelize';
 import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
-import { Space } from './SpaceService';
+import { Space } from '~/server/types';
 
 export class DocumentService {
   private sequelize: Sequelize;

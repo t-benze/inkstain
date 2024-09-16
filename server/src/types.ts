@@ -6,6 +6,7 @@ import { TaskService } from './services/TaskService';
 import { AuthService } from './services/AuthService';
 import { IntelligenceService } from './services/IntelligenceService';
 import {
+  Space,
   UserInfo,
   SignUpRequest,
   ConfirmSignUpRequest,
@@ -30,6 +31,8 @@ export {
   DocumentMeta as MetaData,
   DocumentTextDetectionDataInner,
 };
+
+export { Space };
 
 export interface AuthProxy {
   isAuthenticated: () => Promise<boolean>;
@@ -60,4 +63,11 @@ export type Context = Router.RouterContext & {
   taskService: TaskService;
   authService: AuthService;
   intelligenceService: IntelligenceService;
+};
+
+export type DocLayoutIndex = {
+  status: 'completed' | 'partial';
+  indexMap: {
+    [key: string]: number;
+  };
 };

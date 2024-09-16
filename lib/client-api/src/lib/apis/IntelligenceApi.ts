@@ -13,18 +13,37 @@
  */
 
 import * as runtime from '../runtime';
-import type { DocumentTextDetectionDataInner } from '../models/index';
+import type {
+  DocumentTextDetectionDataInner,
+  IntelligenceAnalyzeDocument200Response,
+  IntelligenceAnalyzeDocumentRequest,
+  IntelligenceDocLayoutStatus200Response,
+} from '../models/index';
 import {
   DocumentTextDetectionDataInnerFromJSON,
   DocumentTextDetectionDataInnerToJSON,
+  IntelligenceAnalyzeDocument200ResponseFromJSON,
+  IntelligenceAnalyzeDocument200ResponseToJSON,
+  IntelligenceAnalyzeDocumentRequestFromJSON,
+  IntelligenceAnalyzeDocumentRequestToJSON,
+  IntelligenceDocLayoutStatus200ResponseFromJSON,
+  IntelligenceDocLayoutStatus200ResponseToJSON,
 } from '../models/index';
 
-export interface IntelligenceAnalyzeDocumentRequest {
+export interface IntelligenceAnalyzeDocumentOperationRequest {
+  spaceKey: string;
+  intelligenceAnalyzeDocumentRequest: IntelligenceAnalyzeDocumentRequest;
+}
+
+export interface IntelligenceDocLayoutRequest {
   spaceKey: string;
   path: string;
   pageNum: number;
-  body: string;
-  mock?: number;
+}
+
+export interface IntelligenceDocLayoutStatusRequest {
+  spaceKey: string;
+  path: string;
 }
 
 /**
@@ -35,9 +54,9 @@ export class IntelligenceApi extends runtime.BaseAPI {
    * analyze doucment through intelligence service
    */
   async intelligenceAnalyzeDocumentRaw(
-    requestParameters: IntelligenceAnalyzeDocumentRequest,
+    requestParameters: IntelligenceAnalyzeDocumentOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<Array<DocumentTextDetectionDataInner>>> {
+  ): Promise<runtime.ApiResponse<IntelligenceAnalyzeDocument200Response>> {
     if (
       requestParameters.spaceKey === null ||
       requestParameters.spaceKey === undefined
@@ -49,12 +68,80 @@ export class IntelligenceApi extends runtime.BaseAPI {
     }
 
     if (
+      requestParameters.intelligenceAnalyzeDocumentRequest === null ||
+      requestParameters.intelligenceAnalyzeDocumentRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'intelligenceAnalyzeDocumentRequest',
+        'Required parameter requestParameters.intelligenceAnalyzeDocumentRequest was null or undefined when calling intelligenceAnalyzeDocument.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/intelligence/{spaceKey}/analyze`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: IntelligenceAnalyzeDocumentRequestToJSON(
+          requestParameters.intelligenceAnalyzeDocumentRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      IntelligenceAnalyzeDocument200ResponseFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * analyze doucment through intelligence service
+   */
+  async intelligenceAnalyzeDocument(
+    requestParameters: IntelligenceAnalyzeDocumentOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<IntelligenceAnalyzeDocument200Response> {
+    const response = await this.intelligenceAnalyzeDocumentRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * get the document layout of a specified document page
+   */
+  async intelligenceDocLayoutRaw(
+    requestParameters: IntelligenceDocLayoutRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Array<DocumentTextDetectionDataInner>>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling intelligenceDocLayout.'
+      );
+    }
+
+    if (
       requestParameters.path === null ||
       requestParameters.path === undefined
     ) {
       throw new runtime.RequiredError(
         'path',
-        'Required parameter requestParameters.path was null or undefined when calling intelligenceAnalyzeDocument.'
+        'Required parameter requestParameters.path was null or undefined when calling intelligenceDocLayout.'
       );
     }
 
@@ -64,17 +151,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
     ) {
       throw new runtime.RequiredError(
         'pageNum',
-        'Required parameter requestParameters.pageNum was null or undefined when calling intelligenceAnalyzeDocument.'
-      );
-    }
-
-    if (
-      requestParameters.body === null ||
-      requestParameters.body === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'body',
-        'Required parameter requestParameters.body was null or undefined when calling intelligenceAnalyzeDocument.'
+        'Required parameter requestParameters.pageNum was null or undefined when calling intelligenceDocLayout.'
       );
     }
 
@@ -88,24 +165,17 @@ export class IntelligenceApi extends runtime.BaseAPI {
       queryParameters['pageNum'] = requestParameters.pageNum;
     }
 
-    if (requestParameters.mock !== undefined) {
-      queryParameters['mock'] = requestParameters.mock;
-    }
-
     const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters['Content-Type'] = 'text/plain';
 
     const response = await this.request(
       {
-        path: `/intelligence/{spaceKey}/analyze`.replace(
+        path: `/intelligence/{spaceKey}/layout`.replace(
           `{${'spaceKey'}}`,
           encodeURIComponent(String(requestParameters.spaceKey))
         ),
-        method: 'POST',
+        method: 'GET',
         headers: headerParameters,
         query: queryParameters,
-        body: requestParameters.body as any,
       },
       initOverrides
     );
@@ -116,13 +186,80 @@ export class IntelligenceApi extends runtime.BaseAPI {
   }
 
   /**
-   * analyze doucment through intelligence service
+   * get the document layout of a specified document page
    */
-  async intelligenceAnalyzeDocument(
-    requestParameters: IntelligenceAnalyzeDocumentRequest,
+  async intelligenceDocLayout(
+    requestParameters: IntelligenceDocLayoutRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<DocumentTextDetectionDataInner>> {
-    const response = await this.intelligenceAnalyzeDocumentRaw(
+    const response = await this.intelligenceDocLayoutRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * get the document layout status of a specified document
+   */
+  async intelligenceDocLayoutStatusRaw(
+    requestParameters: IntelligenceDocLayoutStatusRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<IntelligenceDocLayoutStatus200Response>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling intelligenceDocLayoutStatus.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling intelligenceDocLayoutStatus.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/intelligence/{spaceKey}/layout-status`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      IntelligenceDocLayoutStatus200ResponseFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * get the document layout status of a specified document
+   */
+  async intelligenceDocLayoutStatus(
+    requestParameters: IntelligenceDocLayoutStatusRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<IntelligenceDocLayoutStatus200Response> {
+    const response = await this.intelligenceDocLayoutStatusRaw(
       requestParameters,
       initOverrides
     );

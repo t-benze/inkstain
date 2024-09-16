@@ -13,6 +13,7 @@ import {
   DocumentTextDetectionDataInnerGeometryBoundingBox,
 } from '@inkstain/client-api';
 import { PDFViewerContext } from './context';
+import { useDocLayout } from '~/web/hooks/useDocLayout';
 const useClasses = makeStyles({
   root: {
     position: 'absolute',
@@ -94,60 +95,15 @@ const LayoutBlock = ({
 };
 
 export const PDFPageTextLayer = ({
-  canvasRef,
   spaceKey,
   documentPath,
   pageNum,
 }: PDFPageTextLayerProps) => {
   const classes = useClasses();
-  const { data } = useQuery({
-    queryKey: ['documentTextLayer', spaceKey, documentPath, pageNum],
-    queryFn: async () => {
-      if (canvasRef.current === null) {
-        throw new Error('Canvas ref is null');
-      }
-      const base64Data = canvasRef.current.toDataURL('image/png').split(',')[1]; // Remove the data URL prefix
-      const analyzedResult = await intelligenceApi.intelligenceAnalyzeDocument({
-        spaceKey,
-        path: documentPath,
-        pageNum,
-        body: base64Data,
-      });
-      console.log('analyzedResult', analyzedResult);
-      const blockIdToIndex: Record<string, number> = {};
-      analyzedResult.forEach((block, index) => {
-        blockIdToIndex[block['id'] as string] = index;
-      });
-      const lineBlocks = analyzedResult
-        ? analyzedResult.filter((block) => block.blockType === 'LINE')
-        : [];
-      const layoutBlocks = analyzedResult
-        ? analyzedResult.filter((block) =>
-            block.blockType?.startsWith('LAYOUT')
-          )
-        : [];
-      layoutBlocks.forEach((block) => {
-        const blocks = analyzedResult;
-        if (!blocks) return;
-        const children = block.relationships?.find((r) => r.type === 'CHILD');
-        if (children) {
-          block.text = children.ids
-            ? children.ids
-                .map((id) => {
-                  const lineBlock = blocks[blockIdToIndex[id]];
-                  return lineBlock.text;
-                })
-                .join('\n')
-            : '';
-        }
-      });
-      return {
-        analyzedResult,
-        blockIdToIndex,
-        lineBlocks,
-        layoutBlocks,
-      };
-    },
+  const data = useDocLayout({
+    spaceKey,
+    documentPath,
+    pageNum,
   });
 
   const layoutBlocks = data
