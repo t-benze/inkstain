@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StylusOption } from './types';
+import { StylusOption } from '../types';
 export const useStylus = () => {
   const [stylus, setStylus] = React.useState<StylusOption>('select');
   const handleStylusChange = React.useCallback((tool: StylusOption) => {

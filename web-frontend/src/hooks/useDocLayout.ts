@@ -23,6 +23,9 @@ export const useDocLayout = ({
         analyzedResult.forEach((block, index) => {
           blockIdToIndex[block['id'] as string] = index;
         });
+        const wordBlocks = analyzedResult
+          ? analyzedResult.filter((block) => block.blockType === 'WORD')
+          : [];
         const lineBlocks = analyzedResult
           ? analyzedResult.filter((block) => block.blockType === 'LINE')
           : [];
@@ -49,6 +52,7 @@ export const useDocLayout = ({
         return {
           analyzedResult,
           blockIdToIndex,
+          wordBlocks,
           lineBlocks,
           layoutBlocks,
         };

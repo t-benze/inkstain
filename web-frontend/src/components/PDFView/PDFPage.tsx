@@ -22,6 +22,7 @@ import { PDFViewerContext } from './context';
 import { useTranslation } from 'react-i18next';
 import { Annotation, AnnotationData } from '@inkstain/client-api';
 import { Overlay as PDFPageDrawingLayer } from '~/web/components/DrawingAnnotationOverlay';
+import { useDocLayout } from '~/web/hooks/useDocLayout';
 
 const useClasses = makeStyles({
   root: {
@@ -296,6 +297,33 @@ export const PDFPage = ({
   const drawings = annotations
     ? annotations.filter((a) => a.data.type === 'drawing')
     : null;
+  const highlights = annotations
+    ? annotations.filter((a) => a.data.type === 'highlight')
+    : null;
+
+  const data = useDocLayout({
+    spaceKey,
+    documentPath,
+    pageNum: pageNumber,
+  });
+  const textLines = data?.lineBlocks
+    ? data.lineBlocks.map((block) => {
+        return {
+          top:
+            (canvasDimension?.height ?? 0) *
+            (block.geometry?.boundingBox?.top ?? 0),
+          left:
+            (canvasDimension?.width ?? 0) *
+            (block.geometry?.boundingBox?.left ?? 0),
+          width:
+            (canvasDimension?.width ?? 0) *
+            (block.geometry?.boundingBox?.width ?? 0),
+          height:
+            (canvasDimension?.height ?? 0) *
+            (block.geometry?.boundingBox?.height ?? 0),
+        };
+      })
+    : undefined;
   return (
     <div
       role={role}
@@ -315,18 +343,20 @@ export const PDFPage = ({
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
-      {enableTextLayer && renderingStatus === 'completed' ? (
+      {/* {enableTextLayer && renderingStatus === 'completed' ? (
         <PDFPageTextLayer
           canvasRef={canvasRef}
           spaceKey={spaceKey}
           documentPath={documentPath}
           pageNum={pageNumber}
         />
-      ) : null}
+      ) : null} */}
       {renderingStatus === 'completed' ? (
         <PDFPageDrawingLayer
           scale={scale}
+          textLines={textLines}
           drawings={drawings}
+          highlights={highlights}
           dimension={canvasDimension}
           onAddAnnotation={handleAddAnnotation}
           onUpdateAnnotation={handleUpdateAnnotation}

@@ -31,6 +31,7 @@ models/DocumentTextDetectionDataInnerRelationshipsInner.ts
 models/DrawingData.ts
 models/ForgotPasswordRequest.ts
 models/HighlightData.ts
+models/HighlightDataAreasInner.ts
 models/IntelligenceAnalyzeDocument200Response.ts
 models/IntelligenceAnalyzeDocumentRequest.ts
 models/IntelligenceDocLayoutStatus200Response.ts

@@ -5,7 +5,7 @@ import { DocumentViewProps } from '~/web/types';
 import { ContentView } from './ContentView';
 import { WebclipToolbar } from './Toolbar';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
-import { useStylus } from '~/web/components/DrawingAnnotationOverlay/useStylus';
+import { useStylus } from '~/web/components/DrawingAnnotationOverlay/hooks/useStylus';
 import { DrawingAnnotationOverlayContext } from '../DrawingAnnotationOverlay';
 
 const useClasses = makeStyles({

@@ -1,4 +1,10 @@
-export type StylusOption = 'select' | 'line' | 'rect' | 'ellipse' | 'pen';
+export type StylusOption =
+  | 'select'
+  | 'highlight'
+  | 'line'
+  | 'rect'
+  | 'ellipse'
+  | 'pen';
 
 export interface ToolbarProps {
   stylus: StylusOption;

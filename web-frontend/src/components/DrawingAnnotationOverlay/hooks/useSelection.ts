@@ -11,6 +11,7 @@ import type { SelectionImperativeRef } from '../Selection';
 export const useSelection = (
   scale: number,
   drawings: Array<Annotation> | null,
+  highlights: Array<Annotation> | null,
   onInteractionModeChange: (mode: InteractionMode) => void,
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void
 ) => {
@@ -22,6 +23,7 @@ export const useSelection = (
     element: SVGGraphicsElement;
     initRect: DOMRect;
     annotation: Annotation;
+    isTextHighlight: boolean;
   } | null>(null);
 
   const startSelection = (svgPoint: DOMPoint, target: SVGGraphicsElement) => {
@@ -35,18 +37,26 @@ export const useSelection = (
           `[data-annotation-id="${annotationID}"]`
         ) as SVGGraphicsElement;
       }
-      const selectedAnnotation = drawings?.find((annotation) => {
-        return annotation.id === annotationID;
-      });
+      const isTextHighlight =
+        target.getAttribute('data-text-highlight') === 'true';
+      const selectedAnnotation = isTextHighlight
+        ? highlights?.find((annotation) => {
+            return annotation.id === annotationID;
+          })
+        : drawings?.find((annotation) => {
+            return annotation.id === annotationID;
+          });
 
       if (selectedAnnotation) {
         setSelection({
           element: actualTarget,
           initRect: actualTarget.getBBox(),
           annotation: selectedAnnotation,
+          isTextHighlight: isTextHighlight,
         });
       }
     } else {
+      // for selection sizing and moving (only drawing objects)
       if (selection) {
         if (target.getAttribute('data-mode') !== null) {
           onInteractionModeChange(

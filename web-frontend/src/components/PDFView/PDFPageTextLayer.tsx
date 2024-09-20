@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { intelligenceApi } from '~/web/apiClient';
 import {
   makeStyles,
   shorthands,
   Popover,
   PopoverTrigger,
   PopoverSurface,
+  tokens,
 } from '@fluentui/react-components';
 import {
   DocumentTextDetectionDataInner,
@@ -21,6 +20,10 @@ const useClasses = makeStyles({
     top: 0,
     right: 0,
     bottom: 0,
+    '& ::selection': {
+      color: 'transparent',
+      background: tokens.colorNeutralStencil1Alpha,
+    },
   },
   layoutBlock: {
     ...shorthands.border('1px', 'solid', 'red'),
@@ -32,6 +35,22 @@ interface PDFPageTextLayerProps {
   spaceKey: string;
   documentPath: string;
   pageNum: number;
+}
+
+function calculateFontSize(
+  boundingBox: DocumentTextDetectionDataInnerGeometryBoundingBox,
+  dimension: { width: number; height: number },
+  charCount: number
+): number {
+  const width = dimension.width * (boundingBox.width ?? 0);
+  // Approximate average character width in em units
+  const avgCharWidth = 0.425; // This can be adjusted based on the font
+  // Calculate total em units needed
+  const totalEm = charCount * avgCharWidth;
+  // Calculate font size
+  const fontSize = width / totalEm;
+  // Round down to nearest whole number
+  return Math.floor(fontSize);
 }
 
 function toCSSPercentage(value: number): string {
@@ -52,17 +71,43 @@ function boundingBoxStyle(
   };
 }
 
+const WordBlock = ({
+  wordBlock,
+  dimension,
+}: {
+  wordBlock: DocumentTextDetectionDataInner;
+  dimension: { width: number; height: number };
+}) => {
+  const boundingBox = wordBlock.geometry?.boundingBox;
+  const style = boundingBox ? boundingBoxStyle(boundingBox) : {};
+  const fontSize = boundingBox
+    ? calculateFontSize(boundingBox, dimension, wordBlock.text?.length ?? 1)
+    : undefined;
+  return (
+    <div
+      style={{ ...style, color: 'rgba(0,0,0,0)', textWrap: 'nowrap', fontSize }}
+    >
+      {wordBlock.text}
+    </div>
+  );
+};
+
 const LineBlock = ({
   lineBlock,
+  dimension,
 }: {
   lineBlock: DocumentTextDetectionDataInner;
+  dimension: { width: number; height: number };
 }) => {
   const boundingBox = lineBlock.geometry?.boundingBox;
   const style = boundingBox ? boundingBoxStyle(boundingBox) : {};
+  const fontSize = boundingBox
+    ? calculateFontSize(boundingBox, dimension, lineBlock.text?.length ?? 1)
+    : undefined;
   return (
-    <div style={{ ...style, color: 'rgba(0,0,0,0)', textWrap: 'nowrap' }}>
-      {lineBlock.text}
-      <br />
+    <div style={{ ...style, cursor: 'text' }}>
+      {/* {lineBlock.text}
+      <br /> */}
     </div>
   );
 };
@@ -105,17 +150,44 @@ export const PDFPageTextLayer = ({
     documentPath,
     pageNum,
   });
+  const [dimension, setDimension] = React.useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const divRef = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    if (divRef.current) {
+      setDimension({
+        width: divRef.current.offsetWidth,
+        height: divRef.current.offsetHeight,
+      });
+    }
+  }, [divRef]);
 
-  const layoutBlocks = data
-    ? data.layoutBlocks
-        .filter((block) => block.blockType?.startsWith('LAYOUT'))
-        .map((block) => <LayoutBlock layoutBlock={block} key={block.id} />)
-    : [];
-  const lineBlocks = data
-    ? data.lineBlocks
-        .filter((block) => block.blockType === 'LINE')
-        .map((block) => <LineBlock lineBlock={block} key={block.id} />)
-    : [];
-  const blocks = [...lineBlocks, ...layoutBlocks];
-  return <div className={classes.root}>{blocks}</div>;
+  const renderBlocks = (dimension: { width: number; height: number }) => {
+    const layoutBlocks = data
+      ? data.layoutBlocks
+          .filter((block) => block.blockType?.startsWith('LAYOUT'))
+          .map((block) => <LayoutBlock layoutBlock={block} key={block.id} />)
+      : [];
+    const lineBlocks = data
+      ? data.lineBlocks
+          .filter((block) => block.blockType === 'LINE')
+          .map((block) => (
+            <LineBlock lineBlock={block} key={block.id} dimension={dimension} />
+          ))
+      : [];
+    // const wordBlocks = data
+    //   ? data.wordBlocks.map((block) => (
+    //       <WordBlock wordBlock={block} key={block.id} dimension={dimension} />
+    //     ))
+    //   : [];
+    const blocks = [...lineBlocks, ...layoutBlocks];
+    return blocks;
+  };
+  return (
+    <div ref={divRef} className={classes.root}>
+      {dimension ? renderBlocks(dimension) : null}
+    </div>
+  );
 };

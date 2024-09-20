@@ -24,6 +24,7 @@ export * from './DocumentTextDetectionDataInnerRelationshipsInner';
 export * from './DrawingData';
 export * from './ForgotPasswordRequest';
 export * from './HighlightData';
+export * from './HighlightDataAreasInner';
 export * from './IntelligenceAnalyzeDocument200Response';
 export * from './IntelligenceAnalyzeDocumentRequest';
 export * from './IntelligenceDocLayoutStatus200Response';
