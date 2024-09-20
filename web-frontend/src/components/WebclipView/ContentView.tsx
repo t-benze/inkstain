@@ -36,6 +36,9 @@ export const ContentView = ({
   const drawings = (annotations ? annotations[1] || [] : []).filter(
     (a) => a.data.type === 'drawing'
   );
+  const highlights = (annotations ? annotations[1] || [] : []).filter(
+    (a) => a.data.type === 'highlight'
+  );
 
   const handleAddAnnotation = React.useCallback(
     (data: object, comment?: string) => {
@@ -84,6 +87,7 @@ export const ContentView = ({
         dimension={dimension}
         scale={scale}
         drawings={drawings}
+        highlights={highlights}
         onAddAnnotation={handleAddAnnotation}
         onUpdateAnnotation={handleUpdateAnnotation}
         onRemoveAnnotation={handleRemoveAnnotation}

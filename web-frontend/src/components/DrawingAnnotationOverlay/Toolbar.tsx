@@ -17,6 +17,7 @@ import {
   LineRegular,
   CircleRegular,
   PenRegular,
+  HighlightRegular,
 } from '@fluentui/react-icons';
 import { DrawingAnnotationOverlayContext } from './context';
 
@@ -68,6 +69,7 @@ const StylusPickerPopover = ({
   const [open, setOpen] = React.useState(false);
   const options = [
     'select',
+    'highlight',
     'line',
     'rect',
     'ellipse',
@@ -75,6 +77,7 @@ const StylusPickerPopover = ({
   ] as Array<StylusOption>;
   const optionToIcon = {
     select: <CursorRegular />,
+    highlight: <HighlightRegular />,
     line: <LineRegular />,
     rect: <RectangleLandscapeRegular />,
     ellipse: <CircleRegular />,

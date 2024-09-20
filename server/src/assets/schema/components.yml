@@ -110,18 +110,6 @@ components:
           additionalProperties: true
         comment:
           type: string
-    HighlightData:
-      type: object
-      required:
-        - type
-        - color
-      properties:
-        type:
-          type: string
-          enum:
-            - highlight
-        color:
-          type: string
     DrawingData:
       type: object
       required:
@@ -148,6 +136,31 @@ components:
           type: string
           enum:
             - bookmark
+    HighlightData:
+      type: object
+      required:
+        - type
+        - areas
+        - fill
+      properties:
+        type:
+          type: string
+          enum:
+            - highlight
+        fill:
+          type: string
+        areas:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - attributes
+            properties:
+              id:
+                type: string
+              attributes:
+                type: object
     DocumentTextDetectionData:
       type: array
       items:

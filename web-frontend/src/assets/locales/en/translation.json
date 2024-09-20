@@ -30,6 +30,7 @@
   "pick_color_tooltip": "Change color",
   "change_thinkness_tooltip": "Change thickness",
   "stylus_select": "Select",
+  "stylus_highlight": "Highlight Text",
   "stylus_line": "Line",
   "stylus_rect": "Rectangle",
   "stylus_ellipse": "Ellipse",

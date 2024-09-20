@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { HighlightDataAreasInner } from './HighlightDataAreasInner';
+import {
+  HighlightDataAreasInnerFromJSON,
+  HighlightDataAreasInnerFromJSONTyped,
+  HighlightDataAreasInnerToJSON,
+} from './HighlightDataAreasInner';
+
 /**
  *
  * @export
@@ -30,7 +37,13 @@ export interface HighlightData {
    * @type {string}
    * @memberof HighlightData
    */
-  color: string;
+  fill: string;
+  /**
+   *
+   * @type {Array<HighlightDataAreasInner>}
+   * @memberof HighlightData
+   */
+  areas: Array<HighlightDataAreasInner>;
 }
 
 /**
@@ -48,7 +61,8 @@ export type HighlightDataTypeEnum =
 export function instanceOfHighlightData(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'type' in value;
-  isInstance = isInstance && 'color' in value;
+  isInstance = isInstance && 'fill' in value;
+  isInstance = isInstance && 'areas' in value;
 
   return isInstance;
 }
@@ -66,7 +80,8 @@ export function HighlightDataFromJSONTyped(
   }
   return {
     type: json['type'],
-    color: json['color'],
+    fill: json['fill'],
+    areas: (json['areas'] as Array<any>).map(HighlightDataAreasInnerFromJSON),
   };
 }
 
@@ -79,6 +94,7 @@ export function HighlightDataToJSON(value?: HighlightData | null): any {
   }
   return {
     type: value.type,
-    color: value.color,
+    fill: value.fill,
+    areas: (value.areas as Array<any>).map(HighlightDataAreasInnerToJSON),
   };
 }

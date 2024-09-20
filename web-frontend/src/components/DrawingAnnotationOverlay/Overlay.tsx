@@ -8,7 +8,7 @@ import {
   PositioningImperativeRef,
   Textarea,
 } from '@fluentui/react-components';
-import { Annotation, DrawingData } from '@inkstain/client-api';
+import { Annotation, DrawingData, HighlightData } from '@inkstain/client-api';
 import { DrawingAnnotationOverlayContext } from './context';
 import { useTranslation } from 'react-i18next';
 import { Selection } from './Selection';
@@ -16,6 +16,8 @@ import { InteractionMode } from './types';
 import { useDrawing } from './hooks/useDrawing';
 import { useSelection } from './hooks/useSelection';
 import { Drawing } from './Drawing';
+import { Highlight } from './Highlight';
+import { useHighlight } from './hooks/useHighlight';
 
 const useClasses = makeStyles({
   root: {
@@ -40,10 +42,19 @@ const useClasses = makeStyles({
   },
 });
 
+interface TextLineBoundingBox {
+  height: number;
+  left: number;
+  top: number;
+  width: number;
+}
+
 interface DrawingAnnotationOverlayProps {
   scale: number;
   dimension: { width: number; height: number } | null;
   drawings: Array<Annotation> | null;
+  highlights: Array<Annotation> | null;
+  textLines?: Array<TextLineBoundingBox>;
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
   onAddAnnotation: (data: object, comment?: string) => void;
   onRemoveAnnotation: (id: string) => void;
@@ -100,9 +111,11 @@ export const Overlay = ({
   scale,
   dimension,
   drawings,
+  highlights,
   onAddAnnotation,
   onRemoveAnnotation,
   onUpdateAnnotation,
+  textLines,
 }: DrawingAnnotationOverlayProps) => {
   const classes = useClasses();
   const svgcanvasRef = React.useRef<SVGSVGElement | null>(null);
@@ -123,8 +136,25 @@ export const Overlay = ({
     movingEnd,
     resizingMove,
     resizingEnd,
-  } = useSelection(scale, drawings, setInteractionMode, onUpdateAnnotation);
-  const enableDrawing = drawingContext.selectedStylus !== 'select';
+  } = useSelection(
+    scale,
+    drawings,
+    highlights,
+    setInteractionMode,
+    onUpdateAnnotation
+  );
+  const { startHighlight, highlightMove, highlightEnd } = useHighlight(
+    scale,
+    svgcanvasRef,
+    textLines,
+    onAddAnnotation
+  );
+  const isDrawing =
+    drawingContext.selectedStylus === 'line' ||
+    drawingContext.selectedStylus === 'rect' ||
+    drawingContext.selectedStylus === 'ellipse' ||
+    drawingContext.selectedStylus === 'pen';
+  const isHighlight = drawingContext.selectedStylus === 'highlight';
   const [openDrawingPopover, setOpenDrawingPopover] = React.useState(false);
   const popoverPositioningRef = React.useRef<PositioningImperativeRef | null>(
     null
@@ -133,14 +163,18 @@ export const Overlay = ({
   // Remove selection if it is not in the drawings, in case the annotation was removed
   React.useEffect(() => {
     if (selection) {
-      const selected = drawings?.find((annotation) => {
-        return annotation.id === selection.annotation.id;
-      });
+      const selected = selection.isTextHighlight
+        ? highlights?.find((annotation) => {
+            return annotation.id === selection.annotation.id;
+          })
+        : drawings?.find((annotation) => {
+            return annotation.id === selection.annotation.id;
+          });
       if (!selected) {
         setSelection(null);
       }
     }
-  }, [drawings, selection, setSelection]);
+  }, [drawings, highlights, selection, setSelection]);
 
   const convertDOMPointToSVGPoint = React.useCallback(
     (clientX: number, clientY: number) => {
@@ -161,7 +195,18 @@ export const Overlay = ({
     if (!drawingContext.enable || e.button !== 0 || !svgcanvasRef.current)
       return;
     const startPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
-    if (enableDrawing) {
+    if (isHighlight) {
+      // at highlight mode, when click on the highlight, it will be selected
+      const target = e.target as SVGGElement;
+      if (target.getAttribute('data-text-highlight') === 'true') {
+        startSelection(startPoint, target);
+      } else {
+        startHighlight(startPoint);
+        if (selection) {
+          setSelection(null);
+        }
+      }
+    } else if (isDrawing) {
       setInteractionMode('drawing');
       startDrawing(startPoint);
       if (selection) {
@@ -177,27 +222,31 @@ export const Overlay = ({
     e.stopPropagation();
     if (!drawingContext.enable || !svgcanvasRef.current) return;
     const svgPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
-    switch (interactionMode) {
-      case 'drawing': {
-        drawingMove(svgPoint);
-        break;
-      }
-      case 'moving': {
-        movingMove(svgPoint);
-        break;
-      }
-      case 'resizingHead':
-      case 'resizingTail':
-      case 'resizingEast':
-      case 'resizingNorth':
-      case 'resizingSouth':
-      case 'resizingWest':
-      case 'resizingNorthEast':
-      case 'resizingSouthEast':
-      case 'resizingSouthWest':
-      case 'resizingNorthWest': {
-        resizingMove(svgPoint, interactionMode);
-        break;
+    if (isHighlight) {
+      highlightMove(svgPoint);
+    } else {
+      switch (interactionMode) {
+        case 'drawing': {
+          drawingMove(svgPoint);
+          break;
+        }
+        case 'moving': {
+          movingMove(svgPoint);
+          break;
+        }
+        case 'resizingHead':
+        case 'resizingTail':
+        case 'resizingEast':
+        case 'resizingNorth':
+        case 'resizingSouth':
+        case 'resizingWest':
+        case 'resizingNorthEast':
+        case 'resizingSouthEast':
+        case 'resizingSouthWest':
+        case 'resizingNorthWest': {
+          resizingMove(svgPoint, interactionMode);
+          break;
+        }
       }
     }
   };
@@ -206,30 +255,34 @@ export const Overlay = ({
     e.stopPropagation();
     if (!drawingContext.enable) return;
     const svgPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
-    switch (interactionMode) {
-      case 'drawing': {
-        drawingEnd();
-        break;
+    if (isHighlight) {
+      highlightEnd();
+    } else {
+      switch (interactionMode) {
+        case 'drawing': {
+          drawingEnd();
+          break;
+        }
+        case 'moving': {
+          movingEnd(svgPoint);
+          break;
+        }
+        case 'resizingHead':
+        case 'resizingTail':
+        case 'resizingEast':
+        case 'resizingNorth':
+        case 'resizingNorthEast':
+        case 'resizingSouthEast':
+        case 'resizingSouth':
+        case 'resizingSouthWest':
+        case 'resizingWest':
+        case 'resizingNorthWest': {
+          resizingEnd();
+          break;
+        }
       }
-      case 'moving': {
-        movingEnd(svgPoint);
-        break;
-      }
-      case 'resizingHead':
-      case 'resizingTail':
-      case 'resizingEast':
-      case 'resizingNorth':
-      case 'resizingNorthEast':
-      case 'resizingSouthEast':
-      case 'resizingSouth':
-      case 'resizingSouthWest':
-      case 'resizingWest':
-      case 'resizingNorthWest': {
-        resizingEnd();
-        break;
-      }
+      setInteractionMode(null);
     }
-    setInteractionMode(null);
   };
 
   // Open the popover if there's an active selection.
@@ -261,15 +314,21 @@ export const Overlay = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         ref={svgcanvasRef}
-        style={{ cursor: enableDrawing ? 'crosshair' : 'default' }}
+        style={{
+          cursor: isHighlight ? 'text' : isDrawing ? 'crosshair' : 'default',
+        }}
       >
         {drawings?.map((drawing) => {
-          const data = drawing.data as DrawingData;
-          if (data.type !== 'drawing') return null;
           return <Drawing key={drawing.id} drawing={drawing} scale={scale} />;
+        })}
+        {highlights?.map((highlight) => {
+          return (
+            <Highlight key={highlight.id} highlight={highlight} scale={scale} />
+          );
         })}
         {selection && (
           <Selection
+            isTextHighlight={selection.isTextHighlight}
             annotation={selection.annotation}
             ref={selectionImperativeRef}
             initRect={selection.initRect}

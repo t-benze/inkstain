@@ -4,6 +4,7 @@ import { Annotation } from '@inkstain/client-api';
 
 interface SelectionProps {
   initRect: DOMRect;
+  isTextHighlight: boolean;
   element: SVGGraphicsElement;
   positionRef: React.MutableRefObject<PositioningImperativeRef | null>;
   annotation: Annotation;
@@ -17,7 +18,7 @@ export interface SelectionImperativeRef {
 export const Selection = React.forwardRef<
   SelectionImperativeRef,
   SelectionProps
->(({ annotation, initRect, positionRef, element }, ref) => {
+>(({ annotation, initRect, positionRef, element, isTextHighlight }, ref) => {
   const color = tokens.colorBrandBackground;
   const svgRef = React.useRef<SVGSVGElement | null>(null);
   const [rect, setRect] = React.useState(initRect);
@@ -25,8 +26,8 @@ export const Selection = React.forwardRef<
   const margin = 1;
   const originX = rect.x - (circleRadius + margin);
   const originY = rect.y - (circleRadius + margin);
-  const isLine = annotation.data.shape === 'line';
-  const isPen = annotation.data.shape === 'pen';
+  const isLine = !isTextHighlight && annotation.data.shape === 'line';
+  const isPen = !isTextHighlight && annotation.data.shape === 'pen';
 
   React.useEffect(() => {
     setRect(initRect);
