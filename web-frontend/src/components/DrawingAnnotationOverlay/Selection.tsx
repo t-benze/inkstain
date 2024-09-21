@@ -1,6 +1,13 @@
 import * as React from 'react';
-import { tokens, PositioningImperativeRef } from '@fluentui/react-components';
+import {
+  tokens,
+  PositioningImperativeRef,
+  makeStyles,
+  Textarea,
+  Button,
+} from '@fluentui/react-components';
 import { Annotation } from '@inkstain/client-api';
+import { useTranslation } from 'react-i18next';
 
 interface SelectionProps {
   initRect: DOMRect;
@@ -15,6 +22,21 @@ export interface SelectionImperativeRef {
   updateRect(rect: DOMRect): void;
 }
 
+const useClasses = makeStyles({
+  drawingAnnotationPopover: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '200px',
+    '& .fui-Textarea': {
+      marginBottom: tokens.spacingVerticalS,
+    },
+  },
+  drawingAnnotationPopoverBtns: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+});
 export const Selection = React.forwardRef<
   SelectionImperativeRef,
   SelectionProps
@@ -189,3 +211,50 @@ export const Selection = React.forwardRef<
     </svg>
   );
 });
+
+export const DrawingSelectionPopover = ({
+  annotation,
+  onRemoveAnnotation,
+  onUpdateAnnotation,
+}: {
+  annotation: Annotation;
+  onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
+  onRemoveAnnotation: (id: string) => void;
+}) => {
+  const classes = useClasses();
+  const { t } = useTranslation();
+  const [commentInner, setCommentInner] = React.useState(
+    annotation.comment ?? ''
+  );
+  React.useEffect(() => {
+    setCommentInner(annotation.comment ?? '');
+  }, [annotation.comment]);
+  return (
+    <div className={classes.drawingAnnotationPopover}>
+      <Textarea
+        data-test="drawingAnnotationComment"
+        textarea={{ placeholder: t('comment_optional') }}
+        value={commentInner}
+        onChange={(e) => setCommentInner(e.target.value)}
+      />
+      <div className={classes.drawingAnnotationPopoverBtns}>
+        <Button
+          data-test="drawingAnnotationUpdateBtn"
+          onClick={() => {
+            onUpdateAnnotation(annotation.id, annotation.data, commentInner);
+          }}
+        >
+          {t('update')}
+        </Button>
+        <Button
+          data-test="drawingAnnotationRemoveBtn"
+          onClick={() => {
+            onRemoveAnnotation(annotation.id);
+          }}
+        >
+          {t('remove')}
+        </Button>
+      </div>
+    </div>
+  );
+};

@@ -6,18 +6,22 @@ import {
   Popover,
   PopoverSurface,
   PositioningImperativeRef,
-  Textarea,
 } from '@fluentui/react-components';
-import { Annotation, DrawingData, HighlightData } from '@inkstain/client-api';
+import {
+  Annotation,
+  DocumentLayoutTextLine,
+  DocumentLayoutTextBlock,
+} from '@inkstain/client-api';
 import { DrawingAnnotationOverlayContext } from './context';
-import { useTranslation } from 'react-i18next';
-import { Selection } from './Selection';
+import { Selection, DrawingSelectionPopover } from './Selection';
+import { ActiveTextBlock, ActiveTextBlockPopover } from './ActiveTextBlock';
 import { InteractionMode } from './types';
 import { useDrawing } from './hooks/useDrawing';
 import { useSelection } from './hooks/useSelection';
 import { Drawing } from './Drawing';
 import { Highlight } from './Highlight';
 import { useHighlight } from './hooks/useHighlight';
+import { useTextBlockDetection } from './hooks/useTextBlockDetection';
 
 const useClasses = makeStyles({
   root: {
@@ -42,70 +46,17 @@ const useClasses = makeStyles({
   },
 });
 
-interface TextLineBoundingBox {
-  height: number;
-  left: number;
-  top: number;
-  width: number;
-}
-
 interface DrawingAnnotationOverlayProps {
   scale: number;
-  dimension: { width: number; height: number } | null;
+  dimension: { width: number; height: number };
   drawings: Array<Annotation> | null;
   highlights: Array<Annotation> | null;
-  textLines?: Array<TextLineBoundingBox>;
+  textLines?: Array<DocumentLayoutTextLine>;
+  textBlocks?: Array<DocumentLayoutTextBlock>;
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
   onAddAnnotation: (data: object, comment?: string) => void;
   onRemoveAnnotation: (id: string) => void;
 }
-
-const DrawingSelectionPopover = ({
-  annotation,
-  onRemoveAnnotation,
-  onUpdateAnnotation,
-}: {
-  annotation: Annotation;
-  onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
-  onRemoveAnnotation: (id: string) => void;
-}) => {
-  const classes = useClasses();
-  const { t } = useTranslation();
-  const [commentInner, setCommentInner] = React.useState(
-    annotation.comment ?? ''
-  );
-  React.useEffect(() => {
-    setCommentInner(annotation.comment ?? '');
-  }, [annotation.comment]);
-  return (
-    <div className={classes.drawingAnnotationPopover}>
-      <Textarea
-        data-test="drawingAnnotationComment"
-        textarea={{ placeholder: t('comment_optional') }}
-        value={commentInner}
-        onChange={(e) => setCommentInner(e.target.value)}
-      />
-      <div className={classes.drawingAnnotationPopoverBtns}>
-        <Button
-          data-test="drawingAnnotationUpdateBtn"
-          onClick={() => {
-            onUpdateAnnotation(annotation.id, annotation.data, commentInner);
-          }}
-        >
-          {t('update')}
-        </Button>
-        <Button
-          data-test="drawingAnnotationRemoveBtn"
-          onClick={() => {
-            onRemoveAnnotation(annotation.id);
-          }}
-        >
-          {t('remove')}
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 export const Overlay = ({
   scale,
@@ -116,12 +67,13 @@ export const Overlay = ({
   onRemoveAnnotation,
   onUpdateAnnotation,
   textLines,
+  textBlocks,
 }: DrawingAnnotationOverlayProps) => {
   const classes = useClasses();
   const svgcanvasRef = React.useRef<SVGSVGElement | null>(null);
   const [interactionMode, setInteractionMode] =
     React.useState<InteractionMode | null>(null);
-  const drawingContext = React.useContext(DrawingAnnotationOverlayContext);
+  const overlayContext = React.useContext(DrawingAnnotationOverlayContext);
   const { startDrawing, drawingMove, drawingEnd } = useDrawing(
     scale,
     svgcanvasRef,
@@ -145,16 +97,24 @@ export const Overlay = ({
   );
   const { startHighlight, highlightMove, highlightEnd } = useHighlight(
     scale,
+    dimension,
     svgcanvasRef,
     textLines,
     onAddAnnotation
   );
+  const {
+    blockDetectionMove,
+    isCtrlKeyPressed,
+    activeTextBlock,
+    setActiveTextBlock,
+  } = useTextBlockDetection(dimension, svgcanvasRef, textBlocks);
+
   const isDrawing =
-    drawingContext.selectedStylus === 'line' ||
-    drawingContext.selectedStylus === 'rect' ||
-    drawingContext.selectedStylus === 'ellipse' ||
-    drawingContext.selectedStylus === 'pen';
-  const isHighlight = drawingContext.selectedStylus === 'highlight';
+    overlayContext.selectedStylus === 'line' ||
+    overlayContext.selectedStylus === 'rect' ||
+    overlayContext.selectedStylus === 'ellipse' ||
+    overlayContext.selectedStylus === 'pen';
+  const isHighlight = overlayContext.selectedStylus === 'highlight';
   const [openDrawingPopover, setOpenDrawingPopover] = React.useState(false);
   const popoverPositioningRef = React.useRef<PositioningImperativeRef | null>(
     null
@@ -192,7 +152,7 @@ export const Overlay = ({
 
   const handleMouseDown: React.MouseEventHandler<SVGElement> = (e) => {
     e.stopPropagation();
-    if (!drawingContext.enable || e.button !== 0 || !svgcanvasRef.current)
+    if (!overlayContext.enable || e.button !== 0 || !svgcanvasRef.current)
       return;
     const startPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
     if (isHighlight) {
@@ -215,16 +175,22 @@ export const Overlay = ({
     } else {
       const target = e.target as SVGGraphicsElement;
       startSelection(startPoint, target);
+      if (activeTextBlock) {
+        setActiveTextBlock(null);
+      }
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
-    if (!drawingContext.enable || !svgcanvasRef.current) return;
+    if (!overlayContext.enable || !svgcanvasRef.current) return;
     const svgPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
-    if (isHighlight) {
+
+    if (isCtrlKeyPressed.current) {
+      blockDetectionMove(svgPoint);
+    } else if (isHighlight) {
       highlightMove(svgPoint);
-    } else {
+    } else if (interactionMode) {
       switch (interactionMode) {
         case 'drawing': {
           drawingMove(svgPoint);
@@ -253,7 +219,7 @@ export const Overlay = ({
 
   const handleMouseUp = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
-    if (!drawingContext.enable) return;
+    if (!overlayContext.enable) return;
     const svgPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
     if (isHighlight) {
       highlightEnd();
@@ -298,6 +264,13 @@ export const Overlay = ({
     }
   }, [selection, interactionMode]);
 
+  React.useEffect(() => {
+    if (activeTextBlock) {
+      setOpenDrawingPopover(true);
+    } else {
+      setOpenDrawingPopover(false);
+    }
+  }, [activeTextBlock]);
   if (!dimension) return null;
 
   return (
@@ -328,6 +301,7 @@ export const Overlay = ({
         })}
         {selection && (
           <Selection
+            key={selection.annotation.id}
             isTextHighlight={selection.isTextHighlight}
             annotation={selection.annotation}
             ref={selectionImperativeRef}
@@ -336,15 +310,24 @@ export const Overlay = ({
             positionRef={popoverPositioningRef}
           />
         )}
+        {activeTextBlock && (
+          <ActiveTextBlock
+            textBlock={activeTextBlock}
+            positionRef={popoverPositioningRef}
+          />
+        )}
       </svg>
       <PopoverSurface>
-        {selection ? (
+        {selection && (
           <DrawingSelectionPopover
             annotation={selection.annotation}
             onRemoveAnnotation={onRemoveAnnotation}
             onUpdateAnnotation={onUpdateAnnotation}
           />
-        ) : null}
+        )}
+        {activeTextBlock && (
+          <ActiveTextBlockPopover text={activeTextBlock.text} />
+        )}
       </PopoverSurface>
     </Popover>
   );

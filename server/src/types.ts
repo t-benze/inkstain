@@ -16,7 +16,7 @@ import {
   Annotation,
   AnnotationData,
   DocumentMeta,
-  DocumentTextDetectionDataInner,
+  DocumentTextDetectionData,
 } from '@inkstain/client-api';
 
 export {
@@ -29,7 +29,7 @@ export {
   Annotation,
   AnnotationData,
   DocumentMeta as MetaData,
-  DocumentTextDetectionDataInner,
+  DocumentTextDetectionData,
 };
 
 export { Space };
@@ -53,7 +53,7 @@ export interface IntelligenceProxy {
    * @param image - The base64 encoded document image
    * @returns The layout data of the document
    */
-  analyzeDocument: (image: string) => Promise<DocumentTextDetectionDataInner[]>;
+  analyzeDocument: (image: string) => Promise<DocumentTextDetectionData>;
 }
 
 export type Context = Router.RouterContext & {

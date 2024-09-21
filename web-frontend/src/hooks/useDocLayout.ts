@@ -19,46 +19,10 @@ export const useDocLayout = ({
           pageNum,
           path: documentPath,
         });
-        const blockIdToIndex: Record<string, number> = {};
-        analyzedResult.forEach((block, index) => {
-          blockIdToIndex[block['id'] as string] = index;
-        });
-        const wordBlocks = analyzedResult
-          ? analyzedResult.filter((block) => block.blockType === 'WORD')
-          : [];
-        const lineBlocks = analyzedResult
-          ? analyzedResult.filter((block) => block.blockType === 'LINE')
-          : [];
-        const layoutBlocks = analyzedResult
-          ? analyzedResult.filter((block) =>
-              block.blockType?.startsWith('LAYOUT')
-            )
-          : [];
-        layoutBlocks.forEach((block) => {
-          const blocks = analyzedResult;
-          if (!blocks) return;
-          const children = block.relationships?.find((r) => r.type === 'CHILD');
-          if (children) {
-            block.text = children.ids
-              ? children.ids
-                  .map((id) => {
-                    const lineBlock = blocks[blockIdToIndex[id]];
-                    return lineBlock.text;
-                  })
-                  .join('\n')
-              : '';
-          }
-        });
-        return {
-          analyzedResult,
-          blockIdToIndex,
-          wordBlocks,
-          lineBlocks,
-          layoutBlocks,
-        };
+        return analyzedResult;
       } catch (err) {
         console.error(err);
-        return null;
+        return undefined;
       }
     },
   });

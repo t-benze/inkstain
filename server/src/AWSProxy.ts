@@ -21,8 +21,9 @@ import {
   SignInRequest,
   ForgotPasswordRequest,
   ConfirmForgotPasswordRequest,
-  DocumentTextDetectionDataInner,
+  DocumentTextDetectionData,
 } from '~/server/types';
+import logger from '~/server/logger';
 
 type Tokens = {
   idToken: string;
@@ -103,6 +104,9 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
         if (err) {
           reject(err);
         } else {
+          logger.info('Refreshed tokens successfully: ', {
+            idToken: session.getIdToken().getJwtToken(),
+          });
           resolve({
             idToken: session.getIdToken().getJwtToken(),
             refreshToken: session.getRefreshToken().getToken(),
@@ -220,9 +224,7 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
     });
   }
 
-  async analyzeDocument(
-    image: string
-  ): Promise<DocumentTextDetectionDataInner[]> {
+  async analyzeDocument(image: string): Promise<DocumentTextDetectionData> {
     const { idToken: tokenString } = await this.getTokens();
     const response = await fetch(`${intelligenceAPIBase}/analyze-document`, {
       method: 'POST',
@@ -239,7 +241,55 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
         )}; RequestId: ${response.headers.get('x-amzn-RequestId')}`
       );
     }
-    const data = (await response.json()) as DocumentTextDetectionDataInner[];
-    return data;
+
+    const data = await response.json();
+    const blockIdToIndex: Record<string, number> = {};
+    data.forEach((block, index) => {
+      blockIdToIndex[block['Id'] as string] = index;
+    });
+    const lineBlocks = (
+      data ? data.filter((block) => block.BlockType === 'LINE') : []
+    ).map((block) => {
+      const lineBlock = data[blockIdToIndex[block.Id]];
+      return {
+        id: block.Id,
+        boundingBox: {
+          width: lineBlock.Geometry.BoundingBox.Width,
+          height: lineBlock.Geometry.BoundingBox.Height,
+          left: lineBlock.Geometry.BoundingBox.Left,
+          top: lineBlock.Geometry.BoundingBox.Top,
+        },
+      };
+    });
+    const layoutBlocks = (
+      data ? data.filter((block) => block.BlockType?.startsWith('LAYOUT')) : []
+    ).map((block) => {
+      let text = '';
+      const children = block.Relationships?.find((r) => r.Type === 'CHILD');
+      if (children) {
+        text = children.Ids
+          ? children.Ids.map((id) => {
+              const lineBlock = data[blockIdToIndex[id]];
+              return lineBlock.Text;
+            })
+              .join('\n')
+              .trim()
+          : '';
+      }
+      return {
+        boundingBox: {
+          width: block.Geometry.BoundingBox.Width,
+          height: block.Geometry.BoundingBox.Height,
+          left: block.Geometry.BoundingBox.Left,
+          top: block.Geometry.BoundingBox.Top,
+        },
+        text,
+        id: block.Id,
+      };
+    });
+    return {
+      lines: lineBlocks,
+      blocks: layoutBlocks,
+    };
   }
 }

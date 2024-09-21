@@ -5,10 +5,7 @@ import fs from 'fs/promises';
 import * as readline from 'readline';
 import { createReadStream, createWriteStream } from 'fs';
 import { EOL } from 'os';
-import {
-  IntelligenceProxy,
-  DocumentTextDetectionDataInner,
-} from '~/server/types';
+import { IntelligenceProxy, DocumentTextDetectionData } from '~/server/types';
 import { getDocumentPath } from '~/server/utils';
 import { PDFService } from './PDFService';
 import { DocLayoutIndex } from '~/server/types';
@@ -27,7 +24,7 @@ export class IntelligenceService {
     spaceKey: string,
     documentPath: string,
     pageNum: string
-  ): Promise<DocumentTextDetectionDataInner[] | null> {
+  ): Promise<DocumentTextDetectionData | null> {
     const space = await this.spaceService.getSpace(spaceKey);
     if (space) {
       try {
@@ -55,7 +52,7 @@ export class IntelligenceService {
         let lineNumber = 0;
         for await (const line of rl) {
           if (lineNumber === dataLine) {
-            return JSON.parse(line) as DocumentTextDetectionDataInner[];
+            return JSON.parse(line) as DocumentTextDetectionData;
           }
           lineNumber++;
         }
@@ -108,14 +105,6 @@ export class IntelligenceService {
     }
   }
 
-  public async loadMockResponse() {
-    const mockData = path.resolve(
-      __dirname,
-      '../../../assets/mocks/sample-pdf-analyze-layout-result.json'
-    );
-    return await fs.readFile(mockData, 'utf8');
-  }
-
   async analyzeDocument({
     spaceKey,
     documentPath,
@@ -129,11 +118,19 @@ export class IntelligenceService {
       const doc = await this.pdfService.loadPDFFile(
         path.join(pdfPath, 'content.pdf')
       );
-      const indexFile = await fs.readFile(
-        path.join(pdfPath, 'analyzed-layout-index.json'),
-        'utf-8'
-      );
-      const indexData = JSON.parse(indexFile) as DocLayoutIndex;
+      let indexData: DocLayoutIndex = {
+        status: 'partial',
+        indexMap: {},
+      };
+      try {
+        const indexFile = await fs.readFile(
+          path.join(pdfPath, 'analyzed-layout-index.json'),
+          'utf-8'
+        );
+        indexData = JSON.parse(indexFile) as DocLayoutIndex;
+      } catch (e) {
+        // do nothing
+      }
       const pageCount = doc.numPages;
       for (let i = 1; i <= pageCount; i++) {
         if (indexData.indexMap[i.toString()]) {

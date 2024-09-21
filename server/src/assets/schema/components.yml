@@ -161,79 +161,65 @@ components:
                 type: string
               attributes:
                 type: object
+    DocumentLayoutTextLine:
+      type: object
+      required:
+        - id
+        - boundingBox
+      properties:
+        id:
+          type: string
+        boundingBox:
+          type: object
+          properties:
+            width:
+              type: number
+            height:
+              type: number
+            left:
+              type: number
+            top:
+              type: number
+          required:
+            - width
+            - height
+            - left
+            - top
+    DocumentLayoutTextBlock:
+      type: object
+      required:
+        - id
+        - text
+        - boundingBox
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        boundingBox:
+          type: object
+          properties:
+            width:
+              type: number
+            height:
+              type: number
+            left:
+              type: number
+            top:
+              type: number
+          required:
+            - width
+            - height
+            - left
+            - top
     DocumentTextDetectionData:
-      type: array
-      items:
-        type: object
-        properties:
-          BlockType:
-            type: string
-          ColumnIndex:
-            type: number
-          ColumnSpan:
-            type: number
-          Confidence:
-            type: number
-          EntityTypes:
-            type: array
-            items:
-              type: string
-          Geometry:
-            type: object
-            properties:
-              BoundingBox:
-                type: object
-                properties:
-                  Height:
-                    type: number
-                  Left:
-                    type: number
-                  Top:
-                    type: number
-                  Width:
-                    type: number
-              Polygon:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    X:
-                      type: number
-                    Y:
-                      type: number
-          Id:
-            type: string
-          Page:
-            type: number
-          Query:
-            type: object
-            properties:
-              Alias:
-                type: string
-              Pages:
-                type: array
-                items:
-                  type: string
-              Text:
-                type: string
-          Relationships:
-            type: array
-            items:
-              type: object
-              properties:
-                Ids:
-                  type: array
-                  items:
-                    type: string
-                Type:
-                  type: string
-          RowIndex:
-            type: number
-          RowSpan:
-            type: number
-          SelectionStatus:
-            type: string
-          Text:
-            type: string
-          TextType:
-            type: string
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentLayoutTextBlock'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentLayoutTextLine'

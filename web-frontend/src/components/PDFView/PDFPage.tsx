@@ -17,7 +17,6 @@ import {
 } from '@fluentui/react-components';
 import { BookmarkFilled, BookmarkRegular } from '@fluentui/react-icons';
 import { AppContext } from '~/web/app/context';
-import { PDFPageTextLayer } from './PDFPageTextLayer';
 import { PDFViewerContext } from './context';
 import { useTranslation } from 'react-i18next';
 import { Annotation, AnnotationData } from '@inkstain/client-api';
@@ -306,24 +305,7 @@ export const PDFPage = ({
     documentPath,
     pageNum: pageNumber,
   });
-  const textLines = data?.lineBlocks
-    ? data.lineBlocks.map((block) => {
-        return {
-          top:
-            (canvasDimension?.height ?? 0) *
-            (block.geometry?.boundingBox?.top ?? 0),
-          left:
-            (canvasDimension?.width ?? 0) *
-            (block.geometry?.boundingBox?.left ?? 0),
-          width:
-            (canvasDimension?.width ?? 0) *
-            (block.geometry?.boundingBox?.width ?? 0),
-          height:
-            (canvasDimension?.height ?? 0) *
-            (block.geometry?.boundingBox?.height ?? 0),
-        };
-      })
-    : undefined;
+
   return (
     <div
       role={role}
@@ -351,10 +333,11 @@ export const PDFPage = ({
           pageNum={pageNumber}
         />
       ) : null} */}
-      {renderingStatus === 'completed' ? (
+      {renderingStatus === 'completed' && canvasDimension ? (
         <PDFPageDrawingLayer
           scale={scale}
-          textLines={textLines}
+          textLines={data?.lines}
+          textBlocks={data?.blocks}
           drawings={drawings}
           highlights={highlights}
           dimension={canvasDimension}
