@@ -14,14 +14,14 @@
 
 import * as runtime from '../runtime';
 import type {
-  DocumentTextDetectionDataInner,
+  DocumentTextDetectionData,
   IntelligenceAnalyzeDocument200Response,
   IntelligenceAnalyzeDocumentRequest,
   IntelligenceDocLayoutStatus200Response,
 } from '../models/index';
 import {
-  DocumentTextDetectionDataInnerFromJSON,
-  DocumentTextDetectionDataInnerToJSON,
+  DocumentTextDetectionDataFromJSON,
+  DocumentTextDetectionDataToJSON,
   IntelligenceAnalyzeDocument200ResponseFromJSON,
   IntelligenceAnalyzeDocument200ResponseToJSON,
   IntelligenceAnalyzeDocumentRequestFromJSON,
@@ -124,7 +124,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
   async intelligenceDocLayoutRaw(
     requestParameters: IntelligenceDocLayoutRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<Array<DocumentTextDetectionDataInner>>> {
+  ): Promise<runtime.ApiResponse<DocumentTextDetectionData>> {
     if (
       requestParameters.spaceKey === null ||
       requestParameters.spaceKey === undefined
@@ -181,7 +181,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(DocumentTextDetectionDataInnerFromJSON)
+      DocumentTextDetectionDataFromJSON(jsonValue)
     );
   }
 
@@ -191,7 +191,7 @@ export class IntelligenceApi extends runtime.BaseAPI {
   async intelligenceDocLayout(
     requestParameters: IntelligenceDocLayoutRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<Array<DocumentTextDetectionDataInner>> {
+  ): Promise<DocumentTextDetectionData> {
     const response = await this.intelligenceDocLayoutRaw(
       requestParameters,
       initOverrides

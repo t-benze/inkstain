@@ -83,15 +83,17 @@ export const ContentView = ({
           onImageLoad(e.target as HTMLImageElement);
         }}
       />
-      <DrawingAnnotationOverlay
-        dimension={dimension}
-        scale={scale}
-        drawings={drawings}
-        highlights={highlights}
-        onAddAnnotation={handleAddAnnotation}
-        onUpdateAnnotation={handleUpdateAnnotation}
-        onRemoveAnnotation={handleRemoveAnnotation}
-      />
+      {dimension && (
+        <DrawingAnnotationOverlay
+          dimension={dimension}
+          scale={scale}
+          drawings={drawings}
+          highlights={highlights}
+          onAddAnnotation={handleAddAnnotation}
+          onUpdateAnnotation={handleUpdateAnnotation}
+          onRemoveAnnotation={handleRemoveAnnotation}
+        />
+      )}
     </div>
   );
 };

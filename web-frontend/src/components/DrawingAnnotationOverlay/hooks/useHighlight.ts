@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { DrawingAnnotationOverlayContext } from '../context';
 import { extractSVGShapeAttributes } from '../utils';
-import { tokens } from '@fluentui/react-components';
+import { DocumentLayoutTextLine } from '@inkstain/client-api';
 
 interface TextLineBoundingBox {
   height: number;
@@ -12,8 +12,9 @@ interface TextLineBoundingBox {
 
 export const useHighlight = (
   scale: number,
+  canvasDimension: { width: number; height: number },
   svgcanvasRef: React.RefObject<SVGSVGElement>,
-  textLines: Array<TextLineBoundingBox> | undefined,
+  textLines: Array<DocumentLayoutTextLine> | undefined,
   onAddAnnotation: (data: object, comment?: string) => void
 ) => {
   const drawingContext = React.useContext(DrawingAnnotationOverlayContext);
@@ -22,6 +23,17 @@ export const useHighlight = (
   const existingHighlightsRef = React.useRef<
     Array<{ id: string; bbox: TextLineBoundingBox }>
   >([]);
+  const textLineBoudingBox = React.useMemo(() => {
+    return textLines?.map((line) => {
+      return {
+        id: line.id,
+        height: line.boundingBox.height * canvasDimension.height,
+        width: line.boundingBox.width * canvasDimension.width,
+        left: line.boundingBox.left * canvasDimension.width,
+        top: line.boundingBox.top * canvasDimension.height,
+      };
+    });
+  }, [textLines, canvasDimension]);
 
   const startHighlight = (svgPoint: DOMPoint) => {
     const strokeColor = drawingContext.strokeColor;
@@ -29,6 +41,7 @@ export const useHighlight = (
       'http://www.w3.org/2000/svg',
       'g'
     );
+    currentHighlightRef.current.setAttribute('opacity', '0.4');
     currentHighlightRef.current?.setAttribute('fill', strokeColor);
     svgcanvasRef.current?.appendChild(currentHighlightRef.current);
     startPointRef.current = svgPoint;
@@ -46,11 +59,9 @@ export const useHighlight = (
       width: Math.abs(dX),
       height: Math.abs(dY),
     };
-    console.log('highlight move', rect);
     const overlappingRects: Array<{ id: string; bbox: TextLineBoundingBox }> =
       [];
-    textLines?.forEach((bbox, index) => {
-      console.log('bbox', bbox, index);
+    textLineBoudingBox?.forEach((bbox) => {
       if (
         !(
           bbox.left + bbox.width < rect.left ||
@@ -65,7 +76,7 @@ export const useHighlight = (
             ? rect.left + rect.width
             : bbox.left + bbox.width;
         overlappingRects.push({
-          id: index.toString(),
+          id: bbox.id,
           bbox: {
             height: bbox.height,
             top: bbox.top,
@@ -93,7 +104,6 @@ export const useHighlight = (
       rectElement.setAttribute('y', bbox.top.toString());
       rectElement.setAttribute('width', bbox.width.toString());
       rectElement.setAttribute('height', bbox.height.toString());
-      rectElement.setAttribute('fill', tokens.colorNeutralStencil1Alpha);
       currentHighlightRef.current?.appendChild(rectElement);
     });
     removedRects.forEach(({ id }) => {
