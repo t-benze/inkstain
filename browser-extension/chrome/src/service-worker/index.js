@@ -2,12 +2,14 @@ const DEFAULT_HOST = 'localhost';
 const DEFAULT_PORT = '6060';
 const DEFAULT_HOST_ORIGIN = `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
 
-async function addDocument(spaceKey, documentPath, imageData, url, title) {
+async function addDocument(spaceKey, documentPath, webclipData, url, title) {
   const host = DEFAULT_HOST_ORIGIN;
   const path = documentPath + '.inkclip';
   try {
     // Convert the string to a Blob
-    const blob = new Blob([imageData], { type: 'application/inkclip' });
+    const blob = new Blob([JSON.stringify(webclipData)], {
+      type: 'application/inkclip',
+    });
     const formData = new FormData();
     formData.append('document', blob, `webclip.inkclip`);
     const response = await fetch(
@@ -62,7 +64,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     addDocument(
       message.spaceKey,
       message.documentPath,
-      message.imageData,
+      message.webclipData,
       message.url,
       message.title
     ).then((result) => {

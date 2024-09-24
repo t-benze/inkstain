@@ -1,5 +1,6 @@
 import { SpaceService } from './SpaceService';
 import { TaskService } from './TaskService';
+import { ImageService } from './ImageService';
 import path from 'path';
 import fs from 'fs/promises';
 import * as readline from 'readline';
@@ -8,13 +9,15 @@ import { EOL } from 'os';
 import { IntelligenceProxy, DocumentTextDetectionData } from '~/server/types';
 import { getDocumentPath } from '~/server/utils';
 import { PDFService } from './PDFService';
-import { DocLayoutIndex } from '~/server/types';
+import { DocLayoutIndex, WebclipData } from '~/server/types';
+import { kMaxLength } from 'buffer';
 
 export class IntelligenceService {
   constructor(
     private readonly spaceService: SpaceService,
     private readonly taskService: TaskService,
     private readonly pdfService: PDFService,
+    private readonly imageService: ImageService,
     private readonly intelligenceProxy: IntelligenceProxy
   ) {}
   // Read and write analyzed document cache to a jsonl file
@@ -105,7 +108,7 @@ export class IntelligenceService {
     }
   }
 
-  async analyzeDocument({
+  async analyzePDFDocument({
     spaceKey,
     documentPath,
   }: {
@@ -149,6 +152,73 @@ export class IntelligenceService {
         );
         progressCallback(i / pageCount);
       }
+    });
+    this.taskService.executeTask(taskId);
+    return taskId;
+  }
+
+  async analyzeWebclipDocument({
+    spaceKey,
+    documentPath,
+  }: {
+    spaceKey: string;
+    documentPath: string;
+  }) {
+    const space = await this.spaceService.getSpace(spaceKey);
+    const maxPixelCounts = 1400 * 1400;
+    const taskId = this.taskService.addTask(async (progressCallback) => {
+      const docPath = await getDocumentPath(space, documentPath);
+      const content = await fs.readFile(
+        path.join(docPath, 'content.inkclip'),
+        'utf-8'
+      );
+      const webclipData = JSON.parse(content) as WebclipData;
+      const imageDataUrl = webclipData.imageData;
+      const dimension = webclipData.dimension;
+      const slices = await this.imageService.sliceImage(
+        imageDataUrl,
+        dimension,
+        maxPixelCounts
+      );
+      const layoutData: DocumentTextDetectionData = {
+        blocks: [],
+        lines: [],
+      };
+      for (let i = 0; i < slices.length; i++) {
+        const slice = slices[i];
+        const processedResponse = await this.intelligenceProxy.analyzeDocument(
+          slice.imageDataUrl.split(',')[1]
+        );
+        const processedBlocks = processedResponse.blocks?.map((block) => {
+          return {
+            ...block,
+            width: (block.boundingBox.width * slice.width) / dimension.width,
+            height:
+              (block.boundingBox.height * slice.height) / dimension.height,
+            left: (block.boundingBox.left * slice.width) / dimension.width,
+            top: (block.boundingBox.top * slice.height) / dimension.height,
+          };
+        });
+        const processedLines = processedResponse.lines?.map((line) => {
+          return {
+            ...line,
+            width: (line.boundingBox.width * slice.width) / dimension.width,
+            height: (line.boundingBox.height * slice.height) / dimension.height,
+            left: (line.boundingBox.left * slice.width) / dimension.width,
+            top: (line.boundingBox.top * slice.height) / dimension.height,
+          };
+        });
+        layoutData.blocks = layoutData.blocks.concat(processedBlocks);
+        layoutData.lines = layoutData.lines.concat(processedLines);
+        progressCallback(i / slices.length);
+      }
+      await this.writeAnalyzedDocumentCache(
+        spaceKey,
+        documentPath,
+        1,
+        '1',
+        layoutData
+      );
     });
     this.taskService.executeTask(taskId);
     return taskId;

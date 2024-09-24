@@ -25,7 +25,14 @@ i18n
 
 function highlightElement(
   element: HTMLElement,
-  onImageCapture: (imageData: string) => void
+  config: {
+    host: string;
+    port: string;
+  },
+  onImageCapture: (params: {
+    imageData: string;
+    dimension: { width: number; height: number };
+  }) => void
 ) {
   // Store original styles
   const originalStyles = {
@@ -53,9 +60,12 @@ function highlightElement(
     e.preventDefault();
     const canvas = await html2Canvas(element, {
       scale: 1.5,
-      proxy: 'http://localhost:6060/api/v1/proxy/static',
+      proxy: `http://${config.host}:${config.port}/api/v1/proxy/static`,
     });
-    onImageCapture(canvas.toDataURL());
+    onImageCapture({
+      imageData: canvas.toDataURL(),
+      dimension: { width: canvas.width, height: canvas.height },
+    });
   };
   element.addEventListener('click', clickListener);
 
@@ -73,16 +83,19 @@ function highlightElement(
   };
 }
 
-async function startCapturing() {
+async function startCapturing(config: { host: string; port: string }) {
   let removeHighlight: ReturnType<typeof highlightElement> | null = null;
   let selectedNode: HTMLElement | null = null;
-  return new Promise<string>((resolve) => {
+  return new Promise<{
+    imageData: string;
+    dimension: { width: number; height: number };
+  }>((resolve) => {
     const mouseMoveListener = (e: MouseEvent) => {
       if (selectedNode && e.target === selectedNode) return;
       if (removeHighlight) removeHighlight();
       selectedNode = e.target as HTMLElement;
-      removeHighlight = highlightElement(selectedNode, (imageData) => {
-        resolve(imageData);
+      removeHighlight = highlightElement(selectedNode, config, (params) => {
+        resolve(params);
         if (removeHighlight) removeHighlight();
         document.removeEventListener('mouseover', mouseMoveListener);
       });
@@ -93,16 +106,21 @@ async function startCapturing() {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startClip') {
-    const { spaceKey, targetFolder, pathSep } = request;
-    startCapturing().then((imageData) => {
+    const { spaceKey, targetFolder, pathSep, host, port } = request;
+    startCapturing({ host, port }).then(({ imageData, dimension }) => {
       const documentName = window.prompt(
         i18n.t('clip_action_prompt'),
         document.title
       );
+      console.log('imageData', imageData);
+      console.log('dimension', dimension);
       chrome.runtime.sendMessage(
         {
           action: 'stopClip',
-          imageData,
+          webclipData: {
+            imageData,
+            dimension,
+          },
           spaceKey,
           url: window.location.href,
           title: documentName,
@@ -112,6 +130,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               : targetFolder) +
             pathSep +
             documentName,
+          dimension,
         },
         undefined,
         (response) => {

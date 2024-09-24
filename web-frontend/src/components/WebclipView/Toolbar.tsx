@@ -11,6 +11,8 @@ import {
   ZoomToolbar,
   ToolbarProps as ZoomToolbarProps,
 } from '~/web/components/ZoomToolbar';
+import { useWebclipLayoutTask } from './hooks';
+import { DocLayoutAnalysisToolbar } from '~/web/components/DocLayoutAnalysisToolbar';
 
 type ToolbarProps = ZoomToolbarProps;
 
@@ -65,6 +67,8 @@ export const WebclipToolbar = ({
   onZoomFitHeight,
 }: ToolbarProps) => {
   const styles = useClasses();
+  const { docLayoutStatus, startLayoutTask, taskStatus } =
+    useWebclipLayoutTask();
 
   return (
     <Toolbar aria-label="webclip-toolbar" size="small" className={styles.root}>
@@ -76,6 +80,12 @@ export const WebclipToolbar = ({
       />
       <ToolbarDivider />
       <StylusToolbar />
+      <ToolbarDivider />
+      <DocLayoutAnalysisToolbar
+        docLayoutStatus={docLayoutStatus}
+        startLayoutTask={startLayoutTask}
+        taskStatus={taskStatus}
+      />
     </Toolbar>
   );
 };

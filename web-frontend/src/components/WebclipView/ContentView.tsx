@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@fluentui/react-components';
 import { Overlay as DrawingAnnotationOverlay } from '~/web/components/DrawingAnnotationOverlay';
 import { useAnnotations } from '~/web/hooks/useAnnotations';
+import { useDocLayout } from '~/web/hooks/useDocLayout';
 
 const useClasses = makeStyles({
   root: {
@@ -14,7 +15,7 @@ const useClasses = makeStyles({
 
 interface ContentViewProps {
   imageDataUrl: string;
-  onImageLoad: (image: HTMLImageElement) => void;
+  onImageLoad?: (image: HTMLImageElement) => void;
   dimension: { width: number; height: number } | null;
   scale: number;
   spaceKey: string;
@@ -69,6 +70,12 @@ export const ContentView = ({
     [deleteAnnotations]
   );
 
+  const layoutData = useDocLayout({
+    spaceKey,
+    documentPath,
+    pageNum: 1,
+  });
+
   return (
     <div className={classes.root}>
       <img
@@ -80,7 +87,7 @@ export const ContentView = ({
         src={imageDataUrl}
         alt="Document Content"
         onLoad={(e) => {
-          onImageLoad(e.target as HTMLImageElement);
+          onImageLoad?.(e.target as HTMLImageElement);
         }}
       />
       {dimension && (
@@ -89,6 +96,8 @@ export const ContentView = ({
           scale={scale}
           drawings={drawings}
           highlights={highlights}
+          textLines={layoutData?.lines}
+          textBlocks={layoutData?.blocks}
           onAddAnnotation={handleAddAnnotation}
           onUpdateAnnotation={handleUpdateAnnotation}
           onRemoveAnnotation={handleRemoveAnnotation}

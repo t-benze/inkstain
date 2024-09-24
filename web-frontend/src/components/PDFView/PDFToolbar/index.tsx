@@ -21,7 +21,8 @@ import {
   ZoomToolbar,
   ToolbarProps as ZoomToolbarProps,
 } from '~/web/components/ZoomToolbar';
-import { DocLayoutAnalysisControl } from './DocLayoutAnalysisControl';
+import { DocLayoutAnalysisToolbar } from '~/web/components/DocLayoutAnalysisToolbar';
+import { usePDFLayoutTask } from '~/web/components/PDFView/hooks';
 
 interface PDFToolbarProps extends ZoomToolbarProps {
   numOfPages: number;
@@ -29,8 +30,6 @@ interface PDFToolbarProps extends ZoomToolbarProps {
   onPageChange: (pageNum: number) => void;
   enableScroll: boolean;
   onEnableScrollChange: (enableScroll: boolean) => void;
-  showLayoutAnalysis: boolean;
-  onShowLayoutAnalysisChange: (showLayoutAnalysis: boolean) => void;
 }
 
 const useClasses = makeStyles({
@@ -83,8 +82,6 @@ export const PDFToolbar = ({
   onPageChange,
   enableScroll,
   onEnableScrollChange,
-  showLayoutAnalysis,
-  onShowLayoutAnalysisChange,
   onZoomFitHeight,
   onZoomFitWidth,
   onZoomIn,
@@ -103,9 +100,11 @@ export const PDFToolbar = ({
       setCurrentPageInput(currentPage.toString());
     }
   };
+
   React.useEffect(() => {
     setCurrentPageInput(currentPage.toString());
   }, [currentPage]);
+  const { taskStatus, startLayoutTask, docLayoutStatus } = usePDFLayoutTask();
 
   return (
     <Toolbar aria-label="pdf-toolbar" size="small" className={styles.root}>
@@ -172,7 +171,11 @@ export const PDFToolbar = ({
       <ToolbarDivider />
       <StylusToolbar />
       <ToolbarDivider />
-      <DocLayoutAnalysisControl />
+      <DocLayoutAnalysisToolbar
+        taskStatus={taskStatus}
+        startLayoutTask={startLayoutTask}
+        docLayoutStatus={docLayoutStatus}
+      />
     </Toolbar>
   );
 };

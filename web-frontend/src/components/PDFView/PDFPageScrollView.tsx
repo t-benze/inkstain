@@ -13,7 +13,6 @@ export const PDFPageScrollView = React.forwardRef(
       currentPageNumber = 1,
       onRenderCompleted,
       onPageChange,
-      enableTextLayer = false,
       onPageClick,
       virtualizerLength = 5,
       shortListedPages,
@@ -23,7 +22,6 @@ export const PDFPageScrollView = React.forwardRef(
       shortListedPages?: number[];
       spaceKey: string;
       virtualizerLength?: number;
-      enableTextLayer?: boolean;
       document: PDFDocumentProxy;
       currentPageNumber?: number;
       scale: number;
@@ -132,7 +130,6 @@ export const PDFPageScrollView = React.forwardRef(
                 marginRight: 'auto',
                 marginBottom: `${pageGap}px`,
               }}
-              enableTextLayer={enableTextLayer}
               onClick={onPageClick}
             />
           );
