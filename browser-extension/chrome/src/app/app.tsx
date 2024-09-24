@@ -24,6 +24,7 @@ import { FolderExplorer } from './FolderExplorer';
 import { AppContext } from '~/chrome-extension/context';
 import { Settings } from './Settings';
 import { PlatformInfo200Response } from '@inkstain/client-api';
+import { getSettings } from '~/chrome-extension/utils/chrome';
 
 const queryClient = new QueryClient();
 const useClasses = makeStyles({
@@ -105,20 +106,26 @@ const Main = ({
               appearance="primary"
               onClick={(e) => {
                 e.preventDefault();
-                chrome.tabs.query(
-                  { active: true, currentWindow: true },
-                  function (tabs) {
-                    if (tabs && tabs[0] && tabs[0].id) {
-                      chrome.tabs.sendMessage(tabs[0].id, {
-                        action: 'startClip',
-                        spaceKey,
-                        targetFolder: currentFolder.join(platformInfo.pathSep),
-                        pathSep: platformInfo.pathSep,
-                      });
-                      window.close();
+                getSettings().then((settings) => {
+                  chrome.tabs.query(
+                    { active: true, currentWindow: true },
+                    function (tabs) {
+                      if (tabs && tabs[0] && tabs[0].id) {
+                        chrome.tabs.sendMessage(tabs[0].id, {
+                          host: settings.host,
+                          port: settings.port,
+                          action: 'startClip',
+                          spaceKey,
+                          targetFolder: currentFolder.join(
+                            platformInfo.pathSep
+                          ),
+                          pathSep: platformInfo.pathSep,
+                        });
+                        window.close();
+                      }
                     }
-                  }
-                );
+                  );
+                });
               }}
             >
               {t('start_clip_page')}

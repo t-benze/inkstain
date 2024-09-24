@@ -46,7 +46,12 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
       })
       .then((response) => response.text())
       .then((response) => {
-        setImageDataUrl(response);
+        const webclipData = JSON.parse(response) as {
+          imageData: string;
+          dimension: { width: number; height: number };
+        };
+        setImageDataUrl(webclipData.imageData);
+        setImageDimension(webclipData.dimension);
 
         // reader.onloadend = () => {
         //   console.log('reader.result', reader.result);
@@ -56,13 +61,13 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
       });
   }, [documentPath, spaceKey]);
 
-  const handleImageLoaded = React.useCallback((image: HTMLImageElement) => {
-    const { naturalWidth, naturalHeight } = image;
-    setImageDimension({
-      width: naturalWidth,
-      height: naturalHeight,
-    });
-  }, []);
+  // const handleImageLoaded = React.useCallback((image: HTMLImageElement) => {
+  //   const { naturalWidth, naturalHeight } = image;
+  //   setImageDimension({
+  //     width: naturalWidth,
+  //     height: naturalHeight,
+  //   });
+  // }, []);
 
   React.useLayoutEffect(() => {
     if (sceneRef.current) {
@@ -140,7 +145,7 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
                   : null
               }
               imageDataUrl={imageDataUrl}
-              onImageLoad={handleImageLoaded}
+              // onImageLoad={handleImageLoaded}
             />
           ) : (
             <Spinner />

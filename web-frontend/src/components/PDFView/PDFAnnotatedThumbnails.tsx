@@ -69,7 +69,6 @@ export const PDFAnnotatedThumbnails = ({
             <PDFPageScrollView
               spaceKey={spaceKey}
               documentPath={documentPath}
-              enableTextLayer={false}
               virtualizerLength={10}
               ref={sceneRef}
               document={pdfDocument}

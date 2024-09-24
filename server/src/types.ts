@@ -71,3 +71,8 @@ export type DocLayoutIndex = {
     [key: string]: number;
   };
 };
+
+export type WebclipData = {
+  imageData: string;
+  dimension: { width: number; height: number };
+};

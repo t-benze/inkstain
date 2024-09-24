@@ -170,7 +170,6 @@ export const PDFPage = ({
   ariaSetSize,
   ariaPosinset,
   style,
-  enableTextLayer = false,
   onClick,
 }: {
   spaceKey: string;
@@ -186,7 +185,6 @@ export const PDFPage = ({
   ariaSetSize?: number;
   ariaPosinset?: number;
   style?: object;
-  enableTextLayer?: boolean;
   onClick?: (pageNum: number) => void;
 }) => {
   const classes = useClasses();
@@ -254,14 +252,7 @@ export const PDFPage = ({
         renderTaskRef.current.cancel();
       }
     };
-  }, [
-    enableTextLayer,
-    document,
-    pageNumber,
-    scale,
-    onRenderCompleted,
-    appContext.activeSpace,
-  ]);
+  }, [document, pageNumber, scale, onRenderCompleted, appContext.activeSpace]);
 
   const handleAddAnnotation = React.useCallback(
     (data: AnnotationData, comment?: string) => {
@@ -300,7 +291,7 @@ export const PDFPage = ({
     ? annotations.filter((a) => a.data.type === 'highlight')
     : null;
 
-  const data = useDocLayout({
+  const layoutData = useDocLayout({
     spaceKey,
     documentPath,
     pageNum: pageNumber,
@@ -325,19 +316,11 @@ export const PDFPage = ({
         data-test="pdfViewer-canvas"
         ref={canvasRef}
       />
-      {/* {enableTextLayer && renderingStatus === 'completed' ? (
-        <PDFPageTextLayer
-          canvasRef={canvasRef}
-          spaceKey={spaceKey}
-          documentPath={documentPath}
-          pageNum={pageNumber}
-        />
-      ) : null} */}
       {renderingStatus === 'completed' && canvasDimension ? (
         <PDFPageDrawingLayer
           scale={scale}
-          textLines={data?.lines}
-          textBlocks={data?.blocks}
+          textLines={layoutData?.lines}
+          textBlocks={layoutData?.blocks}
           drawings={drawings}
           highlights={highlights}
           dimension={canvasDimension}

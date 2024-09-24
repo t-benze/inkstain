@@ -43,7 +43,6 @@ export const PDFThumbnailView = ({
             <PDFPageScrollView
               spaceKey={spaceKey}
               documentPath={documentPath}
-              enableTextLayer={false}
               virtualizerLength={10}
               ref={sceneRef}
               document={pdfDocument}

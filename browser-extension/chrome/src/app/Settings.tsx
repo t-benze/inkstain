@@ -4,10 +4,10 @@ import {
   Input,
   makeStyles,
   tokens,
-  Subtitle2,
   Button,
 } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
+import { getSettings, setSettings } from '~/chrome-extension/utils/chrome';
 
 const useClasses = makeStyles({
   root: {
@@ -31,24 +31,21 @@ const useClasses = makeStyles({
     },
   },
 });
+
 export const Settings = () => {
   const classes = useClasses();
   const { t } = useTranslation();
   const [host, setHost] = React.useState<string>('');
   const [port, setPort] = React.useState<string>('');
   React.useEffect(() => {
-    chrome &&
-      chrome.runtime &&
-      chrome.runtime.sendMessage(
-        { action: 'getSettings' },
-        undefined,
-        (result: { host: string; port: string }) => {
-          if (result) {
-            setHost(result.host);
-            setPort(result.port);
-          }
-        }
-      );
+    getSettings()
+      .then((settings) => {
+        setHost(settings.host);
+        setPort(settings.port);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
   return (
     <div className={classes.root}>
@@ -72,15 +69,10 @@ export const Settings = () => {
         <Button
           appearance="primary"
           onClick={() => {
-            chrome &&
-              chrome.runtime &&
-              chrome.runtime.sendMessage({
-                action: 'setSettings',
-                settings: {
-                  host,
-                  port,
-                },
-              });
+            setSettings({
+              host,
+              port,
+            });
           }}
         >
           {t('save_settings')}

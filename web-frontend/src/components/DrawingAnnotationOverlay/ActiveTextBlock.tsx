@@ -98,10 +98,10 @@ export const ActiveTextBlockPopover = ({ text }: { text: string }) => {
         e.preventDefault();
       }
     };
-    window.addEventListener('keydown', keydownHandler);
+    document.body.addEventListener('keydown', keydownHandler);
     return () => {
       preElement?.blur();
-      window.removeEventListener('keydown', keydownHandler);
+      document.body.removeEventListener('keydown', keydownHandler);
     };
   }, []);
   return (

@@ -76,7 +76,7 @@ export class TaskService extends EventEmitter {
       task.progress = 100;
       this.emit('taskCompleted', taskId);
     } catch (error) {
-      logger.error(error.message);
+      logger.error(`Task ${taskId} failed: ${error.message}: ${error.stack}`);
       task.status = 'failed';
       this.emit('taskFailed', taskId, error);
     }

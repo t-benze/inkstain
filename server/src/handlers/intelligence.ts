@@ -47,12 +47,71 @@ import { IntelligenceAnalyzeDocumentRequest } from '@inkstain/client-api';
  *       500:
  *         description: Unable to analyze the document due to server error.
  */
-export const analyzeDocument = async (ctx: Context) => {
+export const analyzePDFDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { documentPath } = ctx.request
     .body as IntelligenceAnalyzeDocumentRequest;
   try {
-    const taskId = await ctx.intelligenceService.analyzeDocument({
+    const taskId = await ctx.intelligenceService.analyzePDFDocument({
+      spaceKey,
+      documentPath,
+    });
+    ctx.status = 200;
+    ctx.body = { taskId };
+  } catch (e) {
+    ctx.throw(500, e.message);
+  }
+};
+
+/**
+ * @swagger
+ * /intelligence/{spaceKey}/webclip:
+ *   post:
+ *     summary: analyze webclip doucment through intelligence service
+ *     tags: [Intelligence]
+ *     operationId: intelligenceWebclipDocument
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
+ *     requestBody:
+ *       description: A base64 encoded image file
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               documentPath:
+ *                 type: string
+ *                 description: The relative path to the document within the space
+ *     responses:
+ *       200:
+ *         description: Analyzed document successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 taskId:
+ *                   type: string
+ *                   description: The task id
+ *               required:
+ *                 - taskId
+ *       400:
+ *         description: Invalid parameters provided.
+ *       500:
+ *         description: Unable to analyze the document due to server error.
+ */
+export const analyzeWebclipDocument = async (ctx: Context) => {
+  const { spaceKey } = ctx.params;
+  const { documentPath } = ctx.request
+    .body as IntelligenceAnalyzeDocumentRequest;
+  try {
+    const taskId = await ctx.intelligenceService.analyzeWebclipDocument({
       spaceKey,
       documentPath,
     });
@@ -184,7 +243,12 @@ export const registerIntelligenceRoutes = (router: Router) => {
   router.post(
     '/intelligence/:spaceKey/analyze',
     guardAuthenticated,
-    analyzeDocument
+    analyzePDFDocument
+  );
+  router.post(
+    '/intelligence/:spaceKey/webclip',
+    guardAuthenticated,
+    analyzeWebclipDocument
   );
   router.get('/intelligence/:spaceKey/layout-status', docLayoutStatus);
   router.get('/intelligence/:spaceKey/layout', getDocumentLayout);

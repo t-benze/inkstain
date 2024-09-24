@@ -11,7 +11,7 @@ export const useDocLayout = ({
   pageNum?: number;
 }) => {
   const { data: layout } = useQuery({
-    queryKey: ['docLayout', spaceKey, documentPath, pageNum],
+    queryKey: ['document-layout', spaceKey, documentPath, pageNum],
     queryFn: async () => {
       try {
         const analyzedResult = await intelligenceApi.intelligenceDocLayout({

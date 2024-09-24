@@ -75,7 +75,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       width: number;
       height: number;
     } | null>(null);
-    const { isAuthenticated } = useUser();
     const {
       scale,
       setScale,
@@ -100,15 +99,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
         setEnableScroll(enable);
       },
       [currentPageNumber]
-    );
-    const enableTextLayer = isAuthenticated;
-    const [showLayoutAnalysis, setShowLayoutAnalysis] =
-      useState<boolean>(false);
-    const handleShowLayoutAnalysisChange = React.useCallback(
-      (show: boolean) => {
-        setShowLayoutAnalysis(show);
-      },
-      []
     );
     const sceneRef = React.useRef<HTMLDivElement>(null);
 
@@ -217,7 +207,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     return (
       <PDFViewerContext.Provider
         value={{
-          showLayoutAnalysis,
           documentPath: documentPath,
           annotations: annotations ? annotations : {},
           addAnnotation: addAnnotation,
@@ -255,8 +244,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
               onZoomIn={handleZoomIn}
               onZoomOut={handleZoomOut}
               onZoomFitWidth={handleZoomFitWidth}
-              showLayoutAnalysis={showLayoutAnalysis}
-              onShowLayoutAnalysisChange={handleShowLayoutAnalysisChange}
             />
             {pdfDocument ? (
               enableScroll ? (
@@ -271,7 +258,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                   scale={pdfScale}
                   currentPageNumber={currentPageNumber}
                   onRenderCompleted={handleRenderPageCompleted}
-                  enableTextLayer={enableTextLayer}
                   onZoomGesture={handleZoomGesture}
                 />
               ) : (
@@ -289,7 +275,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                     scale={pdfScale}
                     onRenderCompleted={handleRenderPageCompleted}
                     document={pdfDocument}
-                    enableTextLayer={enableTextLayer}
                     style={{
                       marginLeft: 'auto',
                       marginRight: 'auto',

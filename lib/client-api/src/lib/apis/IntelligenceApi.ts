@@ -46,6 +46,11 @@ export interface IntelligenceDocLayoutStatusRequest {
   path: string;
 }
 
+export interface IntelligenceWebclipDocumentRequest {
+  spaceKey: string;
+  intelligenceAnalyzeDocumentRequest: IntelligenceAnalyzeDocumentRequest;
+}
+
 /**
  *
  */
@@ -260,6 +265,74 @@ export class IntelligenceApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<IntelligenceDocLayoutStatus200Response> {
     const response = await this.intelligenceDocLayoutStatusRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * analyze webclip doucment through intelligence service
+   */
+  async intelligenceWebclipDocumentRaw(
+    requestParameters: IntelligenceWebclipDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<IntelligenceAnalyzeDocument200Response>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling intelligenceWebclipDocument.'
+      );
+    }
+
+    if (
+      requestParameters.intelligenceAnalyzeDocumentRequest === null ||
+      requestParameters.intelligenceAnalyzeDocumentRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'intelligenceAnalyzeDocumentRequest',
+        'Required parameter requestParameters.intelligenceAnalyzeDocumentRequest was null or undefined when calling intelligenceWebclipDocument.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/intelligence/{spaceKey}/webclip`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: IntelligenceAnalyzeDocumentRequestToJSON(
+          requestParameters.intelligenceAnalyzeDocumentRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      IntelligenceAnalyzeDocument200ResponseFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * analyze webclip doucment through intelligence service
+   */
+  async intelligenceWebclipDocument(
+    requestParameters: IntelligenceWebclipDocumentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<IntelligenceAnalyzeDocument200Response> {
+    const response = await this.intelligenceWebclipDocumentRaw(
       requestParameters,
       initOverrides
     );

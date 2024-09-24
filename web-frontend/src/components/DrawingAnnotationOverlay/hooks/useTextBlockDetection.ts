@@ -7,7 +7,7 @@ export const useTextBlockDetection = (
   svgcanvasRef: React.RefObject<SVGSVGElement>,
   textBlocks: Array<DocumentLayoutTextBlock> | undefined
 ) => {
-  const isCtrlKeyPressed = React.useRef(false);
+  const isShiftKeyPressed = React.useRef(false);
   const blockRef = React.useRef<SVGRectElement | null>(null);
   const [activeTextBlock, setActiveTextBlock] =
     React.useState<DocumentLayoutTextBlock | null>(null);
@@ -29,10 +29,10 @@ export const useTextBlockDetection = (
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      isCtrlKeyPressed.current = e.ctrlKey;
+      isShiftKeyPressed.current = e.shiftKey;
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      isCtrlKeyPressed.current = e.ctrlKey;
+      isShiftKeyPressed.current = e.shiftKey;
       if (blockRef.current) {
         svgcanvasRef.current?.removeChild(blockRef.current);
         blockRef.current = null;
@@ -105,7 +105,7 @@ export const useTextBlockDetection = (
   return {
     activeTextBlock,
     blockDetectionMove,
-    isCtrlKeyPressed,
+    isCtrlKeyPressed: isShiftKeyPressed,
     setActiveTextBlock,
   };
 };

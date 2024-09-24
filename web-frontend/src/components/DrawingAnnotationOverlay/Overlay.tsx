@@ -165,6 +165,9 @@ export const Overlay = ({
         if (selection) {
           setSelection(null);
         }
+        if (activeTextBlock) {
+          setActiveTextBlock(null);
+        }
       }
     } else if (isDrawing) {
       setInteractionMode('drawing');
