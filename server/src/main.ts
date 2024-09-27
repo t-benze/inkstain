@@ -152,7 +152,10 @@ async function start() {
     await initDB(sequelize);
     app.context.validator = validator;
     app.context.spaceService = new SpaceService();
-    app.context.documentService = new DocumentService(sequelize);
+    app.context.documentService = new DocumentService(
+      sequelize,
+      app.context.spaceService
+    );
     app.context.taskService = new TaskService();
     const awsProxy = new AWSProxy();
     app.context.authService = new AuthService(awsProxy);

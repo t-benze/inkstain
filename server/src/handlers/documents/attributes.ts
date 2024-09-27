@@ -133,8 +133,7 @@ export const addUpdateDocumentAttributes = async (ctx: Context) => {
     meta.attributes = { ...meta.attributes, ...updates };
 
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.indexDocument(space, documentPath);
+    await ctx.documentService.indexDocument(spaceKey, documentPath);
 
     ctx.status = 200;
     ctx.body = 'Attributes added or updated successfully.';
@@ -200,8 +199,7 @@ export const deleteDocumentAttributes = async (ctx: Context) => {
     });
 
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.indexDocument(space, documentPath);
+    await ctx.documentService.indexDocument(spaceKey, documentPath);
     ctx.status = 200;
     ctx.body = 'Attributes deleted successfully.';
   } catch (error) {

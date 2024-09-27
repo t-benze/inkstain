@@ -10,6 +10,7 @@
   "cancel": "Cancel",
   "edit": "Edit",
   "save": "Save",
+  "overview": "Overview",
   "loading": "Loading",
   "next": "Next",
   "choose_a_directory": "Choose a directory",
@@ -57,6 +58,9 @@
   "new_password": "New password",
   "confirm_sign_up": "Confirm sign up",
   "reset_password": "Reset password",
+  "search_reindex": "Reindex",
+  "search_reindex_success": "Reindex succeeded",
+  "search_reindex_failure": "Reindex failed",
   "reset_password_description": "Enter your username and we will send you a confirmation code to reset your password.",
   "passwords_do_not_match": "Passwords do not match",
   "invalid_email_format": "Invalid email format",
@@ -72,7 +76,10 @@
     "author": "Author",
     "tags": "Tags",
     "url": "Link",
-    "documentPath": "Document"
+    "documentPath": "Document",
+    "documentCount": "Document count",
+    "tagCount": "Tag count",
+    "attributeCount": "Attribute count"
   },
   "space": {
     "_": "Space",

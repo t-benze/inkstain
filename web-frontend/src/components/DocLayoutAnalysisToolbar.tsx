@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Spinner } from '@fluentui/react-components';
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
 import { useUser } from '~/web/hooks/auth';
-import { useAppContext } from '~/web/hooks/useAppContext';
+import { useAppContext } from '~/web/app/hooks/useAppContext';
 import {
   IntelligenceDocLayoutStatus200Response,
   Task,
