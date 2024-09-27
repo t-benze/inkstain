@@ -102,16 +102,7 @@ export const createSpace = async (ctx: Context) => {
           const space = await ctx.spaceService.importExistingInkStainSpace(
             path
           );
-          await ctx.documentService.clearIndex(space);
-          const documentsToIndex = [];
-          await traverseDirectory(path, path, documentsToIndex);
-          const totalDocuments = documentsToIndex.length;
-          for (const [index, doc] of documentsToIndex.entries()) {
-            await ctx.documentService.indexDocument(space, doc);
-            if (index % 10 === 0) {
-              progressCallback((index / totalDocuments) * 100);
-            }
-          }
+          await ctx.documentService.indexSpace(space.key, progressCallback);
         });
         ctx.taskService.executeTask(taskId);
         ctx.body = { taskId };

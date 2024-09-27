@@ -13,11 +13,27 @@
  */
 
 import * as runtime from '../runtime';
-import type { SearchDocuments200Response } from '../models/index';
+import type {
+  GetSpaceOverview200Response,
+  ReindexSpace200Response,
+  SearchDocuments200Response,
+} from '../models/index';
 import {
+  GetSpaceOverview200ResponseFromJSON,
+  GetSpaceOverview200ResponseToJSON,
+  ReindexSpace200ResponseFromJSON,
+  ReindexSpace200ResponseToJSON,
   SearchDocuments200ResponseFromJSON,
   SearchDocuments200ResponseToJSON,
 } from '../models/index';
+
+export interface GetSpaceOverviewRequest {
+  spaceKey: string;
+}
+
+export interface ReindexSpaceRequest {
+  spaceKey: string;
+}
 
 export interface SearchDocumentsRequest {
   spaceKey: string;
@@ -31,6 +47,112 @@ export interface SearchDocumentsRequest {
  *
  */
 export class SearchApi extends runtime.BaseAPI {
+  /**
+   * Get overview of a space
+   */
+  async getSpaceOverviewRaw(
+    requestParameters: GetSpaceOverviewRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<GetSpaceOverview200Response>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling getSpaceOverview.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/search/{spaceKey}/overview`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetSpaceOverview200ResponseFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Get overview of a space
+   */
+  async getSpaceOverview(
+    requestParameters: GetSpaceOverviewRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<GetSpaceOverview200Response> {
+    const response = await this.getSpaceOverviewRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * Reindex a space
+   */
+  async reindexSpaceRaw(
+    requestParameters: ReindexSpaceRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<ReindexSpace200Response>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling reindexSpace.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/search/{spaceKey}/reindex`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ReindexSpace200ResponseFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Reindex a space
+   */
+  async reindexSpace(
+    requestParameters: ReindexSpaceRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<ReindexSpace200Response> {
+    const response = await this.reindexSpaceRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
   /**
    * Search documents in a specific space
    */

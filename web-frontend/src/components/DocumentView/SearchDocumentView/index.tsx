@@ -489,3 +489,5 @@ export const SearchDocumentView = () => {
     </div>
   );
 };
+
+export { SearchDocumentSidebar } from './SearchDocumentSidebar';

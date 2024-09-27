@@ -26,7 +26,6 @@ import { SecondarySidebar } from './SecondarySidebar';
 import { useAppearance } from './hooks/useAppearance';
 import { useDocuments } from './hooks/useDocuments';
 import { useSpace } from './hooks/useSpace';
-import { useAuth } from './hooks/useAuth';
 
 const queryClient = new QueryClient();
 const useClasses = makeStyles({

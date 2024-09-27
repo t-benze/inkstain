@@ -3,16 +3,17 @@ import { Sequelize, Op, Includeable } from 'sequelize';
 import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
-import { Space } from '~/server/types';
+import { SpaceService } from './SpaceService';
+import { traverseDirectory } from '~/server/utils';
 
 export class DocumentService {
-  private sequelize: Sequelize;
   private attributesWithIndex = ['title', 'author'];
   private attributes = [...this.attributesWithIndex, 'url'];
 
-  constructor(sequelize: Sequelize) {
-    this.sequelize = sequelize;
-  }
+  constructor(
+    private readonly sequelize: Sequelize,
+    private readonly spaceService: SpaceService
+  ) {}
 
   getAttributes() {
     return {
@@ -27,7 +28,8 @@ export class DocumentService {
     });
   }
 
-  async clearIndex(space: Space) {
+  async clearIndex(spaceKey: string) {
+    const space = await this.spaceService.getSpace(spaceKey);
     await this.sequelize.transaction(async (transaction) => {
       await Document.destroy({
         where: { spaceKey: space.key },
@@ -44,8 +46,23 @@ export class DocumentService {
     });
   }
 
-  async indexDocument(space: Space, documentPath: string) {
-    const spaceKey = space.key;
+  async indexSpace(
+    spaceKey: string,
+    progressCallback: (progress: number) => void
+  ) {
+    const space = await this.spaceService.getSpace(spaceKey);
+    await this.clearIndex(spaceKey);
+    const documentsToIndex = [];
+    await traverseDirectory(space.path, '', documentsToIndex);
+    const totalDocuments = documentsToIndex.length;
+    for (const [index, doc] of documentsToIndex.entries()) {
+      await this.indexDocument(spaceKey, doc);
+      progressCallback((index / totalDocuments) * 100);
+    }
+  }
+
+  async indexDocument(spaceKey: string, documentPath: string) {
+    const space = await this.spaceService.getSpace(spaceKey);
     const fullPath = path.join(space.path, documentPath);
     const metaPath = path.join(`${fullPath}.ink`, 'meta.json');
     const metaData = JSON.parse(await readFile(metaPath, 'utf-8')) as MetaData;
@@ -100,7 +117,8 @@ export class DocumentService {
     });
   }
 
-  async deleteDocument(space: Space, documentPath: string) {
+  async deleteDocument(spaceKey: string, documentPath: string) {
+    const space = await this.spaceService.getSpace(spaceKey);
     await this.sequelize.transaction(async (transaction) => {
       const document = await Document.findOne({
         where: { spaceKey: space.key, documentPath },
@@ -112,7 +130,8 @@ export class DocumentService {
     });
   }
 
-  async updateDocumentPath(space: Space, oldPath: string, newPath: string) {
+  async updateDocumentPath(spaceKey: string, oldPath: string, newPath: string) {
+    const space = await this.spaceService.getSpace(spaceKey);
     await this.sequelize.transaction(async (transaction) => {
       await Document.update(
         { documentPath: newPath },
@@ -170,5 +189,29 @@ export class DocumentService {
       },
       include: includes,
     });
+  }
+
+  async getOverView(spaceKey: string) {
+    const documentCount = await Document.count({
+      where: {
+        spaceKey,
+      },
+    });
+    const tagCount = await Tag.count({
+      where: {
+        spaceKey,
+      },
+    });
+    const attributeCount = await DocAttribute.count({
+      where: {
+        spaceKey,
+      },
+      distinct: true,
+    });
+    return {
+      documentCount,
+      tagCount,
+      attributeCount,
+    };
   }
 }

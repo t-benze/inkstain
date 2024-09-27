@@ -32,9 +32,10 @@ export function getDocumentPath(space: Space, documentPath: string) {
 
 export async function traverseDirectory(
   spaceRoot: string,
-  targetPath: string,
+  relativeToRoot: string,
   documentsToIndex: string[]
 ) {
+  const targetPath = path.join(spaceRoot, relativeToRoot);
   const files = await fs.readdir(targetPath);
   for (const file of files) {
     const fullPath = path.join(targetPath, file);
@@ -44,7 +45,11 @@ export async function traverseDirectory(
         const docPath = path.relative(spaceRoot, fullPath).slice(0, -4);
         documentsToIndex.push(docPath);
       } else {
-        traverseDirectory(spaceRoot, fullPath, documentsToIndex);
+        traverseDirectory(
+          spaceRoot,
+          path.relative(spaceRoot, fullPath),
+          documentsToIndex
+        );
       }
     }
   }

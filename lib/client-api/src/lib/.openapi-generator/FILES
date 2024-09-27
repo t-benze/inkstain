@@ -28,6 +28,8 @@ models/DocumentTag.ts
 models/DocumentTextDetectionData.ts
 models/DrawingData.ts
 models/ForgotPasswordRequest.ts
+models/GetSpaceOverview200Response.ts
+models/GetSpaceOverview200ResponseData.ts
 models/HighlightData.ts
 models/HighlightDataAreasInner.ts
 models/IntelligenceAnalyzeDocument200Response.ts
@@ -38,6 +40,7 @@ models/ListDocuments200ResponseInner.ts
 models/PlatformInfo200Response.ts
 models/PlatformInfo200ResponseAttributes.ts
 models/ProxyRequestOperationEnum.ts
+models/ReindexSpace200Response.ts
 models/RemoveDocumentTagsRequest.ts
 models/SearchDocuments200Response.ts
 models/SignInRequest.ts

@@ -74,8 +74,7 @@ export const addDocumentTags = async (ctx: Context) => {
 
     // Save updated metadata
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.indexDocument(space, documentPath);
+    await ctx.documentService.indexDocument(spaceKey, documentPath);
     // Log successful operation
     logger.info(
       `Tags added to ${path.join(documentDirectory, 'meta.json')}: ${tags.join(
@@ -163,7 +162,7 @@ export const removeDocumentTags = async (ctx: Context) => {
 
     await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
     const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.indexDocument(space, documentPath);
+    await ctx.documentService.indexDocument(space.key, documentPath);
 
     logger.info(
       `Tags removed from ${path.join(

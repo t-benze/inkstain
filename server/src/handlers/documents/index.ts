@@ -366,8 +366,7 @@ const addDocument = async (ctx: Context) => {
     };
     const metadataPath = path.join(targetDirectoryPath, 'meta.json');
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.indexDocument(space, targetPath);
+    await ctx.documentService.indexDocument(spaceKey, targetPath);
     ctx.status = 201;
     ctx.body = {
       message: 'Document added successfully',
@@ -426,8 +425,7 @@ const deleteDocument = async (ctx: Context) => {
     );
 
     await fs.rm(targetDirectoryPath, { recursive: true, force: true });
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.deleteDocument(space, targetPath);
+    await ctx.documentService.deleteDocument(spaceKey, targetPath);
     ctx.status = 200;
     ctx.body = 'Document deleted successfully';
   } catch (error) {
@@ -538,9 +536,9 @@ const deleteFolder = async (ctx: Context) => {
     );
     const space = await ctx.spaceService.getSpace(spaceKey);
     const documentsToIndex = [];
-    await traverseDirectory(space.path, targetDirectoryPath, documentsToIndex);
+    await traverseDirectory(space.path, targetPath, documentsToIndex);
     for (const doc of documentsToIndex) {
-      ctx.documentService.deleteDocument(space, doc);
+      ctx.documentService.deleteDocument(spaceKey, doc);
     }
     await fs.rm(targetDirectoryPath, { recursive: true, force: true });
     ctx.status = 200;
@@ -710,8 +708,7 @@ const renameDocument = async (ctx: Context) => {
       // newFullPath does not exist
     }
 
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.updateDocumentPath(space, oldPath, newPath);
+    await ctx.documentService.updateDocumentPath(spaceKey, oldPath, newPath);
     await fs.rename(oldFullPath, newFullPath);
     ctx.status = 200;
     ctx.body = { message: 'Document renamed successfully', newPath };
@@ -792,11 +789,11 @@ const renameFolder = async (ctx: Context) => {
     }
 
     const documentsToUpdate = [];
-    await traverseDirectory(spaceRoot, oldFullPath, documentsToUpdate);
+    await traverseDirectory(spaceRoot, oldPath, documentsToUpdate);
     const space = await ctx.spaceService.getSpace(spaceKey);
     for (const doc of documentsToUpdate) {
       await ctx.documentService.updateDocumentPath(
-        space,
+        space.key,
         doc,
         doc.replace(oldPath, newPath)
       );
