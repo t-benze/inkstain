@@ -12,6 +12,7 @@ import { AppContext } from '~/web/app/context';
 import { DocumentTagView } from '~/web/components/DocumentTagView';
 import { DocumentAttributesView } from '~/web/components/DocumentAttributesView';
 import { SearchDocumentSidebar } from '~/web/components/DocumentView/SearchDocumentView';
+import { Document } from '~/web/types';
 
 const useClasses = makeStyles({
   root: {
@@ -41,6 +42,33 @@ const useClasses = makeStyles({
   },
 });
 
+const getAccordionItems = (document: Document | null) => {
+  if (!document) {
+    return [];
+  }
+  if (!document.type.startsWith('@inkstain')) {
+    return [
+      {
+        value: 'document-tag-view',
+        view: <DocumentTagView document={document} />,
+      },
+      {
+        value: 'document-attributes-view',
+        view: <DocumentAttributesView document={document} />,
+      },
+    ];
+  } else {
+    if (document.type === '@inkstain/search-document') {
+      return [
+        {
+          value: 'search-document-view',
+          view: <SearchDocumentSidebar />,
+        },
+      ];
+    }
+    return [];
+  }
+};
 export const SecondarySidebar = ({ display }: { display: boolean }) => {
   const classes = useClasses();
   const { activeDocument, documentsAlive } = React.useContext(AppContext);
@@ -48,63 +76,23 @@ export const SecondarySidebar = ({ display }: { display: boolean }) => {
   const document = activeDocument
     ? documentsAlive.find((doc) => doc.name === activeDocument) ?? null
     : null;
-  const [openItems, setOpenItems] = React.useState<string[]>([]);
   const handleToggle: AccordionToggleEventHandler<string> = (event, data) => {
     setOpenItems(data.openItems);
   };
-  const [accordionItems, setAccordionItems] = React.useState<
-    { value: string; view: React.ReactNode }[]
-  >([]);
-  React.useEffect(() => {
-    if (document) {
-      if (!document.type.startsWith('@inkstain')) {
-        setAccordionItems([
-          {
-            value: 'document-tag-view',
-            view: <DocumentTagView document={document} />,
-          },
-          {
-            value: 'document-attributes-view',
-            view: <DocumentAttributesView document={document} />,
-          },
-        ]);
-        setOpenItems(['document-tag-view', 'document-attributes-view']);
-      } else {
-        if (document.type === '@inkstain/search-document') {
-          setAccordionItems([
-            {
-              value: 'search-document-view',
-              view: <SearchDocumentSidebar />,
-            },
-          ]);
-        }
-        setOpenItems(['search-document-view']);
-      }
-    }
-  }, [document]);
 
-  // const accordions = [] as { value: string; view: React.ReactNode }[];
-  // if (document) {
-  //   if (!document.type.startsWith('@inkstain')) {
-  //     accordions.push(
-  //       {
-  //         value: 'document-tag-view',
-  //         view: <DocumentTagView document={document} />,
-  //       },
-  //       {
-  //         value: 'document-attributes-view',
-  //         view: <DocumentAttributesView document={document} />,
-  //       }
-  //     );
-  //   } else {
-  //     if (document.type === '@inkstain/search-document') {
-  //       accordions.push({
-  //         value: 'search-document-view',
-  //         view: <SearchDocumentSidebar />,
-  //       });
-  //     }
-  //   }
-  // }
+  const accordionItems = React.useMemo(
+    () => getAccordionItems(document),
+    [document]
+  );
+  const [openItems, setOpenItems] = React.useState<string[]>(
+    accordionItems.length > 0 ? [accordionItems[0].value] : []
+  );
+  React.useEffect(() => {
+    if (accordionItems.length > 0) {
+      setOpenItems([accordionItems[0].value]);
+    }
+  }, [accordionItems]);
+
   return (
     <div
       data-test="secondarySidebar"

@@ -18,7 +18,7 @@ import {
 import { SettingsRegular, DismissRegular } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { initApiClient, systemApi } from '../apiClient';
+import { configureApiClient, systemApi } from '~/chrome-extension/apiClient';
 import { SpaceSelector } from './SpaceSelector';
 import { FolderExplorer } from './FolderExplorer';
 import { AppContext } from '~/chrome-extension/context';
@@ -147,56 +147,69 @@ const InkStain = () => {
     data: platformInfo,
   } = useQuery({
     queryKey: ['platformInfo'],
+    retry: false,
     queryFn: async () => {
       const response = await systemApi.platformInfo();
       return response;
     },
   });
 
-  return showSettings ? (
-    <div className={classes.root}>
-      <div className={classes.header}>
-        <Subtitle2>{t('settings')}</Subtitle2>
-        <Button
-          onClick={() => {
-            setShowSettings(false);
-          }}
-          icon={<DismissRegular />}
-        ></Button>
-      </div>
-      <Settings />
-    </div>
-  ) : (
-    <div className={classes.root}>
-      {loadingPlatform ? (
-        <div className={classes.loading}>
-          <Spinner />
-        </div>
-      ) : errorPlatform ? (
-        <div className={classes.error}>
-          <Body1>{t('not_able_to_connect_inkstain')}</Body1>
+  const renderSettings = () => {
+    return (
+      <div className={classes.root}>
+        <div className={classes.header}>
+          <Subtitle2>{t('settings')}</Subtitle2>
           <Button
             onClick={() => {
-              setShowSettings(true);
+              setShowSettings(false);
             }}
-          >
-            {t('settings')}
-          </Button>
+            icon={<DismissRegular />}
+          ></Button>
         </div>
-      ) : platformInfo ? (
-        <Main
-          platformInfo={platformInfo}
-          onSettingsClick={() => setShowSettings(true)}
+        <Settings
+          onSaveSettings={() => {
+            window.location.reload();
+          }}
         />
-      ) : null}
-    </div>
-  );
+      </div>
+    );
+  };
+
+  const renderMain = () => {
+    return (
+      <div className={classes.root}>
+        {loadingPlatform ? (
+          <div className={classes.loading}>
+            <Spinner />
+          </div>
+        ) : errorPlatform ? (
+          <div className={classes.error}>
+            <Body1>{t('not_able_to_connect_inkstain')}</Body1>
+            <Button
+              onClick={() => {
+                setShowSettings(true);
+              }}
+            >
+              {t('settings')}
+            </Button>
+          </div>
+        ) : platformInfo ? (
+          <Main
+            platformInfo={platformInfo}
+            onSettingsClick={() => setShowSettings(true)}
+          />
+        ) : null}
+      </div>
+    );
+  };
+
+  return showSettings ? renderSettings() : renderMain();
 };
 
 export function App() {
   const [isApiClientInitialized, setIsApiClientInitialized] = useState(false);
   useEffect(() => {
-    initApiClient().then(() => {
+    configureApiClient().then(() => {
       setIsApiClientInitialized(true);
     });
   }, []);

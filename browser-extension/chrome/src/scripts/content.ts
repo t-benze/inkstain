@@ -112,36 +112,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         i18n.t('clip_action_prompt'),
         document.title
       );
-      console.log('imageData', imageData);
-      console.log('dimension', dimension);
-      chrome.runtime.sendMessage(
-        {
-          action: 'stopClip',
-          webclipData: {
-            imageData,
+      if (documentName) {
+        chrome.runtime.sendMessage(
+          {
+            action: 'stopClip',
+            webclipData: {
+              imageData,
+              dimension,
+            },
+            spaceKey,
+            url: window.location.href,
+            title: documentName,
+            documentPath:
+              (targetFolder.startsWith(pathSep)
+                ? targetFolder.replace(pathSep, '')
+                : targetFolder) +
+              pathSep +
+              documentName,
             dimension,
           },
-          spaceKey,
-          url: window.location.href,
-          title: documentName,
-          documentPath:
-            (targetFolder.startsWith(pathSep)
-              ? targetFolder.replace(pathSep, '')
-              : targetFolder) +
-            pathSep +
-            documentName,
-          dimension,
-        },
-        undefined,
-        (response) => {
-          console.log('receive', response);
-          if (!response || response.error) {
-            alert(i18n.t('clip_action_error'));
-          } else {
-            alert(i18n.t('clip_action_success'));
+          undefined,
+          (response) => {
+            if (!response || response.error) {
+              alert(i18n.t('clip_action_error'));
+            } else {
+              alert(i18n.t('clip_action_success'));
+            }
           }
-        }
-      );
+        );
+      }
     });
   }
   return true;

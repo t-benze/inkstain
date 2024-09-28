@@ -21,8 +21,8 @@ export const useDocLayout = ({
         });
         return analyzedResult;
       } catch (err) {
-        console.error(err);
-        return undefined;
+        console.error((err as Error).message);
+        return null;
       }
     },
   });

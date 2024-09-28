@@ -19,6 +19,16 @@ export const useWebclipLayoutTask = () => {
   };
   const { data: taskStatus } = useQuery({
     queryKey: ['taskStatus', taskId],
+    refetchInterval: (query) => {
+      if (
+        !query.state.data ||
+        query.state.data.status === 'pending' ||
+        query.state.data.status === 'running'
+      ) {
+        return 2000;
+      }
+      return false;
+    },
     queryFn: async () => {
       if (!taskId) {
         return null;
@@ -27,19 +37,6 @@ export const useWebclipLayoutTask = () => {
       return task;
     },
   });
-  React.useEffect(() => {
-    if (taskId) {
-      if (
-        !taskStatus ||
-        taskStatus.status === 'pending' ||
-        taskStatus.status === 'running'
-      ) {
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['taskStatus', taskId] });
-        }, 1000);
-      }
-    }
-  }, [taskId, queryClient, taskStatus]);
 
   const { data: docLayoutStatus } = useQuery({
     queryKey: ['document-layout-status', space.key, document.name],
@@ -53,12 +50,23 @@ export const useWebclipLayoutTask = () => {
   });
 
   React.useEffect(() => {
-    if (docLayoutStatus?.status === 'completed') {
+    if (taskStatus?.status === 'completed') {
+      queryClient.invalidateQueries({
+        queryKey: ['document-layout-status', space.key, document.name],
+      });
       queryClient.invalidateQueries({
         queryKey: ['document-layout', space.key, document.name],
       });
     }
-  }, [docLayoutStatus, queryClient, space.key, document.name]);
+  }, [taskStatus?.status, queryClient, space.key, document.name]);
+
+  // React.useEffect(() => {
+  //   if (docLayoutStatus?.status === 'completed') {
+  //     queryClient.invalidateQueries({
+  //       queryKey: ['document-layout', space.key, document.name],
+  //     });
+  //   }
+  // }, [docLayoutStatus, queryClient, space.key, document.name]);
 
   return { docLayoutStatus, startLayoutTask, taskStatus };
 };

@@ -202,16 +202,17 @@ export class DocumentService {
         spaceKey,
       },
     });
-    const attributeCount = await DocAttribute.count({
+    const distinctAttr = await DocAttribute.findAll({
+      attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('key')), 'key']],
       where: {
         spaceKey,
       },
-      distinct: true,
     });
+
     return {
       documentCount,
       tagCount,
-      attributeCount,
+      attributeCount: distinctAttr.length,
     };
   }
 }

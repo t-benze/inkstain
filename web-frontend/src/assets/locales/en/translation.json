@@ -77,9 +77,9 @@
     "tags": "Tags",
     "url": "Link",
     "documentPath": "Document",
-    "documentCount": "Document count",
-    "tagCount": "Tag count",
-    "attributeCount": "Attribute count"
+    "documentCount": "Documents",
+    "tagCount": "Tags",
+    "attributeCount": "Attributes"
   },
   "space": {
     "_": "Space",

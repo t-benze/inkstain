@@ -101,6 +101,9 @@ export const SearchDocumentSidebar = () => {
               queryClient.invalidateQueries({
                 queryKey: ['space-search-overview', activeSpace?.key],
               });
+              queryClient.invalidateQueries({
+                queryKey: ['searchDocuments', activeSpace?.key],
+              });
             },
           });
         }}
