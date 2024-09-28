@@ -58,7 +58,6 @@ export class SpaceService {
     const spaces = await this.loadSpaceData();
     const key = hashName(name);
     if (spaces[key]) {
-      console.log('space data', JSON.stringify(spaces, null, 2));
       throw new SpaceServiceError(
         `Space with name ${name} already exists.`,
         ErrorCode.SPACE_ALREADY_EXISTS

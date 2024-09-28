@@ -145,7 +145,6 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
                   : null
               }
               imageDataUrl={imageDataUrl}
-              // onImageLoad={handleImageLoaded}
             />
           ) : (
             <Spinner />

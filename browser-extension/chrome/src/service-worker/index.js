@@ -77,21 +77,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   } else if (message.action === 'setSpaceKey') {
-    chrome.storage.local.set({ spaceKey: message.spaceKey });
-    sendResponse();
+    chrome.storage.local.set({ spaceKey: message.spaceKey }).then(() => {
+      sendResponse(true);
+    });
     return true;
   } else if (message.action === 'getSettings') {
     chrome.storage.local.get('app_settings', (result) => {
+      let settings = {};
+      try {
+        settings = result.app_settings ? JSON.parse(result.app_settings) : {};
+      } catch (error) {
+        console.error('Error while getting settings:', error);
+      }
       const data = {
-        host: result.host || DEFAULT_HOST,
-        port: result.port || DEFAULT_PORT,
+        host: settings.host || DEFAULT_HOST,
+        port: settings.port || DEFAULT_PORT,
       };
       sendResponse(data);
     });
     return true;
   } else if (message.action === 'setSettings') {
-    chrome.storage.local.set('app_settings', message.settings);
-    sendResponse();
+    chrome.storage.local
+      .set({
+        app_settings: JSON.stringify(message.settings),
+      })
+      .then(() => {
+        sendResponse(true);
+      });
     return true;
   }
 });

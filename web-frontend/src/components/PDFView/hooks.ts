@@ -57,8 +57,18 @@ export const usePDFLayoutTask = () => {
     setTaskId(taskId);
   };
 
-  const { data: taskStatus, refetch: refetchTaskStatus } = useQuery({
+  const { data: taskStatus } = useQuery({
     queryKey: ['taskStatus', taskId],
+    refetchInterval: (query) => {
+      if (
+        !query.state.data ||
+        query.state.data.status === 'pending' ||
+        query.state.data.status === 'running'
+      ) {
+        return 2000;
+      }
+      return false;
+    },
     queryFn: async () => {
       if (!taskId) {
         return null;
@@ -67,18 +77,6 @@ export const usePDFLayoutTask = () => {
       return task;
     },
   });
-
-  React.useEffect(() => {
-    if (taskId) {
-      if (
-        !taskStatus ||
-        taskStatus.status === 'pending' ||
-        taskStatus.status === 'running'
-      ) {
-        setTimeout(refetchTaskStatus, 2000);
-      }
-    }
-  }, [taskStatus, refetchTaskStatus, taskId]);
 
   const { data: docLayoutStatus } = useQuery({
     queryKey: ['document-layout-status', space.key, document.name],
@@ -92,12 +90,15 @@ export const usePDFLayoutTask = () => {
   });
 
   React.useEffect(() => {
-    if (docLayoutStatus?.status === 'completed') {
+    if (taskStatus?.status === 'completed') {
       queryClient.invalidateQueries({
         queryKey: ['document-layout', space.key, document.name],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['document-layout-status', space.key, document.name],
+      });
     }
-  }, [docLayoutStatus, queryClient, space.key, document.name]);
+  }, [taskStatus, queryClient, space.key, document.name]);
 
   return { docLayoutStatus, startLayoutTask, taskStatus };
 };

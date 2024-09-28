@@ -8,6 +8,7 @@ import {
 } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
 import { getSettings, setSettings } from '~/chrome-extension/utils/chrome';
+import { configureApiClient } from '~/chrome-extension/apiClient';
 
 const useClasses = makeStyles({
   root: {
@@ -32,7 +33,11 @@ const useClasses = makeStyles({
   },
 });
 
-export const Settings = () => {
+export const Settings = ({
+  onSaveSettings,
+}: {
+  onSaveSettings: () => void;
+}) => {
   const classes = useClasses();
   const { t } = useTranslation();
   const [host, setHost] = React.useState<string>('');
@@ -72,6 +77,9 @@ export const Settings = () => {
             setSettings({
               host,
               port,
+            }).then(() => {
+              configureApiClient();
+              onSaveSettings();
             });
           }}
         >
