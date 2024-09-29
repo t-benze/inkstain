@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { documentsApi } from '~/chrome-extension/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { tokens, makeStyles, Body2 } from '@fluentui/react-components';
 import { FolderRegular, DocumentRegular } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
+import { documentsApi } from '~/chrome-extension/utils/apiClient';
 import { ListDocuments200ResponseInner as Document } from '@inkstain/client-api';
-import { AppContext } from '~/chrome-extension/context';
+import { AppContext } from '~/chrome-extension/popup/context';
 
 interface FolderTreeProps {
   spaceKey: string;

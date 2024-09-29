@@ -5,8 +5,8 @@ import {
 import path from 'path';
 import fs from 'fs/promises';
 import logger from '~/server/logger'; // Make sure to import your configured logger
-import { getFullPath } from '../../utils';
 import { Context, MetaData } from '~/server/types';
+import { getDocumentPath } from '~/server/utils';
 
 const handleErrors = (ctx, error) => {
   if (
@@ -59,12 +59,14 @@ const handleErrors = (ctx, error) => {
  */
 export const getDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const documentPath = ctx.query.path;
-  const documentDirectory = documentPath + '.ink';
+  const documentPath = ctx.query.path as string;
 
   try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    const metaFilePath = path.join(
+      getDocumentPath(space, documentPath),
+      'meta.json'
+    );
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
     const meta = JSON.parse(fileMetaStr) as MetaData;
@@ -120,11 +122,13 @@ export const getDocumentAttributes = async (ctx: Context) => {
 export const addUpdateDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-  const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    const metaFilePath = path.join(
+      getDocumentPath(space, documentPath),
+      'meta.json'
+    );
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
     const meta = JSON.parse(fileMetaStr) as MetaData;
@@ -184,11 +188,13 @@ export const addUpdateDocumentAttributes = async (ctx: Context) => {
 export const deleteDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-  const documentDirectory = documentPath + '.ink';
 
   try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
+    const space = await ctx.spaceService.getSpace(spaceKey);
+    const metaFilePath = path.join(
+      getDocumentPath(space, documentPath),
+      'meta.json'
+    );
 
     const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
     const meta = JSON.parse(fileMetaStr) as MetaData;

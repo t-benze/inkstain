@@ -2,19 +2,19 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "module": "commonjs",
-    "types": ["jest", "chrome-types"]
+    "types": ["chrome-types"],
+    "sourceMap": false
   },
-  "include": [
+  "exclude": [
     "jest.config.ts",
-    "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.test.tsx",
+    "src/**/*.test.ts",
     "src/**/*.spec.tsx",
-    "src/**/*.test.js",
+    "src/**/*.test.tsx",
     "src/**/*.spec.js",
-    "src/**/*.test.jsx",
+    "src/**/*.test.js",
     "src/**/*.spec.jsx",
-    "src/**/*.d.ts"
-  ]
+    "src/**/*.test.jsx"
+  ],
+  "files": ["src/service-worker/index.ts"]
 }

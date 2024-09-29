@@ -8,7 +8,7 @@ import {
 } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
 import { getSettings, setSettings } from '~/chrome-extension/utils/chrome';
-import { configureApiClient } from '~/chrome-extension/apiClient';
+import { configureApiClient } from '~/chrome-extension/utils/apiClient';
 
 const useClasses = makeStyles({
   root: {

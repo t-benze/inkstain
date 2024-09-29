@@ -7,7 +7,7 @@ import {
   SearchApi,
   Configuration,
 } from '@inkstain/client-api';
-import { getSettings } from './utils/chrome';
+import { getSettings } from './chrome';
 
 // export const API_PREFIX = 'http://localhost:6060/api/v1';
 export const API_PREFIX = '/api/v1';

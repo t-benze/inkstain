@@ -1,30 +1,38 @@
-const DEFAULT_HOST = 'localhost';
-const DEFAULT_PORT = '6060';
-
-function getAppSettings() {
+function getAppSettings(): Promise<{ host: string; port: string }> {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get('app_settings', (result) => {
-      let settings = {};
+      let settings: { host: string; port: string } = {
+        host: 'localhost',
+        port: '6060',
+      };
       try {
         settings = result.app_settings ? JSON.parse(result.app_settings) : {};
       } catch (error) {
         reject(error);
       }
       const data = {
-        host: settings.host || DEFAULT_HOST,
-        port: settings.port || DEFAULT_PORT,
+        host: settings.host,
+        port: settings.port,
       };
       resolve(data);
     });
   });
 }
 
-/**
- * @type {Array<{id: number, url: string, spaceKey: string, targetFolder: string, pathSep: string, title: string | undefined}>}
- */
-let downloadTasks = [];
+const downloadTasks: {
+  id: number;
+  url: string;
+  spaceKey: string;
+  targetFolder: string;
+  pathSep: string;
+  title: string | undefined;
+}[] = [];
 
-async function updateAttributes(spaceKey, documentPath, attributes) {
+async function updateAttributes(
+  spaceKey: string,
+  documentPath: string,
+  attributes: Record<string, string | undefined>
+) {
   const settings = await getAppSettings();
   const apiPrefix = `http://${settings.host}:${settings.port}`;
   const response = await fetch(
@@ -48,11 +56,11 @@ async function updateAttributes(spaceKey, documentPath, attributes) {
 }
 
 async function addWebclipDocument(
-  spaceKey,
-  documentPath,
-  webclipData,
-  url,
-  title
+  spaceKey: string,
+  documentPath: string,
+  webclipData: string,
+  url: string,
+  title: string | undefined
 ) {
   const settings = await getAppSettings();
   const apiPrefix = `http://${settings.host}:${settings.port}`;
@@ -74,21 +82,21 @@ async function addWebclipDocument(
       }
     );
     if (response.status === 201) {
-      await updateAttributes(spaceKey, documentPath, {
+      await updateAttributes(spaceKey, path, {
         url: url,
         title: title,
       });
+      return { error: null };
     } else if (response.status === 400) {
-      console.error('Invalid parameters or unable to process the file.');
+      return { error: 'Invalid parameters or unable to process the file.' };
     } else if (response.status === 500) {
-      console.error('Internal server error while adding the document.');
+      return { error: 'Internal server error while adding the document.' };
     } else {
-      console.error('Unexpected response status:', response.status);
+      return { error: 'Unexpected response status:' + response.status };
     }
   } catch (error) {
-    console.error('Error while adding the document:', error);
+    return { error: 'Error while adding the document:' + error };
   }
-  return { error: 'Error while adding the webclip to inkstain server' };
 }
 
 chrome.downloads.onChanged.addListener(async function (delta) {
@@ -144,26 +152,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       message.url,
       message.title
     ).then((result) => {
+      // @ts-expect-error sendResponse is not typed correctly
       sendResponse(result);
     });
     return true;
   } else if (message.action === 'getSpaceKey') {
     chrome.storage.local.get('spaceKey', (result) => {
+      // @ts-expect-error sendResponse is not typed correctly
       sendResponse((result && result.spaceKey) || '');
     });
     return true;
   } else if (message.action === 'setSpaceKey') {
     chrome.storage.local.set({ spaceKey: message.spaceKey }).then(() => {
+      // @ts-expect-error sendResponse is not typed correctly
       sendResponse(true);
     });
     return true;
   } else if (message.action === 'getSettings') {
     getAppSettings()
       .then((data) => {
+        // @ts-expect-error sendResponse is not typed correctly
         sendResponse(data);
       })
       .catch((error) => {
         console.error('Error while getting settings:', error);
+        // @ts-expect-error sendResponse is not typed correctly
         sendResponse(null);
       });
     return true;
@@ -173,6 +186,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         app_settings: JSON.stringify(message.settings),
       })
       .then(() => {
+        // @ts-expect-error sendResponse is not typed correctly
         sendResponse(true);
       });
     return true;
@@ -181,7 +195,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     fetch(url).then((response) => {
       const contentType = response.headers.get('content-type');
       const filename = url.split('/').pop();
-      if (contentType.startsWith('application/')) {
+      if (contentType && contentType.startsWith('application/')) {
         chrome.downloads.download(
           {
             url,
@@ -190,7 +204,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           },
           (downloadId) => {
             const { targetFolder, pathSep } = message;
-            console.log('downdload id', downloadId);
             downloadTasks.push({
               id: downloadId,
               url: url,
