@@ -11,10 +11,13 @@
   "include": [],
   "references": [
     {
-      "path": "./tsconfig.app.json"
+      "path": "./tsconfig.popup.json"
     },
     {
-      "path": "./tsconfig.spec.json"
+      "path": "./tsconfig.content.json"
+    },
+    {
+      "path": "./tsconfig.worker.json"
     }
   ],
   "extends": "../../tsconfig.base.json"

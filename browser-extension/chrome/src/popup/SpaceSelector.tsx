@@ -6,7 +6,7 @@ import {
   Option,
 } from '@fluentui/react-components';
 import { useQuery } from '@tanstack/react-query';
-import { spacesApi } from '~/chrome-extension/apiClient';
+import { spacesApi } from '~/chrome-extension/utils/apiClient';
 import { useTranslation } from 'react-i18next';
 
 const useClasses = makeStyles({

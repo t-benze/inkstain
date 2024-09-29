@@ -1,28 +1,21 @@
 {
-  "name": "chome-extension-inkstain",
+  "name": "chrome-extension-inkstain",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "browser-extension/chrome/src",
   "projectType": "application",
   "tags": [],
   "targets": {
-    "build": {
+    "build-popup": {
       "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
         "compiler": "babel",
-        "outputPath": "dist/browser-extension/chrome",
-        "index": "browser-extension/chrome/src/index.html",
-        "baseHref": "/",
-        "main": "browser-extension/chrome/src/main.tsx",
-        "tsConfig": "browser-extension/chrome/tsconfig.app.json",
-        "assets": [
-          "browser-extension/chrome/src/favicon.ico",
-          "browser-extension/chrome/src/assets",
-          "browser-extension/chrome/src/service-worker",
-          "browser-extension/chrome/src/manifest.json"
-        ],
-        "styles": ["browser-extension/chrome/src/styles.css"],
+        "outputPath": "dist/browser-extension/chrome/popup",
+        "index": "browser-extension/chrome/src/popup/index.html",
+        "baseHref": "/popup/",
+        "main": "browser-extension/chrome/src/popup/main.tsx",
+        "tsConfig": "browser-extension/chrome/tsconfig.popup.json",
+        "assets": [],
         "scripts": [],
         "webpackConfig": "browser-extension/chrome/webpack.config.js"
       },
@@ -40,8 +33,7 @@
               "with": "browser-extension/chrome/src/environments/environment.prod.ts"
             }
           ],
-          "optimization": false,
-          "outputHashing": "all",
+          "optimization": true,
           "sourceMap": false,
           "namedChunks": false,
           "extractLicenses": true,
@@ -49,22 +41,54 @@
         }
       }
     },
+    "build-service-worker": {
+      "executor": "@nx/webpack:webpack",
+      "options": {
+        "tsConfig": "browser-extension/chrome/tsconfig.worker.json",
+        "main": "browser-extension/chrome/src/service-worker/index.ts",
+        "compiler": "babel",
+        "webpackConfig": "browser-extension/chrome/webpack.script.config.js",
+        "outputPath": "dist/browser-extension/chrome/service-worker"
+      }
+    },
+    "build-content-script": {
+      "executor": "@nx/webpack:webpack",
+      "options": {
+        "compiler": "babel",
+        "webpackConfig": "browser-extension/chrome/webpack.script.config.js",
+        "tsConfig": "browser-extension/chrome/tsconfig.content.json",
+        "main": "browser-extension/chrome/src/content-script/index.ts",
+        "outputPath": "dist/browser-extension/chrome/content-script"
+      }
+    },
     "serve": {
       "executor": "@nx/webpack:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "chome-extension-inkstain:build",
+        "buildTarget": "chome-extension-inkstain:build-popup",
         "hmr": true,
         "proxyConfig": "browser-extension/chrome/proxy.conf.json"
       },
       "configurations": {
         "development": {
-          "buildTarget": "chome-extension-inkstain:build:development"
+          "buildTarget": "chome-extension-inkstain:build-popup:development"
         },
         "production": {
-          "buildTarget": "chome-extension-inkstain:build:production",
+          "buildTarget": "chome-extension-inkstain:build-popup:production",
           "hmr": false
         }
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run chrome-extension-inkstain:build-popup",
+          "nx run chrome-extension-inkstain:build-service-worker",
+          "nx run chrome-extension-inkstain:build-content-script",
+          "node scripts/generateChromeExtensionManifest.js"
+        ],
+        "parallel": false
       }
     },
     "lint": {

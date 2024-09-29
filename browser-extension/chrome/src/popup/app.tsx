@@ -19,10 +19,13 @@ import {
 import { SettingsRegular, DismissRegular } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { configureApiClient, systemApi } from '~/chrome-extension/apiClient';
+import {
+  configureApiClient,
+  systemApi,
+} from '~/chrome-extension/utils/apiClient';
 import { SpaceSelector } from './SpaceSelector';
 import { FolderExplorer } from './FolderExplorer';
-import { AppContext } from '~/chrome-extension/context';
+import { AppContext } from '~/chrome-extension/popup/context';
 import { Settings } from './Settings';
 import { PlatformInfo200Response } from '@inkstain/client-api';
 import { getSettings } from '~/chrome-extension/utils/chrome';
@@ -99,7 +102,7 @@ const Main = ({
         if (url) {
           fetch(url).then((response) => {
             const contentType = response.headers.get('content-type');
-            if (contentType && contentType === 'text/html') {
+            if (contentType && contentType.startsWith('text/html')) {
               setIsWebPage(true);
             }
           });

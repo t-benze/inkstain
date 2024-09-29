@@ -1,7 +1,7 @@
 // import * as htmlToImage from 'html-to-image';
 import html2Canvas from 'html2canvas';
 import i18n from 'i18next';
-import enTranslation from '../assets/locales/en/translation.json';
+import enTranslation from '~/chrome-extension/assets/locales/en/translation.json';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 i18n
@@ -133,6 +133,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           },
           undefined,
           (response) => {
+            console.log(response);
             if (!response || response.error) {
               alert(i18n.t('clip_action_error'));
             } else {
@@ -143,41 +144,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     });
   }
-  // } else if (request.action === 'download') {
-  //   fetch(window.location.href)
-  //     .then((response) => {
-  //       console.log(response.headers.get('content-type'));
-  //       return response.blob();
-  //     })
-  //     .then((blob) => {
-  //       const documentName = window.prompt(
-  //         i18n.t('download_prompt'),
-  //         document.title
-  //       );
-  //       if (documentName) {
-  //         const reader = new FileReader();
-  //         reader.onloadend = function () {
-  //           const base64data = reader.result as string;
-  //           chrome.runtime.sendMessage(
-  //             {
-  //               action: 'pageDownload',
-  //               url: window.location.href,
-  //               title: documentName,
-  //               base64data: base64data,
-  //             },
-  //             undefined,
-  //             (response) => {
-  //               if (!response || response.error) {
-  //                 alert(i18n.t('download_error'));
-  //               } else {
-  //                 alert(i18n.t('download_success'));
-  //               }
-  //             }
-  //           );
-  //         };
-  //         reader.readAsDataURL(blob);
-  //       }
-  //     });
-  // }
   return true;
 });
