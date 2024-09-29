@@ -6,7 +6,7 @@ import { Document, DocAttribute, Tag } from '~/server/db';
 import { SpaceService } from './SpaceService';
 import { traverseDirectory } from '~/server/utils';
 
-export class DocumentService {
+export class DocumentSearchService {
   private attributesWithIndex = ['title', 'author'];
   private attributes = [...this.attributesWithIndex, 'url'];
 

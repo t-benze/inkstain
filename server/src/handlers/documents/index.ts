@@ -3,7 +3,8 @@ import os from 'os';
 import send from 'koa-send';
 import path from 'path';
 import fs from 'fs/promises';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
+
 import { PassThrough } from 'stream';
 import multer, { File } from '@koa/multer';
 import {
@@ -27,7 +28,12 @@ import {
 
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
 import { Context, MetaData } from '~/server/types';
-import { traverseDirectory, getFullPath } from '~/server/utils';
+import {
+  traverseDirectory,
+  getFullPath,
+  getDocumentPath,
+} from '~/server/utils';
+import { ImportDocumentRequest } from '@inkstain/client-api';
 
 /**
  * Zips the contents of the specified folder and returns a buffer.
@@ -424,8 +430,8 @@ const deleteDocument = async (ctx: Context) => {
       targetPath + '.ink'
     );
 
-    await fs.rm(targetDirectoryPath, { recursive: true, force: true });
     await ctx.documentService.deleteDocument(spaceKey, targetPath);
+    await fs.rm(targetDirectoryPath, { recursive: true, force: true });
     ctx.status = 200;
     ctx.body = 'Document deleted successfully';
   } catch (error) {
@@ -816,6 +822,81 @@ const renameFolder = async (ctx: Context) => {
   }
 };
 
+/**
+ * @swagger
+ * /documents/{spaceKey}/import:
+ *   post:
+ *     summary: Import a document
+ *     tags: [Documents]
+ *     operationId: importDocument
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The key of the space
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               localFilePath:
+ *                 type: string
+ *                 description: Local file path of the document to import
+ *               targetPath:
+ *                 type: string
+ *                 description: Target path within the space to import the document
+ *               mimeType:
+ *                 type: string
+ *                 description: MIME type of the document to import
+ *     responses:
+ *       200:
+ *         description: Document imported successfully.
+ *       400:
+ *         description: Invalid parameters provided.
+ *       500:
+ *         description: Unable to import the document due to server error.
+ */
+const importDocument = async (ctx: Context) => {
+  const spaceKey = ctx.params.spaceKey;
+  const {
+    localFilePath,
+    targetPath: targetPathParam,
+    mimeType,
+  } = ctx.request.body as ImportDocumentRequest;
+  let targetPath = targetPathParam;
+  if (targetPath.startsWith(path.sep)) {
+    targetPath = targetPath.replace(path.sep, '');
+  }
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const fullTargetPath = getDocumentPath(space, targetPath);
+  if (existsSync(fullTargetPath)) {
+    ctx.throw(400, 'A document with the new name already exists.');
+  }
+
+  try {
+    await fs.mkdir(fullTargetPath, { recursive: true });
+    const ext = path.extname(localFilePath);
+    await fs.rename(localFilePath, path.join(fullTargetPath, `content${ext}`));
+    const meta: MetaData = {
+      mimetype: mimeType,
+      attributes: {},
+    };
+    await fs.writeFile(
+      path.join(fullTargetPath, 'meta.json'),
+      JSON.stringify(meta, null, 2)
+    );
+    await ctx.documentService.indexDocument(spaceKey, targetPath);
+    ctx.status = 200;
+    ctx.body = { message: 'Document imported successfully', targetPath };
+  } catch (error) {
+    ctx.throw(500, error.message);
+  }
+};
+
 // Register routes and export
 export const registerDocumentRoutes = (router: Router) => {
   // document files and folders
@@ -851,4 +932,5 @@ export const registerDocumentRoutes = (router: Router) => {
   router.put('/documents/:spaceKey/renameFolder', renameFolder);
 
   router.get('/documents/:spaceKey/export', exportDocument);
+  router.post('/documents/:spaceKey/import', importDocument);
 };

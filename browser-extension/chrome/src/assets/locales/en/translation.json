@@ -9,5 +9,6 @@
   "settings_host_label": "Host",
   "settings_port_label": "Port",
   "save_settings": "Save",
-  "not_able_to_connect_inkstain": "Unable to connect to Inkstain, please ensure the Inkstain app is running and the host settings are correct."
+  "not_able_to_connect_inkstain": "Unable to connect to Inkstain, please ensure the Inkstain app is running and the host settings are correct.",
+  "download": "Download"
 }

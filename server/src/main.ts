@@ -13,7 +13,7 @@ import AJV from 'ajv';
 import swaggerUi from 'swagger-ui-dist';
 import { Sequelize } from 'sequelize';
 import { SpaceService } from './services/SpaceService';
-import { DocumentService } from './services/DocumentService';
+import { DocumentSearchService } from './services/DocumentSearchService';
 import { TaskService } from './services/TaskService';
 import { AuthService } from './services/AuthService';
 import { IntelligenceService } from './services/IntelligenceService';
@@ -152,7 +152,7 @@ async function start() {
     await initDB(sequelize);
     app.context.validator = validator;
     app.context.spaceService = new SpaceService();
-    app.context.documentService = new DocumentService(
+    app.context.documentService = new DocumentSearchService(
       sequelize,
       app.context.spaceService
     );

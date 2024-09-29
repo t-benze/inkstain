@@ -17,6 +17,7 @@ import type {
   AddDocumentTagsRequest,
   AddUpdateDocumentAttributesRequest,
   Annotation,
+  ImportDocumentRequest,
   ListDocuments200ResponseInner,
   RemoveDocumentTagsRequest,
 } from '../models/index';
@@ -27,6 +28,8 @@ import {
   AddUpdateDocumentAttributesRequestToJSON,
   AnnotationFromJSON,
   AnnotationToJSON,
+  ImportDocumentRequestFromJSON,
+  ImportDocumentRequestToJSON,
   ListDocuments200ResponseInnerFromJSON,
   ListDocuments200ResponseInnerToJSON,
   RemoveDocumentTagsRequestFromJSON,
@@ -108,6 +111,11 @@ export interface GetDocumentContentRequest {
 export interface GetDocumentTagsRequest {
   spaceKey: string;
   path: string;
+}
+
+export interface ImportDocumentOperationRequest {
+  spaceKey: string;
+  importDocumentRequest: ImportDocumentRequest;
 }
 
 export interface ListDocumentsRequest {
@@ -1133,6 +1141,68 @@ export class DocumentsApi extends runtime.BaseAPI {
       initOverrides
     );
     return await response.value();
+  }
+
+  /**
+   * Import a document
+   */
+  async importDocumentRaw(
+    requestParameters: ImportDocumentOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling importDocument.'
+      );
+    }
+
+    if (
+      requestParameters.importDocumentRequest === null ||
+      requestParameters.importDocumentRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'importDocumentRequest',
+        'Required parameter requestParameters.importDocumentRequest was null or undefined when calling importDocument.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/documents/{spaceKey}/import`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: ImportDocumentRequestToJSON(
+          requestParameters.importDocumentRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Import a document
+   */
+  async importDocument(
+    requestParameters: ImportDocumentOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.importDocumentRaw(requestParameters, initOverrides);
   }
 
   /**

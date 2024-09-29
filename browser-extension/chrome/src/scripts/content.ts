@@ -143,5 +143,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     });
   }
+  // } else if (request.action === 'download') {
+  //   fetch(window.location.href)
+  //     .then((response) => {
+  //       console.log(response.headers.get('content-type'));
+  //       return response.blob();
+  //     })
+  //     .then((blob) => {
+  //       const documentName = window.prompt(
+  //         i18n.t('download_prompt'),
+  //         document.title
+  //       );
+  //       if (documentName) {
+  //         const reader = new FileReader();
+  //         reader.onloadend = function () {
+  //           const base64data = reader.result as string;
+  //           chrome.runtime.sendMessage(
+  //             {
+  //               action: 'pageDownload',
+  //               url: window.location.href,
+  //               title: documentName,
+  //               base64data: base64data,
+  //             },
+  //             undefined,
+  //             (response) => {
+  //               if (!response || response.error) {
+  //                 alert(i18n.t('download_error'));
+  //               } else {
+  //                 alert(i18n.t('download_success'));
+  //               }
+  //             }
+  //           );
+  //         };
+  //         reader.readAsDataURL(blob);
+  //       }
+  //     });
+  // }
   return true;
 });

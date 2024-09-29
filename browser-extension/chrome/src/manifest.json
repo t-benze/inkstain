@@ -23,5 +23,5 @@
     }
   ],
   "host_permissions": ["https://*/*", "http://*/*"],
-  "permissions": ["storage"]
+  "permissions": ["storage", "downloads"]
 }

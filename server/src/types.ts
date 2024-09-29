@@ -1,6 +1,6 @@
 import Router from '@koa/router';
 import AJV from 'ajv';
-import { DocumentService } from './services/DocumentService';
+import { DocumentSearchService } from './services/DocumentSearchService';
 import { SpaceService } from './services/SpaceService';
 import { TaskService } from './services/TaskService';
 import { AuthService } from './services/AuthService';
@@ -59,7 +59,7 @@ export interface IntelligenceProxy {
 export type Context = Router.RouterContext & {
   validator: AJV;
   spaceService: SpaceService;
-  documentService: DocumentService;
+  documentService: DocumentSearchService;
   taskService: TaskService;
   authService: AuthService;
   intelligenceService: IntelligenceService;
