@@ -6,13 +6,14 @@ import {
   useQuery,
 } from '@tanstack/react-query';
 import {
-  Button,
   makeStyles,
   FluentProvider,
   webLightTheme,
   tokens,
   Spinner,
   Body1,
+  Button,
+  Tooltip,
   Subtitle2,
 } from '@fluentui/react-components';
 import { SettingsRegular, DismissRegular } from '@fluentui/react-icons';
@@ -57,6 +58,7 @@ const useClasses = makeStyles({
   buttons: {
     display: 'flex',
     justifyContent: 'flex-end',
+    gap: tokens.spacingHorizontalXS,
     marginTop: tokens.spacingVerticalM,
   },
 });
@@ -75,6 +77,7 @@ const Main = ({
   const handleFolderSelected = React.useCallback((folder: string[]) => {
     setCurrentFolder(folder);
   }, []);
+  const [isWebPage, setIsWebPage] = useState(false);
 
   React.useEffect(() => {
     chrome.runtime &&
@@ -88,6 +91,23 @@ const Main = ({
         }
       );
   });
+
+  React.useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs[0] && tabs[0].id) {
+        const url = tabs[0].url;
+        if (url) {
+          fetch(url).then((response) => {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType === 'text/html') {
+              setIsWebPage(true);
+            }
+          });
+        }
+      }
+    });
+  }, []);
+
   return (
     <AppContext.Provider value={{ platformInfo: platformInfo }}>
       <div className={classes.header}>
@@ -103,33 +123,64 @@ const Main = ({
           />
           <div className={classes.buttons}>
             <Button
-              appearance="primary"
-              onClick={(e) => {
-                e.preventDefault();
-                getSettings().then((settings) => {
-                  chrome.tabs.query(
-                    { active: true, currentWindow: true },
-                    function (tabs) {
-                      if (tabs && tabs[0] && tabs[0].id) {
-                        chrome.tabs.sendMessage(tabs[0].id, {
-                          host: settings.host,
-                          port: settings.port,
-                          action: 'startClip',
-                          spaceKey,
-                          targetFolder: currentFolder.join(
-                            platformInfo.pathSep
-                          ),
-                          pathSep: platformInfo.pathSep,
-                        });
-                        window.close();
-                      }
+              onClick={() => {
+                chrome.tabs.query(
+                  { active: true, currentWindow: true },
+                  (tabs) => {
+                    if (tabs && tabs[0] && tabs[0].id) {
+                      const url = tabs[0].url;
+                      chrome.runtime.sendMessage({
+                        action: 'download',
+                        url,
+                        spaceKey,
+                        targetFolder: currentFolder.join(platformInfo.pathSep),
+                        pathSep: platformInfo.pathSep,
+                      });
                     }
-                  );
-                });
+                  }
+                );
               }}
             >
-              {t('start_clip_page')}
+              {t('download')}
             </Button>
+            <Tooltip
+              content={
+                isWebPage
+                  ? t('clip_web_page_tooltip')
+                  : t('clip_web_page_disabled_tooltip')
+              }
+              relationship="label"
+            >
+              <Button
+                disabled={!isWebPage}
+                appearance="primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  getSettings().then((settings) => {
+                    chrome.tabs.query(
+                      { active: true, currentWindow: true },
+                      function (tabs) {
+                        if (tabs && tabs[0] && tabs[0].id) {
+                          chrome.tabs.sendMessage(tabs[0].id, {
+                            host: settings.host,
+                            port: settings.port,
+                            action: 'startClip',
+                            spaceKey,
+                            targetFolder: currentFolder.join(
+                              platformInfo.pathSep
+                            ),
+                            pathSep: platformInfo.pathSep,
+                          });
+                          window.close();
+                        }
+                      }
+                    );
+                  });
+                }}
+              >
+                {t('start_clip_page')}
+              </Button>
+            </Tooltip>
           </div>
         </>
       ) : null}

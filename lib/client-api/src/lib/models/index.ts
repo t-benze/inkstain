@@ -25,6 +25,7 @@ export * from './GetSpaceOverview200Response';
 export * from './GetSpaceOverview200ResponseData';
 export * from './HighlightData';
 export * from './HighlightDataAreasInner';
+export * from './ImportDocumentRequest';
 export * from './IntelligenceAnalyzeDocument200Response';
 export * from './IntelligenceAnalyzeDocumentRequest';
 export * from './IntelligenceDocLayoutStatus200Response';
