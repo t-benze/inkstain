@@ -1,6 +1,3 @@
-import { SpaceService } from './SpaceService';
-import { TaskService } from './TaskService';
-import { ImageService } from './ImageService';
 import path from 'path';
 import fs from 'fs/promises';
 import * as readline from 'readline';
@@ -10,16 +7,25 @@ import { IntelligenceProxy, DocumentTextDetectionData } from '~/server/types';
 import { getDocumentPath } from '~/server/utils';
 import { PDFService } from './PDFService';
 import { DocLayoutIndex, WebclipData } from '~/server/types';
-import { kMaxLength } from 'buffer';
+import { SpaceService } from './SpaceService';
+import { TaskService } from './TaskService';
+import { ImageService } from './ImageService';
+// @ts-expect-error import type from p-limit
+import type { LimitFunction } from 'p-limit';
 
 export class IntelligenceService {
+  private limit: Promise<LimitFunction>;
   constructor(
     private readonly spaceService: SpaceService,
     private readonly taskService: TaskService,
     private readonly pdfService: PDFService,
     private readonly imageService: ImageService,
     private readonly intelligenceProxy: IntelligenceProxy
-  ) {}
+  ) {
+    this.limit = import('p-limit').then((pLimit) => {
+      return pLimit.default(1);
+    });
+  }
   // Read and write analyzed document cache to a jsonl file
   // The first line of the jsonl file is the index to map the page number to the line number
   // The rest of the lines are the analyzed layout data for each page
@@ -135,23 +141,36 @@ export class IntelligenceService {
         // do nothing
       }
       const pageCount = doc.numPages;
+      const tasks: Promise<void>[] = [];
+      const limit = await this.limit;
+      let taskCompletedCount = 0;
       for (let i = 1; i <= pageCount; i++) {
         if (indexData.indexMap[i.toString()]) {
           continue;
         }
-        const imageDataUrl = await this.pdfService.renderPdfPageToImage(doc, i);
-        const processedResponse = await this.intelligenceProxy.analyzeDocument(
-          imageDataUrl.split(',')[1]
+        tasks.push(
+          limit(async () => {
+            const imageDataUrl = await this.pdfService.renderPdfPageToImage(
+              doc,
+              i
+            );
+            const processedResponse =
+              await this.intelligenceProxy.analyzeDocument(
+                imageDataUrl.split(',')[1]
+              );
+            await this.writeAnalyzedDocumentCache(
+              spaceKey,
+              documentPath,
+              pageCount,
+              i.toString(),
+              processedResponse
+            );
+            taskCompletedCount++;
+            progressCallback(taskCompletedCount / pageCount);
+          })
         );
-        await this.writeAnalyzedDocumentCache(
-          spaceKey,
-          documentPath,
-          pageCount,
-          i.toString(),
-          processedResponse
-        );
-        progressCallback(i / pageCount);
       }
+      await Promise.all(tasks);
     });
     this.taskService.executeTask(taskId);
     return taskId;
