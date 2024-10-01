@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import * as settings from '~/server/settings';
-import logger from '../logger';
+import logger from '~/server/logger';
 import { Space } from '~/server/types';
 
 export enum ErrorCode {

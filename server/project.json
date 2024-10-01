@@ -6,15 +6,11 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nx/js:tsc",
       "defaultConfiguration": "production",
       "dependsOn": ["apidocs"],
       "options": {
-        "platform": "node",
         "outputPath": "dist/server",
-        "format": ["cjs"],
-        "bundle": false,
         "main": "server/src/main.ts",
         "tsConfig": "server/tsconfig.app.json",
         "assets": [
@@ -24,13 +20,11 @@
             "output": "/assets"
           }
         ],
-        "generatePackageJson": true,
-        "esbuildOptions": {
-          "sourcemap": true,
-          "outExtension": {
-            ".js": ".js"
+        "transformers": [
+          {
+            "name": "typescript-transform-paths/nx-transformer"
           }
-        }
+        ]
       },
       "configurations": {
         "development": {},

@@ -16,8 +16,6 @@ import {
   useStylus,
 } from '~/web/components/DrawingAnnotationOverlay';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
-import { AppContext } from '~/web/app/context';
-import { useUser } from '~/web/hooks/auth';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
