@@ -71,18 +71,17 @@ app.use(
 );
 
 app.use(async (ctx, next) => {
-  // If the request does not match a static file, serve the main HTML file
   if (ctx.path.startsWith('/assets')) {
-    await send(ctx, ctx.path, { root: path.join(__dirname, '../../') });
+    await send(ctx, ctx.path, { root: path.join(__dirname, '../') });
   } else if (ctx.path.startsWith('/api')) {
     await next();
   } else if (ctx.path.startsWith('/static')) {
     await send(ctx, ctx.path.replace('/static', ''), {
-      root: path.join(__dirname, '../../../web-frontend'),
+      root: path.join(__dirname, '../../web-frontend'),
     });
   } else {
     await send(ctx, 'index.html', {
-      root: path.join(__dirname, '../../../web-frontend'),
+      root: path.join(__dirname, '../../web-frontend'),
     });
   }
 });
@@ -130,12 +129,12 @@ registerRoutes(router);
 // Apply the routes to the application
 app.use(router.routes()).use(router.allowedMethods());
 
-const openApiSpecPath = path.resolve(__dirname, '../../assets/openapi.yml');
+const openApiSpecPath = path.resolve(__dirname, '../assets/openapi.yml');
 
 async function start() {
   try {
     const schemaContent = await fs.readFile(
-      path.resolve(__dirname, '../../assets/schema/components.yml'),
+      path.resolve(__dirname, '../assets/schema/components.yml'),
       'utf8'
     );
     const validator = new AJV();
