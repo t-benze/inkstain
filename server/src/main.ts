@@ -109,14 +109,12 @@ app.use(async (ctx, next) => {
 });
 
 app.on('error', (err: Error, ctx: Context) => {
-  logger.error(
-    'Unhandled error in request: ' +
-      ctx.request.method +
-      ' ' +
-      ctx.request.url +
-      ' - ' +
-      err.message
-  );
+  logger.error({
+    method: ctx.request.method,
+    url: ctx.request.url,
+    error: err.message,
+    stack: err.stack,
+  });
 });
 
 const router = new Router({

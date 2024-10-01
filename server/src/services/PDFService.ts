@@ -1,29 +1,30 @@
-import { PDFDocumentProxy } from 'pdfjs-dist';
+import type * as PDFJSLib from 'pdfjs-dist';
 import { Canvas } from 'canvas';
 
 export class PDFService {
-  private pdfjsLib: typeof import('pdfjs-dist');
-  private pdfFileCache: Map<string, PDFDocumentProxy> = new Map();
+  private pdfjsLib: Promise<typeof PDFJSLib>;
+  private pdfFileCache: Map<string, PDFJSLib.PDFDocumentProxy> = new Map();
 
   constructor() {
-    import('pdfjs-dist').then((pdfjs) => {
-      this.pdfjsLib = pdfjs;
-      this.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'pdfjs-dist/build/pdf.worker.min.mjs';
+    this.pdfjsLib = import('pdfjs-dist/legacy/build/pdf.mjs').then((pdfjs) => {
+      pdfjs.GlobalWorkerOptions.workerSrc =
+        'pdfjs-dist/legacy/build/pdf.worker.mjs';
+      return pdfjs;
     });
   }
 
   async loadPDFFile(pdfPath: string) {
+    const pdfjs = await this.pdfjsLib;
     let doc = this.pdfFileCache.get(pdfPath);
     if (!doc) {
-      doc = await this.pdfjsLib.getDocument(pdfPath).promise;
+      doc = await pdfjs.getDocument(pdfPath).promise;
       this.pdfFileCache.set(pdfPath, doc);
     }
     return doc;
   }
 
   public async renderPdfPageToImage(
-    doc: PDFDocumentProxy,
+    doc: PDFJSLib.PDFDocumentProxy,
     pageNumber = 1
   ): Promise<string> {
     const page = await doc.getPage(pageNumber);
