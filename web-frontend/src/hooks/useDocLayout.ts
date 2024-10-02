@@ -19,9 +19,8 @@ export const useDocLayout = ({
           pageNum,
           path: documentPath,
         });
-        return analyzedResult;
+        return analyzedResult.data ? analyzedResult.data : null;
       } catch (err) {
-        console.error((err as Error).message);
         return null;
       }
     },

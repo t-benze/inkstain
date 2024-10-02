@@ -142,7 +142,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     React.useEffect(() => {
       if (hasAdjustedInitScale || !sceneDimension || !contentDimesion) return;
       setScale(sceneDimension.width / contentDimesion.width);
-      sceneRef.current?.setAttribute('data-initialWidthAdjusted', 'true');
+      sceneRef.current?.setAttribute('data-initial-width-adjusted', 'true');
       setHasAdjustedInitScale(true);
     }, [sceneDimension, contentDimesion, hasAdjustedInitScale, setScale]);
 
@@ -260,7 +260,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                 />
               ) : (
                 <div
-                  data-initialWidthAdjusted
                   data-test="pdfViewer-scene"
                   onWheel={handleWheelEventNonCoutinuous}
                   ref={sceneRef}

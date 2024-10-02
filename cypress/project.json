@@ -1,7 +1,7 @@
 {
   "name": "cypress",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
+  "projectType": "e2e",
   "sourceRoot": "cypress",
   "tags": [],
   "implicitDependencies": ["web-frontend", "server"],
