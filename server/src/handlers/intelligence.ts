@@ -154,7 +154,10 @@ export const analyzeWebclipDocument = async (ctx: Context) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DocumentTextDetectionData'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/DocumentTextDetectionData'
  *       400:
  *         description: Invalid parameters provided.
  *       500:
@@ -179,7 +182,9 @@ const getDocumentLayout = async (ctx: Context) => {
     );
 
     ctx.status = 200;
-    ctx.body = result;
+    ctx.body = {
+      data: result,
+    };
   } catch (e) {
     ctx.throw(500, e.message);
   }

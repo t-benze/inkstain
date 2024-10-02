@@ -191,6 +191,7 @@ export const PDFPage = ({
   const pageRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const renderTaskRef = React.useRef<RenderTask | null>(null);
+  const unmountRef = React.useRef(false);
   const appContext = React.useContext(AppContext);
   const pdfViewerContext = React.useContext(PDFViewerContext);
   const [canvasDimension, setCanvasDimension] = React.useState<{
@@ -202,8 +203,10 @@ export const PDFPage = ({
   >('idle');
 
   React.useEffect(() => {
+    unmountRef.current = false;
     setRenderingStatus('rendering');
     document.getPage(pageNumber).then(async (pdfPage) => {
+      if (unmountRef.current) return;
       const viewport = pdfPage.getViewport({ scale });
       const canvas = canvasRef.current;
       const pageDiv = pageRef.current;
@@ -241,13 +244,14 @@ export const PDFPage = ({
       } catch (e) {
         setRenderingStatus('failed');
         if (e instanceof RenderingCancelledException) {
-          console.log('Rendering cancelled, page number: ', pageNumber);
+          // do nothing
         } else {
           throw e;
         }
       }
     });
     return () => {
+      unmountRef.current = true;
       if (renderTaskRef.current) {
         renderTaskRef.current.cancel();
       }

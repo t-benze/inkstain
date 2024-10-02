@@ -35,6 +35,7 @@ models/HighlightDataAreasInner.ts
 models/ImportDocumentRequest.ts
 models/IntelligenceAnalyzeDocument200Response.ts
 models/IntelligenceAnalyzeDocumentRequest.ts
+models/IntelligenceDocLayout200Response.ts
 models/IntelligenceDocLayoutStatus200Response.ts
 models/ListDirectories200ResponseInner.ts
 models/ListDocuments200ResponseInner.ts

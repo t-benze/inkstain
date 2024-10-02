@@ -28,6 +28,7 @@ export * from './HighlightDataAreasInner';
 export * from './ImportDocumentRequest';
 export * from './IntelligenceAnalyzeDocument200Response';
 export * from './IntelligenceAnalyzeDocumentRequest';
+export * from './IntelligenceDocLayout200Response';
 export * from './IntelligenceDocLayoutStatus200Response';
 export * from './ListDirectories200ResponseInner';
 export * from './ListDocuments200ResponseInner';
