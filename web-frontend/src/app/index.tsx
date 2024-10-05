@@ -26,6 +26,8 @@ import { SecondarySidebar } from './SecondarySidebar';
 import { useAppearance } from './hooks/useAppearance';
 import { useDocuments } from './hooks/useDocuments';
 import { useSpace } from './hooks/useSpace';
+import { useShortcuts } from './hooks/useShortcuts';
+import { useUser } from '~/web/hooks/auth';
 
 const queryClient = new QueryClient();
 const useClasses = makeStyles({
@@ -89,11 +91,13 @@ const InkStain = () => {
   const toasterId = useId('toaster');
   const { appearance, setAppearance } = useAppearance();
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
-
+  const { pressedKeys } = useShortcuts();
+  const { userInfo } = useUser();
   return platform ? (
     <AppContext.Provider
       value={{
         platform,
+        pressedKeys,
         activeDocument,
         openSystemDocument,
         openDocument,
@@ -107,6 +111,7 @@ const InkStain = () => {
         appearance,
         setAppearance,
         showAuthDialog: (show = true) => setShowAuthDialog(show),
+        userInfo: userInfo,
       }}
     >
       <div className={classes.root}>

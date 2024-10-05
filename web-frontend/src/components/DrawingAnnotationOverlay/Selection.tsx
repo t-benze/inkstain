@@ -207,7 +207,8 @@ export const Selection = React.forwardRef<
         fill="none"
         style={{ cursor: 'move' }}
       />
-      {isLine ? renderLineAnchors() : !isPen ? renderRectAnchors() : null}
+      {isLine && renderLineAnchors()}
+      {!isLine && !isPen && !isTextHighlight && renderRectAnchors()}
     </svg>
   );
 });

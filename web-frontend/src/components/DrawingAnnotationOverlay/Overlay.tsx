@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  Button,
   tokens,
   makeStyles,
   Popover,
@@ -12,6 +11,7 @@ import {
   DocumentLayoutTextLine,
   DocumentLayoutTextBlock,
 } from '@inkstain/client-api';
+import { useAppContext } from '~/web/app/hooks/useAppContext';
 import { DrawingAnnotationOverlayContext } from './context';
 import { Selection, DrawingSelectionPopover } from './Selection';
 import { ActiveTextBlock, ActiveTextBlockPopover } from './ActiveTextBlock';
@@ -73,6 +73,8 @@ export const Overlay = ({
   const svgcanvasRef = React.useRef<SVGSVGElement | null>(null);
   const [interactionMode, setInteractionMode] =
     React.useState<InteractionMode | null>(null);
+  const appContext = useAppContext();
+  const isShiftKeyPressed = appContext.pressedKeys.has('shift');
   const overlayContext = React.useContext(DrawingAnnotationOverlayContext);
   const { startDrawing, drawingMove, drawingEnd } = useDrawing(
     scale,
@@ -102,12 +104,8 @@ export const Overlay = ({
     textLines,
     onAddAnnotation
   );
-  const {
-    blockDetectionMove,
-    isCtrlKeyPressed,
-    activeTextBlock,
-    setActiveTextBlock,
-  } = useTextBlockDetection(dimension, svgcanvasRef, textBlocks);
+  const { blockDetectionMove, activeTextBlock, setActiveTextBlock } =
+    useTextBlockDetection(dimension, svgcanvasRef, textBlocks);
 
   const isDrawing =
     overlayContext.selectedStylus === 'line' ||
@@ -188,8 +186,9 @@ export const Overlay = ({
     e.stopPropagation();
     if (!overlayContext.enable || !svgcanvasRef.current) return;
     const svgPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
+    console.log('mouse move', isShiftKeyPressed);
 
-    if (isCtrlKeyPressed.current) {
+    if (isShiftKeyPressed) {
       blockDetectionMove(svgPoint);
     } else if (isHighlight) {
       highlightMove(svgPoint);

@@ -25,8 +25,7 @@ export const DocLayoutAnalysisToolbar = ({
   docLayoutStatus,
 }: DocLayoutAnalysisToolbarProps) => {
   const { t } = useTranslation();
-  const { isAuthenticated } = useUser();
-  const { showAuthDialog } = useAppContext();
+  const { showAuthDialog, userInfo } = useAppContext();
   const hasRunningTask = taskStatus
     ? taskStatus.status !== 'completed' && taskStatus.status !== 'failed'
     : false;
@@ -39,7 +38,7 @@ export const DocLayoutAnalysisToolbar = ({
         icon={<TextEffectsSparkleRegular />}
         disabled={hasRunningTask}
         onClick={() => {
-          if (isAuthenticated) {
+          if (userInfo) {
             startLayoutTask();
           } else {
             showAuthDialog();
@@ -47,9 +46,14 @@ export const DocLayoutAnalysisToolbar = ({
         }}
       />
       {docLayoutStatus && docLayoutStatus.status === 'completed' && (
-        <CheckmarkCircleFilled primaryFill={tokens.colorBrandBackground} />
+        <CheckmarkCircleFilled
+          data-test="toolbar-docLayoutReady"
+          primaryFill={tokens.colorBrandBackground}
+        />
       )}
-      {hasRunningTask && <Spinner size="tiny" />}
+      {hasRunningTask && (
+        <Spinner data-test="toolbar-docLayoutAnalysisSpinner" size="tiny" />
+      )}
     </>
   );
 };

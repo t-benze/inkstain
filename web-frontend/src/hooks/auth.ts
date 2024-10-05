@@ -16,7 +16,8 @@ export const useUser = () => {
     queryKey: ['userInfo'],
     queryFn: async () => {
       try {
-        return await authApi.userInfo();
+        const userInfo = await authApi.userInfo();
+        return userInfo;
       } catch (error) {
         if (error instanceof ResponseError) {
           if (error.response.status !== 401) {
@@ -29,8 +30,7 @@ export const useUser = () => {
   });
 
   return {
-    isAuthenticated: !!userInfo,
-    userInfo,
+    userInfo: userInfo ?? null,
   };
 };
 

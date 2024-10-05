@@ -14,7 +14,3 @@ export interface DocumentViewProps {
   spaceKey: string;
   documentPath: string;
 }
-
-export type AuthDataType = {
-  isAuthenticated: boolean;
-};
