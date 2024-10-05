@@ -216,4 +216,41 @@ describe('PDF Annotations', () => {
       });
     });
   });
+  context('Text annotations', () => {
+    it.only('should allow adding a text annotation', () => {
+      cy.getBySel('toolbar-pickStylusBtn').click();
+      cy.getBySel('toolbar-stylus-highlight').click();
+      cy.getBySel('annotationOverlay-canvas').as('drawingLayer');
+      cy.get('@drawingLayer').trigger('mousedown', {
+        button: 0,
+        clientX: 700,
+        clientY: 700,
+      });
+      cy.get('@drawingLayer').trigger('mousemove', {
+        button: 0,
+        clientX: 800,
+        clientY: 800,
+      });
+      cy.get('@drawingLayer').trigger('mouseup');
+      cy.wait('@addAnnotation').then((interception) => {
+        const annotationId = interception.response.body.id;
+        cy.get('@drawingLayer')
+          .find(`[data-annotation-id="${annotationId}"]`)
+          .as('annotation');
+        cy.get('@annotation').trigger('mousedown', { button: 0 });
+        cy.getBySel('drawingAnnotationComment').type(
+          'This is a text annotation'
+        );
+        cy.getBySel('drawingAnnotationUpdateBtn').click();
+        cy.wait('@updateAnnotation');
+        cy.getBySel('drawingAnnotationComment').should(
+          'have.value',
+          'This is a text annotation'
+        );
+        cy.getBySel('drawingAnnotationRemoveBtn').click();
+        cy.wait('@deleteAnnotation');
+        cy.get('@annotation').should('not.exist');
+      });
+    });
+  });
 });

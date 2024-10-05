@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { DocumentLayoutTextBlock } from '@inkstain/client-api';
 import { tokens } from '@fluentui/react-components';
+import { useAppContext } from '~/web/app/hooks/useAppContext';
 
 export const useTextBlockDetection = (
   canvasDimension: { width: number; height: number },
@@ -11,6 +12,7 @@ export const useTextBlockDetection = (
   const blockRef = React.useRef<SVGRectElement | null>(null);
   const [activeTextBlock, setActiveTextBlock] =
     React.useState<DocumentLayoutTextBlock | null>(null);
+  const { pressedKeys } = useAppContext();
 
   const blockBoundingBox = React.useMemo(() => {
     return textBlocks
@@ -27,24 +29,34 @@ export const useTextBlockDetection = (
       : [];
   }, [textBlocks, canvasDimension]);
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      isShiftKeyPressed.current = e.shiftKey;
-    };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      isShiftKeyPressed.current = e.shiftKey;
-      if (blockRef.current) {
-        svgcanvasRef.current?.removeChild(blockRef.current);
-        blockRef.current = null;
-      }
-    };
-    document.body.addEventListener('keydown', handleKeyDown);
-    document.body.addEventListener('keyup', handleKeyUp);
-    return () => {
-      document.body.removeEventListener('keydown', handleKeyDown);
-      document.body.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [svgcanvasRef]);
+  // React.useLayoutEffect(() => {
+  //   const handleKeyDown = (e: KeyboardEvent) => {
+  //     console.log('key down', e.key);
+  //     if (e.key === 'Shift') {
+  //       console.log('shift key down', e.key);
+  //       isShiftKeyPressed.current = true;
+  //     }
+  //   };
+  //   const handleKeyUp = (e: KeyboardEvent) => {
+  //     console.log('shift key up', e.key);
+  //     if (e.key === 'Shift') {
+  //       isShiftKeyPressed.current = false;
+  //       if (blockRef.current) {
+  //         svgcanvasRef.current?.removeChild(blockRef.current);
+  //         blockRef.current = null;
+  //       }
+  //     }
+  //   };
+  //   svgcanvasRef.current?.setAttribute('data-listeners-ready', 'true');
+  //   document.body.addEventListener('keydown', handleKeyDown);
+  //   document.body.addEventListener('keyup', handleKeyUp);
+  //   document.body.setAttribute('data-listeners-ready', 'true');
+  //   return () => {
+  //     console.log('remove event listeners');
+  //     document.body.removeEventListener('keydown', handleKeyDown);
+  //     document.body.removeEventListener('keyup', handleKeyUp);
+  //   };
+  // }, []);
 
   const blockDetectionMove = (svgPoint: DOMPoint) => {
     const layoutBlock = blockBoundingBox.find((block) => {
@@ -89,6 +101,7 @@ export const useTextBlockDetection = (
         });
       }
       blockRef.current.setAttribute('data-block-id', layoutBlock.id);
+      blockRef.current.setAttribute('data-test', 'layoutDetectionTextBlock');
       blockRef.current.setAttribute('x', layoutBlock.left.toString());
       blockRef.current.setAttribute('y', layoutBlock.top.toString());
       blockRef.current.setAttribute('width', layoutBlock.width.toString());
@@ -105,7 +118,7 @@ export const useTextBlockDetection = (
   return {
     activeTextBlock,
     blockDetectionMove,
-    isCtrlKeyPressed: isShiftKeyPressed,
+    isShiftKeyPressed,
     setActiveTextBlock,
   };
 };

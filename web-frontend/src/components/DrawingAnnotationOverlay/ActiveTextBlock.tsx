@@ -5,6 +5,7 @@ import {
   makeStyles,
 } from '@fluentui/react-components';
 import { DocumentLayoutTextBlock } from '@inkstain/client-api';
+import { useAppContext } from '~/web/app/hooks/useAppContext';
 
 const useClasses = makeStyles({
   textContent: {
@@ -19,6 +20,7 @@ interface ActiveTextBlockProps {
   positionRef: React.MutableRefObject<PositioningImperativeRef | null>;
 }
 
+// Text block that helps to position the popover containing the text content
 export const ActiveTextBlock: React.FC<ActiveTextBlockProps> = ({
   textBlock,
   positionRef,
@@ -46,13 +48,12 @@ export const ActiveTextBlock: React.FC<ActiveTextBlockProps> = ({
 export const ActiveTextBlockPopover = ({ text }: { text: string }) => {
   const classes = useClasses();
   const preRef = React.useRef<HTMLPreElement | null>(null);
+  const appContext = useAppContext();
   const keyDownHandler = (e: React.KeyboardEvent<HTMLPreElement>) => {
     // Allow: Ctrl+A, Ctrl+C, Ctrl+X (Windows) and Cmd+A, Cmd+C, Cmd+X (Mac)
-    console.log('key down', e.key);
     const allowedKeys = ['a', 'c', 'x'];
     if ((e.ctrlKey || e.metaKey) && allowedKeys.includes(e.key.toLowerCase())) {
       // These key combinations are allowed
-      console.log('key down', e.key);
       if (e.key.toLowerCase() === 'a') {
         e.preventDefault(); // Prevent default for Ctrl+A/Cmd+A
         const range = document.createRange();
@@ -106,6 +107,7 @@ export const ActiveTextBlockPopover = ({ text }: { text: string }) => {
   }, []);
   return (
     <pre
+      data-test="layoutDetectionTextContent"
       ref={preRef}
       onKeyDown={keyDownHandler}
       onPaste={(e) => {

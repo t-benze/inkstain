@@ -119,7 +119,7 @@ describe('File Explorer for Space', () => {
           cy.getBySel('pdfViewer-pageNumInput').should('not.have.value', '0');
         });
     });
-    it.only('should be able to scale the page ', () => {
+    it('should be able to scale the page ', () => {
       cy.getBySel('pdfViewer-scene').should('have.attr', 'data-ready', 'true');
       cy.getBySel('pdfViewer-scene').then(($scene) => {
         const sceneWidth = $scene[0].clientWidth;
