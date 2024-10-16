@@ -1,0 +1,686 @@
+{
+  "lines": [
+    {
+      "boundingBox": {
+        "left": 0.19934640522875818,
+        "top": 0.0888704318936877,
+        "width": 0.6023965141612201,
+        "height": 0.013289036544850499
+      },
+      "text": "Provided proper attribution is provided, Google hereby grants permission to",
+      "id": "183.0-107.0,736.0,123.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.19825708061002179,
+        "top": 0.10631229235880399,
+        "width": 0.6045751633986928,
+        "height": 0.013289036544850499
+      },
+      "text": "reproduce the tables and figures in this paper solely for use in journalistic or",
+      "id": "182.0-128.0,737.0,144.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.4357298474945534,
+        "top": 0.12458471760797342,
+        "width": 0.1328976034858388,
+        "height": 0.012458471760797342
+      },
+      "text": "scholarly works.",
+      "id": "400.0-150.0,522.0,165.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.3431372549019608,
+        "top": 0.18355481727574752,
+        "width": 0.31263616557734203,
+        "height": 0.018272425249169437
+      },
+      "text": "Attention Is All You Need",
+      "id": "315.0-221.0,602.0,243.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.21350762527233116,
+        "top": 0.292358803986711,
+        "width": 0.11764705882352941,
+        "height": 0.011627906976744186
+      },
+      "text": "Ashish Vaswani*",
+      "id": "196.0-352.0,304.0,366.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.3899782135076253,
+        "top": 0.2931893687707641,
+        "width": 0.10893246187363835,
+        "height": 0.01079734219269103
+      },
+      "text": "Noam Shazeer*",
+      "id": "358.0-353.0,458.0,366.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.5522875816993464,
+        "top": 0.2931893687707641,
+        "width": 0.09803921568627451,
+        "height": 0.01079734219269103
+      },
+      "text": "Niki Parmar*",
+      "id": "507.0-353.0,597.0,366.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.6949891067538126,
+        "top": 0.2931893687707641,
+        "width": 0.11982570806100218,
+        "height": 0.01079734219269103
+      },
+      "text": "Jakob Uszkoreit*",
+      "id": "638.0-353.0,748.0,366.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.22549019607843138,
+        "top": 0.3073089700996678,
+        "width": 0.09041394335511982,
+        "height": 0.01079734219269103
+      },
+      "text": "Google Brain",
+      "id": "207.0-370.0,290.0,383.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.3954248366013072,
+        "top": 0.3073089700996678,
+        "width": 0.0915032679738562,
+        "height": 0.01079734219269103
+      },
+      "text": "Google Brain",
+      "id": "363.0-370.0,447.0,383.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.5413943355119826,
+        "top": 0.3073089700996678,
+        "width": 0.11655773420479303,
+        "height": 0.01079734219269103
+      },
+      "text": "Google Research",
+      "id": "497.0-370.0,604.0,383.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.6949891067538126,
+        "top": 0.3073089700996678,
+        "width": 0.11546840958605664,
+        "height": 0.01079734219269103
+      },
+      "text": "Google Research",
+      "id": "638.0-370.0,744.0,383.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.010893246187363835,
+        "top": 0.3164451827242525,
+        "width": 0.05337690631808279,
+        "height": 0.3023255813953488
+      },
+      "text": "706.03762v7 [cs.CL] 2 Aug",
+      "id": "10.0-381.0,59.0,745.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.18736383442265794,
+        "top": 0.32059800664451826,
+        "width": 0.16666666666666666,
+        "height": 0.01079734219269103
+      },
+      "text": "avaswani@google.com",
+      "id": "172.0-386.0,325.0,399.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.3758169934640523,
+        "top": 0.32059800664451826,
+        "width": 0.1318082788671024,
+        "height": 0.01079734219269103
+      },
+      "text": "noam@google.com",
+      "id": "345.0-386.0,466.0,399.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.6917211328976035,
+        "top": 0.32059800664451826,
+        "width": 0.12309368191721133,
+        "height": 0.01079734219269103
+      },
+      "text": "usz@google.com",
+      "id": "635.0-386.0,748.0,399.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.528322440087146,
+        "top": 0.32142857142857145,
+        "width": 0.14161220043572983,
+        "height": 0.009966777408637873
+      },
+      "text": "nikip@google.com",
+      "id": "485.0-387.0,615.0,399.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.40522875816993464,
+        "top": 0.3554817275747508,
+        "width": 0.13725490196078433,
+        "height": 0.011627906976744186
+      },
+      "text": "Aidan N. Gomez*",
+      "id": "372.0-428.0,498.0,442.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.3554817275747508,
+        "width": 0.08932461873638345,
+        "height": 0.011627906976744186
+      },
+      "text": "Llion Jones*",
+      "id": "213.0-428.0,295.0,442.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.644880174291939,
+        "top": 0.3554817275747508,
+        "width": 0.10784313725490197,
+        "height": 0.011627906976744186
+      },
+      "text": "Łukasz Kaiser*",
+      "id": "592.0-428.0,691.0,442.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.2167755991285403,
+        "top": 0.3696013289036545,
+        "width": 0.11546840958605664,
+        "height": 0.01079734219269103
+      },
+      "text": "Google Research",
+      "id": "199.0-445.0,305.0,458.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.39869281045751637,
+        "top": 0.3704318936877076,
+        "width": 0.144880174291939,
+        "height": 0.009966777408637873
+      },
+      "text": "University of Toronto",
+      "id": "366.0-446.0,499.0,458.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.6514161220043573,
+        "top": 0.3696013289036545,
+        "width": 0.09259259259259259,
+        "height": 0.01079734219269103
+      },
+      "text": "Google Brain",
+      "id": "598.0-445.0,683.0,458.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.2047930283224401,
+        "top": 0.38372093023255816,
+        "width": 0.14052287581699346,
+        "height": 0.01079734219269103
+      },
+      "text": "llion@google.com",
+      "id": "188.0-462.0,317.0,475.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.38344226579520696,
+        "top": 0.38372093023255816,
+        "width": 0.1775599128540305,
+        "height": 0.01079734219269103
+      },
+      "text": "aidan@cs.toronto.edu",
+      "id": "352.0-462.0,515.0,475.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.5947712418300654,
+        "top": 0.38372093023255816,
+        "width": 0.20261437908496732,
+        "height": 0.01079734219269103
+      },
+      "text": "lukaszkaiser@google.com",
+      "id": "546.0-462.0,732.0,475.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.43899782135076254,
+        "top": 0.4186046511627907,
+        "width": 0.13071895424836602,
+        "height": 0.01079734219269103
+      },
+      "text": "Illia Polosukhin* +",
+      "id": "403.0-504.0,523.0,517.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.3877995642701525,
+        "top": 0.4318936877076412,
+        "width": 0.22549019607843138,
+        "height": 0.011627906976744186
+      },
+      "text": "illia.polosukhin@gmail.com",
+      "id": "356.0-520.0,563.0,534.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.46296296296296297,
+        "top": 0.48255813953488375,
+        "width": 0.07516339869281045,
+        "height": 0.012458471760797342
+      },
+      "text": "Abstract",
+      "id": "425.0-581.0,494.0,596.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.5174418604651163,
+        "width": 0.5381263616557734,
+        "height": 0.01079734219269103
+      },
+      "text": "The dominant sequence transduction models are based on complex recurrent or",
+      "id": "213.0-623.0,707.0,636.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.53156146179402,
+        "width": 0.5381263616557734,
+        "height": 0.009966777408637873
+      },
+      "text": "convolutional neural networks that include an encoder and a decoder. The best",
+      "id": "213.0-640.0,707.0,652.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.5448504983388704,
+        "width": 0.5381263616557734,
+        "height": 0.01079734219269103
+      },
+      "text": "performing models also connect the encoder and decoder through an attention",
+      "id": "213.0-656.0,707.0,669.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.5581395348837209,
+        "width": 0.5403050108932462,
+        "height": 0.01079734219269103
+      },
+      "text": "mechanism. We propose a new simple network architecture, the Transformer,",
+      "id": "213.0-672.0,709.0,685.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.5722591362126246,
+        "width": 0.5381263616557734,
+        "height": 0.01079734219269103
+      },
+      "text": "based solely on attention mechanisms, dispensing with recurrence and convolutions",
+      "id": "213.0-689.0,707.0,702.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.5855481727574751,
+        "width": 0.5381263616557734,
+        "height": 0.011627906976744186
+      },
+      "text": "entirely. Experiments on two machine translation tasks show these models to",
+      "id": "213.0-705.0,707.0,719.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.5996677740863787,
+        "width": 0.5381263616557734,
+        "height": 0.01079734219269103
+      },
+      "text": "be superior in quality while being more parallelizable and requiring significantly",
+      "id": "213.0-722.0,707.0,735.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.6129568106312292,
+        "width": 0.5403050108932462,
+        "height": 0.011627906976744186
+      },
+      "text": "less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-",
+      "id": "213.0-738.0,709.0,752.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.6270764119601329,
+        "width": 0.5381263616557734,
+        "height": 0.01079734219269103
+      },
+      "text": "to-German translation task, improving over the existing best results, including",
+      "id": "213.0-755.0,707.0,768.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.6411960132890365,
+        "width": 0.5392156862745098,
+        "height": 0.009966777408637873
+      },
+      "text": "ensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task,",
+      "id": "213.0-772.0,708.0,784.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.654485049833887,
+        "width": 0.5392156862745098,
+        "height": 0.01079734219269103
+      },
+      "text": "our model establishes a new single-model state-of-the-art BLEU score of 41.8 after",
+      "id": "213.0-788.0,708.0,801.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.6677740863787376,
+        "width": 0.5381263616557734,
+        "height": 0.01079734219269103
+      },
+      "text": "training for 3.5 days on eight GPUs, a small fraction of the training costs of the",
+      "id": "213.0-804.0,707.0,817.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.6818936877076412,
+        "width": 0.5381263616557734,
+        "height": 0.011627906976744186
+      },
+      "text": "best models from the literature. We show that the Transformer generalizes well to",
+      "id": "213.0-821.0,707.0,835.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.6951827242524917,
+        "width": 0.5381263616557734,
+        "height": 0.011627906976744186
+      },
+      "text": "other tasks by applying it successfully to English constituency parsing both with",
+      "id": "213.0-837.0,707.0,851.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.23202614379084968,
+        "top": 0.7093023255813954,
+        "width": 0.2047930283224401,
+        "height": 0.01079734219269103
+      },
+      "text": "large and limited training data.",
+      "id": "213.0-854.0,401.0,867.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.19281045751633988,
+        "top": 0.7508305647840532,
+        "width": 0.6361655773420479,
+        "height": 0.01079734219269103
+      },
+      "text": "* Equal contribution. Listing order is random. Jakob proposed replacing RNNs with self-attention and started",
+      "id": "177.0-904.0,761.0,917.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.17320261437908496,
+        "top": 0.7641196013289037,
+        "width": 0.6557734204793029,
+        "height": 0.009966777408637873
+      },
+      "text": "the effort to evaluate this idea. Ashish, with Illia, designed and implemented the first Transformer models and",
+      "id": "159.0-920.0,761.0,932.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.7757475083056479,
+        "width": 0.6579520697167756,
+        "height": 0.01079734219269103
+      },
+      "text": "has been crucially involved in every aspect of this work. Noam proposed scaled dot-product attention, multi-head",
+      "id": "158.0-934.0,762.0,947.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.7890365448504983,
+        "width": 0.6568627450980392,
+        "height": 0.009136212624584718
+      },
+      "text": "attention and the parameter-free position representation and became the other person involved in nearly every",
+      "id": "158.0-950.0,761.0,961.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.8014950166112956,
+        "width": 0.6568627450980392,
+        "height": 0.009966777408637873
+      },
+      "text": "detail. Niki designed, implemented, tuned and evaluated countless model variants in our original codebase and",
+      "id": "158.0-965.0,761.0,977.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.813953488372093,
+        "width": 0.6579520697167756,
+        "height": 0.009966777408637873
+      },
+      "text": "tensor2tensor. Llion also experimented with novel model variants, was responsible for our initial codebase, and",
+      "id": "158.0-980.0,762.0,992.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.8255813953488372,
+        "width": 0.6579520697167756,
+        "height": 0.01079734219269103
+      },
+      "text": "efficient inference and visualizations. Lukasz and Aidan spent countless long days designing various parts of and",
+      "id": "158.0-994.0,762.0,1007.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.8388704318936877,
+        "width": 0.6568627450980392,
+        "height": 0.009966777408637873
+      },
+      "text": "implementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating",
+      "id": "158.0-1010.0,761.0,1022.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.17320261437908496,
+        "top": 0.8513289036544851,
+        "width": 0.07734204793028322,
+        "height": 0.009966777408637873
+      },
+      "text": "our research.",
+      "id": "159.0-1025.0,230.0,1037.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.19281045751633988,
+        "top": 0.8646179401993356,
+        "width": 0.2440087145969499,
+        "height": 0.009966777408637873
+      },
+      "text": "T Work performed while at Google Brain.",
+      "id": "177.0-1041.0,401.0,1053.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.19281045751633988,
+        "top": 0.877906976744186,
+        "width": 0.2647058823529412,
+        "height": 0.009966777408637873
+      },
+      "text": "+ Work performed while at Google Research.",
+      "id": "177.0-1057.0,420.0,1069.0"
+    },
+    {
+      "boundingBox": {
+        "left": 0.17320261437908496,
+        "top": 0.9194352159468439,
+        "width": 0.5838779956427015,
+        "height": 0.01079734219269103
+      },
+      "text": "31st Conference on Neural Information Processing Systems (NIPS 2017), Long Beach, CA, USA.",
+      "id": "159.0-1107.0,695.0,1120.0"
+    }
+  ],
+  "blocks": [
+    {
+      "text": "* Equal contribution. Listing order is random. Jakob proposed replacing RNNs with self-attention and started\nthe effort to evaluate this idea. Ashish, with Illia, designed and implemented the first Transformer models and\nhas been crucially involved in every aspect of this work. Noam proposed scaled dot-product attention, multi-head\nattention and the parameter-free position representation and became the other person involved in nearly every\ndetail. Niki designed, implemented, tuned and evaluated countless model variants in our original codebase and\ntensor2tensor. Llion also experimented with novel model variants, was responsible for our initial codebase, and\nefficient inference and visualizations. Lukasz and Aidan spent countless long days designing various parts of and\nimplementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating\nour research.\nT Work performed while at Google Brain.\n+ Work performed while at Google Research.",
+      "boundingBox": {
+        "left": 0.1710239651416122,
+        "top": 0.75,
+        "width": 0.6579520697167756,
+        "height": 0.13704318936877077
+      },
+      "id": "157.0-903.0,761.0,1068.0"
+    },
+    {
+      "text": "31st Conference on Neural Information Processing Systems (NIPS 2017), Long Beach, CA, USA.",
+      "boundingBox": {
+        "left": 0.1721132897603486,
+        "top": 0.9186046511627907,
+        "width": 0.5838779956427015,
+        "height": 0.01079734219269103
+      },
+      "id": "158.0-1106.0,694.0,1119.0"
+    },
+    {
+      "text": "706.03762v7 [cs.CL] 2 Aug",
+      "boundingBox": {
+        "left": 0.00980392156862745,
+        "top": 0.31561461794019935,
+        "width": 0.05337690631808279,
+        "height": 0.3023255813953488
+      },
+      "id": "9.0-380.0,58.0,744.0"
+    },
+    {
+      "text": "",
+      "boundingBox": {
+        "left": 0.46187363834422657,
+        "top": 0.48172757475083056,
+        "width": 0.07516339869281045,
+        "height": 0.011627906976744186
+      },
+      "id": "424.0-580.0,493.0,594.0"
+    },
+    {
+      "text": "Ashish Vaswani*\nNoam Shazeer*\nNiki Parmar*\nJakob Uszkoreit*\nGoogle Brain\nGoogle Brain\nGoogle Research\nGoogle Research\navaswani@google.com\nnoam@google.com\nusz@google.com\nnikip@google.com",
+      "boundingBox": {
+        "left": 0.18627450980392157,
+        "top": 0.2865448504983389,
+        "width": 0.6274509803921569,
+        "height": 0.04817275747508306
+      },
+      "id": "171.0-345.0,747.0,403.0"
+    },
+    {
+      "text": "Łukasz Kaiser*\nGoogle Brain\nlukaszkaiser@google.com",
+      "boundingBox": {
+        "left": 0.565359477124183,
+        "top": 0.3480066445182724,
+        "width": 0.23093681917211328,
+        "height": 0.0473421926910299
+      },
+      "id": "519.0-419.0,731.0,476.0"
+    },
+    {
+      "text": "Provided proper attribution is provided, Google hereby grants permission to\nreproduce the tables and figures in this paper solely for use in journalistic or\nscholarly works.",
+      "boundingBox": {
+        "left": 0.19716775599128541,
+        "top": 0.08803986710963455,
+        "width": 0.6045751633986928,
+        "height": 0.04817275747508306
+      },
+      "id": "181.0-106.0,736.0,164.0"
+    },
+    {
+      "text": "Aidan N. Gomez*\nUniversity of Toronto",
+      "boundingBox": {
+        "left": 0.38235294117647056,
+        "top": 0.3546511627906977,
+        "width": 0.1775599128540305,
+        "height": 0.03820598006644518
+      },
+      "id": "351.0-427.0,514.0,473.0"
+    },
+    {
+      "text": "Llion Jones*\nGoogle Research",
+      "boundingBox": {
+        "left": 0.2037037037037037,
+        "top": 0.3546511627906977,
+        "width": 0.14052287581699346,
+        "height": 0.03820598006644518
+      },
+      "id": "187.0-427.0,316.0,473.0"
+    },
+    {
+      "text": "Illia Polosukhin* +\nillia.polosukhin@gmail.com",
+      "boundingBox": {
+        "left": 0.3867102396514161,
+        "top": 0.41777408637873753,
+        "width": 0.22549019607843138,
+        "height": 0.024916943521594685
+      },
+      "id": "355.0-503.0,562.0,533.0"
+    },
+    {
+      "text": "The dominant sequence transduction models are based on complex recurrent or\nconvolutional neural networks that include an encoder and a decoder. The best\nperforming models also connect the encoder and decoder through an attention\nmechanism. We propose a new simple network architecture, the Transformer,\nbased solely on attention mechanisms, dispensing with recurrence and convolutions\nentirely. Experiments on two machine translation tasks show these models to\nbe superior in quality while being more parallelizable and requiring significantly\nless time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-\nto-German translation task, improving over the existing best results, including\nensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task,\nour model establishes a new single-model state-of-the-art BLEU score of 41.8 after\ntraining for 3.5 days on eight GPUs, a small fraction of the training costs of the\nbest models from the literature. We show that the Transformer generalizes well to\nother tasks by applying it successfully to English constituency parsing both with\nlarge and limited training data.",
+      "boundingBox": {
+        "left": 0.23093681917211328,
+        "top": 0.5157807308970099,
+        "width": 0.5403050108932462,
+        "height": 0.20348837209302326
+      },
+      "id": "212.0-621.0,708.0,866.0"
+    },
+    {
+      "text": "Attention Is All You Need",
+      "boundingBox": {
+        "left": 0.3420479302832244,
+        "top": 0.1818936877076412,
+        "width": 0.31263616557734203,
+        "height": 0.01910299003322259
+      },
+      "id": "314.0-219.0,601.0,242.0"
+    }
+  ]
+}

@@ -186,7 +186,6 @@ export const Overlay = ({
     e.stopPropagation();
     if (!overlayContext.enable || !svgcanvasRef.current) return;
     const svgPoint = convertDOMPointToSVGPoint(e.clientX, e.clientY);
-    console.log('mouse move', isShiftKeyPressed);
 
     if (isShiftKeyPressed) {
       blockDetectionMove(svgPoint);

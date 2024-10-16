@@ -4,8 +4,14 @@
 
 # compiled output
 dist
+build
 tmp
-/out-tsc
+out-tsc
+.ipynb_checkpoints
+__pycache__
+
+
+# cypress
 /cypress/results
 /cypress/testSpace
 /cypress/screenshots

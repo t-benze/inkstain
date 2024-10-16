@@ -8,11 +8,11 @@ export const useTextBlockDetection = (
   svgcanvasRef: React.RefObject<SVGSVGElement>,
   textBlocks: Array<DocumentLayoutTextBlock> | undefined
 ) => {
-  const isShiftKeyPressed = React.useRef(false);
   const blockRef = React.useRef<SVGRectElement | null>(null);
   const [activeTextBlock, setActiveTextBlock] =
     React.useState<DocumentLayoutTextBlock | null>(null);
   const { pressedKeys } = useAppContext();
+  const isShiftKeyPressed = pressedKeys.has('shift');
 
   const blockBoundingBox = React.useMemo(() => {
     return textBlocks
@@ -28,35 +28,6 @@ export const useTextBlockDetection = (
         })
       : [];
   }, [textBlocks, canvasDimension]);
-
-  // React.useLayoutEffect(() => {
-  //   const handleKeyDown = (e: KeyboardEvent) => {
-  //     console.log('key down', e.key);
-  //     if (e.key === 'Shift') {
-  //       console.log('shift key down', e.key);
-  //       isShiftKeyPressed.current = true;
-  //     }
-  //   };
-  //   const handleKeyUp = (e: KeyboardEvent) => {
-  //     console.log('shift key up', e.key);
-  //     if (e.key === 'Shift') {
-  //       isShiftKeyPressed.current = false;
-  //       if (blockRef.current) {
-  //         svgcanvasRef.current?.removeChild(blockRef.current);
-  //         blockRef.current = null;
-  //       }
-  //     }
-  //   };
-  //   svgcanvasRef.current?.setAttribute('data-listeners-ready', 'true');
-  //   document.body.addEventListener('keydown', handleKeyDown);
-  //   document.body.addEventListener('keyup', handleKeyUp);
-  //   document.body.setAttribute('data-listeners-ready', 'true');
-  //   return () => {
-  //     console.log('remove event listeners');
-  //     document.body.removeEventListener('keydown', handleKeyDown);
-  //     document.body.removeEventListener('keyup', handleKeyUp);
-  //   };
-  // }, []);
 
   const blockDetectionMove = (svgPoint: DOMPoint) => {
     const layoutBlock = blockBoundingBox.find((block) => {
@@ -114,6 +85,15 @@ export const useTextBlockDetection = (
       }
     }
   };
+
+  React.useEffect(() => {
+    if (!isShiftKeyPressed) {
+      if (blockRef.current) {
+        svgcanvasRef.current?.removeChild(blockRef.current);
+        blockRef.current = null;
+      }
+    }
+  }, [isShiftKeyPressed, blockRef, svgcanvasRef]);
 
   return {
     activeTextBlock,

@@ -53,7 +53,7 @@ export interface IntelligenceProxy {
    * @param image - The base64 encoded document image
    * @returns The layout data of the document
    */
-  analyzeDocument: (image: string) => Promise<DocumentTextDetectionData>;
+  analyzeImage: (image: string) => Promise<DocumentTextDetectionData>;
 }
 
 export type Context = Router.RouterContext & {

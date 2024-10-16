@@ -224,7 +224,7 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
     });
   }
 
-  async analyzeDocument(image: string): Promise<DocumentTextDetectionData> {
+  async analyzeImage(image: string): Promise<DocumentTextDetectionData> {
     const { idToken: tokenString } = await this.getTokens();
     const response = await fetch(`${intelligenceAPIBase}/analyze-document`, {
       method: 'POST',

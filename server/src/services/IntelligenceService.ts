@@ -103,14 +103,26 @@ export class IntelligenceService {
           indexMap: {},
         };
       }
+      if (cacheIndex.indexMap[pageNum]) {
+        return;
+      }
       cacheIndex.indexMap[pageNum] = Object.keys(cacheIndex.indexMap).length;
       if (Object.keys(cacheIndex.indexMap).length === totalPageNum) {
         cacheIndex.status = 'completed';
       }
       await fs.writeFile(cacheIndexFilePath, JSON.stringify(cacheIndex));
       const writeStream = createWriteStream(cacheDataFilePath, { flags: 'a' });
-      writeStream.write(JSON.stringify(data) + EOL);
-      writeStream.end();
+      await new Promise<void>((resolve, reject) => {
+        writeStream.write(JSON.stringify(data) + EOL, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            writeStream.end(() => {
+              resolve();
+            });
+          }
+        });
+      });
     }
   }
 
@@ -154,10 +166,9 @@ export class IntelligenceService {
               doc,
               i
             );
-            const processedResponse =
-              await this.intelligenceProxy.analyzeDocument(
-                imageDataUrl.split(',')[1]
-              );
+            const processedResponse = await this.intelligenceProxy.analyzeImage(
+              imageDataUrl.split(',')[1]
+            );
             await this.writeAnalyzedDocumentCache(
               spaceKey,
               documentPath,
@@ -205,7 +216,7 @@ export class IntelligenceService {
       };
       for (let i = 0; i < slices.length; i++) {
         const slice = slices[i];
-        const processedResponse = await this.intelligenceProxy.analyzeDocument(
+        const processedResponse = await this.intelligenceProxy.analyzeImage(
           slice.imageDataUrl.split(',')[1]
         );
         const processedBlocks = processedResponse.blocks?.map((block) => {
