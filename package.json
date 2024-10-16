@@ -5,6 +5,7 @@
   "scripts": {
     "prepare": "husky install",
     "build": "nx run-many -t build",
+    "build:e2e": "nx run-many -t build -p server web-frontend",
     "start": "nx run server:serve:production"
   },
   "private": true,
