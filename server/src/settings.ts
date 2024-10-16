@@ -46,3 +46,8 @@ export const cognitoUserPoolId = process.env.AWS_COGNITO_USER_POOL_ID;
 export const cognitoUserPoolClientId =
   process.env.AWS_COGNITO_USER_POOL_CLIENT_ID;
 export const intelligenceAPIBase = process.env.AWS_INTELLIGENCE_ENDPOINT;
+
+export const analyzeImagePath = path.resolve(
+  __dirname,
+  '../../doc-intelligence/analyze_doc/analyze_doc'
+);

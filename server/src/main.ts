@@ -22,7 +22,8 @@ import { PDFService } from './services/PDFService';
 import { initDB } from './db';
 import { Context } from './types';
 import { registerRoutes } from './handlers';
-import { AWSProxy } from './AWSProxy';
+import { AWSProxy } from './proxy/AWSProxy';
+import { LocalProxy } from './proxy/LocalProxy';
 const app = new Koa<Koa.DefaultState, Context>();
 
 app.use(async (ctx, next) => {
@@ -154,8 +155,9 @@ async function start() {
       app.context.spaceService
     );
     app.context.taskService = new TaskService();
-    const awsProxy = new AWSProxy();
-    app.context.authService = new AuthService(awsProxy);
+    // const proxy = new AWSProxy();
+    const proxy = new LocalProxy();
+    app.context.authService = new AuthService(proxy);
     app.context.pdfService = new PDFService();
     app.context.imageService = new ImageService();
     app.context.intelligenceService = new IntelligenceService(
@@ -163,7 +165,7 @@ async function start() {
       app.context.taskService,
       app.context.pdfService,
       app.context.imageService,
-      awsProxy
+      proxy
     );
   } catch (e) {
     logger.error('Failed to load schema');

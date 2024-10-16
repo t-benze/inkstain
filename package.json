@@ -1,7 +1,7 @@
 {
   "name": "@inkstain/source",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "prepare": "husky install",
     "build": "nx run-many -t build",

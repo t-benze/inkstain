@@ -1,0 +1,3 @@
+[submodule "doc-intelligence/surya"]
+	path = doc-intelligence/surya
+	url = https://github.com/VikParuchuri/surya.git

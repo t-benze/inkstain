@@ -1,0 +1,27 @@
+{
+  "name": "doc-intelligence",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "doc-intelligence",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "doc-intelligence/surya",
+        "commands": [
+          "poetry config virtualenvs.in-project true && poetry install"
+        ]
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": false,
+        "commands": [
+          "DYLD_LIBRARY_PATH=/opt/homebrew/Cellar/openssl@3/3.3.2/lib ./doc-intelligence/surya/.venv/bin/pyinstaller --collect-all=pypdfium2 --collect-all=pypdfium2_raw --hidden-import=ssl --distpath ./dist/doc-intelligence --specpath ./doc-intelligence ./doc-intelligence/analyze_doc.py"
+        ]
+      }
+    }
+  }
+}

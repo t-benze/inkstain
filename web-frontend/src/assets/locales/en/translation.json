@@ -125,6 +125,7 @@
     "annotatedThumbnail": "Annotations",
     "no_outline": "No outline in the document",
     "bookmark": "Bookmark",
-    "comment_optional": "Comment (optional)"
+    "comment_optional": "Comment (optional)",
+    "no_outline_available": "No outline available"
   }
 }
