@@ -1,4 +1,4 @@
-# InkStain Project README
+# InkStain
 
 ## Overview
 
@@ -17,31 +17,10 @@ InkStain is a comprehensive document management tool designed to serve and inter
 - **Document Management Directory**: `.inkstain` folders encapsulating documents and their metadata for easy management and potential cloud syncing.
 - **Scalability**: Designed to manage a growing number of documents and users.
 
-## Technical Architecture
+## License
 
-- **Server-Side**: Built using Node.js and TypeScript with Koa as the web framework and Winston for logging.
-- **Web Client-Side**: React-based client with @fluentui/react-components for UI design and react-router-dom for client-side routing.
-- **Project Structure**: Monorepo managed with NX tooling, containing both client and server codebase for efficient integration and build processes.
+This project is licensed under the GPL-3.0-or-later license. See the [LICENSE](./LICENSE) file for more details.
 
-## Terminology
+## Acknowledgments
 
-- **Document**: Any viewable file, e.g., PDFs, images, Markdown files.
-- **InkStain Folder**: A `.inkstain` directory that houses the document and associated data.
-- **InkStain File**: A JSON configuration file within the InkStain folder containing metadata.
-
-## Development Principles
-
-1. User convenience and seamless document access.
-2. Augmented viewing and editing experiences for document interactions.
-3. Efficient document management through metadata creation and search capabilities.
-4. Emphasis on non-functional requirements such as performance, security, and reliability.
-
-## User Stories
-
-- Users who need to manage a multitude of documents efficiently.
-- Individuals requiring an interactive platform for document annotations and notes.
-- Teams looking for a scalable solution for document organization and accessibility.
-
-## Conclusion
-
-InkStain stands out for its thoughtful approach to document management, providing users with a powerful tool to manage, view, and interact with their files without compromising the integrity of the documents. The use of modern technologies ensures a flexible, scalable, and user-friendly platform that adapts to the ever-growing needs of document management.
+- [Surya OCR](https://github.com/ankane/surya) for the Local OCR solutions. Model weights by Vikas Paruchuri is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Available at: [HuggingFace](https://huggingface.co/vikp).
