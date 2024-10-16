@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: build
-        run: npm run build
+        run: npm run build:e2e
       - name: Copy env file
         run: cp .env.example .env
       - name: e2e test
@@ -59,7 +59,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: build
-        run: npm run build
+        run: npm run build:e2e
       - name: Copy env file
         run: copy .env.example .env
       - name: e2e test
