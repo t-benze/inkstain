@@ -1,8 +1,27 @@
 describe('Auth Flow', () => {
   beforeEach(() => {
-    cy.openApp();
-    cy.getBySel('menubar-fileBtn').click();
-    cy.getBySel('menuItem-settings').click();
+    let signInSuccess = false;
+    cy.intercept(
+      {
+        method: 'GET',
+        path: '/api/v1/auth/user',
+      },
+      (req) => {
+        if (signInSuccess) {
+          req.reply({
+            statusCode: 200,
+            body: {
+              username: 'testUser',
+              email: 'test@test.com',
+            },
+          });
+        } else {
+          req.reply({
+            statusCode: 401,
+          });
+        }
+      }
+    ).as('userInfo');
     cy.intercept(
       {
         method: 'POST',
@@ -17,25 +36,13 @@ describe('Auth Flow', () => {
             },
           });
         } else {
+          signInSuccess = true;
           req.reply({
             statusCode: 200,
           });
         }
       }
     ).as('signin');
-    cy.intercept(
-      {
-        method: 'GET',
-        url: '/api/v1/auth/user',
-      },
-      {
-        statusCode: 200,
-        body: {
-          username: 'testUser',
-          email: 'test@test.com',
-        },
-      }
-    ).as('userinfo');
     cy.intercept(
       {
         method: 'POST',
@@ -81,6 +88,9 @@ describe('Auth Flow', () => {
         statusCode: 200,
       }
     ).as('signout');
+    cy.openApp();
+    cy.getBySel('menubar-fileBtn').click();
+    cy.getBySel('menuItem-settings').click();
   });
 
   context('Sign in', () => {
@@ -90,11 +100,9 @@ describe('Auth Flow', () => {
       cy.getBySel('authDialog-passwordInput').type('test');
       cy.getBySel('authDialog-signInBtn').click();
       cy.wait('@signin');
-      cy.wait('@userinfo');
       cy.getBySel('settingsView-userInfo').should('contain', 'testUser');
       cy.getBySel('settingsView-signOutBtn').click();
       cy.wait('@signout');
-      cy.wait('@userinfo');
     });
     it('complete sign in flow with invalid credentials', () => {
       cy.getBySel('settingsView-signInBtn').click();
@@ -123,7 +131,6 @@ describe('Auth Flow', () => {
       cy.getBySel('authDialog-confirmSignUpBtn').click();
       cy.wait('@confirmSignUp');
       cy.wait('@signin');
-      cy.wait('@userinfo');
       cy.getBySel('settingsView-userInfo').should('contain', 'testUser');
     });
   });
