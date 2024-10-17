@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Document, SystemDocumentType } from '~/web/types';
+import { Document, SystemDocumentType, PlatformData } from '~/web/types';
 
-export const useDocuments = () => {
+export const useDocuments = (platform: PlatformData | undefined) => {
   const [documentsAlive, setDocumentsAlive] = React.useState<Document[]>([]);
   const [activeDocument, setActiveDocument] = React.useState<string | null>(
     documentsAlive[0] ? documentsAlive[0].name : null
@@ -71,6 +71,44 @@ export const useDocuments = () => {
     []
   );
 
+  const renameDocumentPath = React.useCallback(
+    ({
+      target,
+      newName,
+      isFolder,
+    }: {
+      target: string;
+      newName: string;
+      isFolder: boolean;
+    }) => {
+      if (!platform) throw new Error('Platform data not loaded');
+      const pathSep = platform.pathSep;
+      const newPath = target
+        .split(pathSep)
+        .slice(0, -1)
+        .concat([newName])
+        .join(pathSep);
+      setDocumentsAlive((documentsAlive) => {
+        return documentsAlive.map((document) => {
+          if (document.name.startsWith(target)) {
+            return {
+              ...document,
+              name: document.name.replace(target, newPath),
+            };
+          }
+          return document;
+        });
+      });
+      setActiveDocument((activeDocument) => {
+        if (activeDocument && activeDocument.startsWith(target)) {
+          return activeDocument.replace(target, newPath);
+        }
+        return activeDocument;
+      });
+    },
+    [setDocumentsAlive, setActiveDocument, platform]
+  );
+
   return {
     openSystemDocument,
     openDocument,
@@ -80,5 +118,6 @@ export const useDocuments = () => {
     setActiveDocument,
     activeDocumentViewRef,
     setActiveDocumentViewRef,
-  } as const;
+    renameDocumentPath,
+  };
 };

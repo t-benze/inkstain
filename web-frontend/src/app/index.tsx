@@ -65,9 +65,10 @@ const InkStain = () => {
     documentsAlive,
     activeDocument,
     setActiveDocument,
+    renameDocumentPath,
     activeDocumentViewRef,
     setActiveDocumentViewRef,
-  } = useDocuments();
+  } = useDocuments(platform);
 
   React.useEffect(() => {
     if (!activeSpace) {
@@ -96,22 +97,23 @@ const InkStain = () => {
   return platform ? (
     <AppContext.Provider
       value={{
-        platform,
-        pressedKeys,
-        activeDocument,
-        openSystemDocument,
-        openDocument,
-        closeDocument,
-        activeSpace,
-        openSpace,
-        documentsAlive,
-        setActiveDocumentViewRef,
-        activeDocumentViewRef,
         toasterId,
         appearance,
         setAppearance,
         showAuthDialog: (show = true) => setShowAuthDialog(show),
         userInfo: userInfo,
+        platform,
+        pressedKeys,
+        setActiveDocumentViewRef,
+        activeDocumentViewRef,
+        activeDocument,
+        openSystemDocument,
+        openDocument,
+        closeDocument,
+        renameDocumentPath,
+        activeSpace,
+        openSpace,
+        documentsAlive,
       }}
     >
       <div className={classes.root}>

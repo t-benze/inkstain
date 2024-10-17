@@ -1,10 +1,10 @@
-import { Space } from '@inkstain/client-api';
+import { Space, PlatformInfo200Response } from '@inkstain/client-api';
 export interface Document {
   type: string;
   name: string;
 }
 
-export { Space };
+export { Space, PlatformInfo200Response as PlatformData };
 
 export type SystemDocumentType =
   | '@inkstain/space-management'
