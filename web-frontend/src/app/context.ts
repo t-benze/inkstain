@@ -23,6 +23,11 @@ export type ContextType = {
   showAuthDialog: (show?: boolean) => void;
   pressedKeys: Set<string>;
   userInfo: UserInfo | null;
+  renameDocumentPath: (params: {
+    target: string;
+    newName: string;
+    isFolder: boolean;
+  }) => void;
 };
 
 export const AppContext = React.createContext<ContextType>({} as ContextType);

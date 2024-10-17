@@ -464,6 +464,11 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
             newName: params.newName,
           });
         }
+        appContext.renameDocumentPath({
+          target: params.target,
+          newName: params.newName,
+          isFolder: params.isFolder,
+        });
         queryClient.invalidateQueries({
           queryKey: ['documents', space.key, parent],
         });
@@ -472,7 +477,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         console.error('Error renaming document or folder:', error);
       }
     },
-    [space.key, queryClient, appContext.platform.pathSep]
+    [space.key, queryClient, appContext]
   );
 
   const headerButtons = (
