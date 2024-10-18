@@ -52,6 +52,12 @@ export class LocalProxy implements AuthInterface, IntelligenceInterface {
     pythonProcess.on('close', (code) => {
       logger.info(`Doc analysis process exited with code ${code}`);
     });
+    process.on('SIGINT', () => {
+      pythonProcess.kill();
+    });
+    process.on('SIGTERM', () => {
+      pythonProcess.kill();
+    });
     return pythonProcess;
   }
 
