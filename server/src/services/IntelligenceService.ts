@@ -3,7 +3,8 @@ import fs from 'fs/promises';
 import * as readline from 'readline';
 import { createReadStream, createWriteStream } from 'fs';
 import { EOL } from 'os';
-import { IntelligenceProxy, DocumentTextDetectionData } from '~/server/types';
+import { DocumentTextDetectionData } from '~/server/types';
+import { IntelligenceInterface } from '~/server/proxy/types';
 import { getDocumentPath } from '~/server/utils';
 import { PDFService } from './PDFService';
 import { DocLayoutIndex, WebclipData } from '~/server/types';
@@ -20,7 +21,7 @@ export class IntelligenceService {
     private readonly taskService: TaskService,
     private readonly pdfService: PDFService,
     private readonly imageService: ImageService,
-    private readonly intelligenceProxy: IntelligenceProxy
+    private readonly intelligenceProxy: IntelligenceInterface
   ) {
     this.limit = import('p-limit').then((pLimit) => {
       return pLimit.default(1);
@@ -101,7 +102,7 @@ export class IntelligenceService {
         cacheIndex = {
           status: 'partial',
           indexMap: {},
-        };
+        } as DocLayoutIndex;
       }
       if (cacheIndex.indexMap[pageNum]) {
         return;
@@ -210,36 +211,39 @@ export class IntelligenceService {
         dimension,
         maxPixelCounts
       );
-      const layoutData: DocumentTextDetectionData = {
+      const layoutData = {
         blocks: [],
         lines: [],
-      };
+      } as DocumentTextDetectionData;
       for (let i = 0; i < slices.length; i++) {
         const slice = slices[i];
         const processedResponse = await this.intelligenceProxy.analyzeImage(
           slice.imageDataUrl.split(',')[1]
         );
-        const processedBlocks = processedResponse.blocks?.map((block) => {
-          return {
-            ...block,
-            width: (block.boundingBox.width * slice.width) / dimension.width,
-            height:
-              (block.boundingBox.height * slice.height) / dimension.height,
-            left: (block.boundingBox.left * slice.width) / dimension.width,
-            top: (block.boundingBox.top * slice.height) / dimension.height,
-          };
-        });
-        const processedLines = processedResponse.lines?.map((line) => {
-          return {
-            ...line,
-            width: (line.boundingBox.width * slice.width) / dimension.width,
-            height: (line.boundingBox.height * slice.height) / dimension.height,
-            left: (line.boundingBox.left * slice.width) / dimension.width,
-            top: (line.boundingBox.top * slice.height) / dimension.height,
-          };
-        });
-        layoutData.blocks = layoutData.blocks.concat(processedBlocks);
-        layoutData.lines = layoutData.lines.concat(processedLines);
+        const processedBlocks =
+          processedResponse.blocks?.map((block) => {
+            return {
+              ...block,
+              width: (block.boundingBox.width * slice.width) / dimension.width,
+              height:
+                (block.boundingBox.height * slice.height) / dimension.height,
+              left: (block.boundingBox.left * slice.width) / dimension.width,
+              top: (block.boundingBox.top * slice.height) / dimension.height,
+            };
+          }) || [];
+        const processedLines =
+          processedResponse.lines?.map((line) => {
+            return {
+              ...line,
+              width: (line.boundingBox.width * slice.width) / dimension.width,
+              height:
+                (line.boundingBox.height * slice.height) / dimension.height,
+              left: (line.boundingBox.left * slice.width) / dimension.width,
+              top: (line.boundingBox.top * slice.height) / dimension.height,
+            };
+          }) || [];
+        layoutData.blocks = [...(layoutData.blocks ?? []), ...processedBlocks];
+        layoutData.lines = [...(layoutData.lines ?? []), ...processedLines];
         progressCallback(i / slices.length);
       }
       await this.writeAnalyzedDocumentCache(

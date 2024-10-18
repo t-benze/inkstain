@@ -24,19 +24,19 @@ export interface ImportDocumentRequest {
    * @type {string}
    * @memberof ImportDocumentRequest
    */
-  localFilePath?: string;
+  localFilePath: string;
   /**
    * Target path within the space to import the document
    * @type {string}
    * @memberof ImportDocumentRequest
    */
-  targetPath?: string;
+  targetPath: string;
   /**
    * MIME type of the document to import
    * @type {string}
    * @memberof ImportDocumentRequest
    */
-  mimeType?: string;
+  mimeType: string;
 }
 
 /**
@@ -44,6 +44,9 @@ export interface ImportDocumentRequest {
  */
 export function instanceOfImportDocumentRequest(value: object): boolean {
   let isInstance = true;
+  isInstance = isInstance && 'localFilePath' in value;
+  isInstance = isInstance && 'targetPath' in value;
+  isInstance = isInstance && 'mimeType' in value;
 
   return isInstance;
 }
@@ -62,11 +65,9 @@ export function ImportDocumentRequestFromJSONTyped(
     return json;
   }
   return {
-    localFilePath: !exists(json, 'localFilePath')
-      ? undefined
-      : json['localFilePath'],
-    targetPath: !exists(json, 'targetPath') ? undefined : json['targetPath'],
-    mimeType: !exists(json, 'mimeType') ? undefined : json['mimeType'],
+    localFilePath: json['localFilePath'],
+    targetPath: json['targetPath'],
+    mimeType: json['mimeType'],
   };
 }
 

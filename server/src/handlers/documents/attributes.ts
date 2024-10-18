@@ -1,26 +1,7 @@
-import {
-  SpaceServiceError,
-  ErrorCode as SpaceServiceErrorCode,
-} from '~/server/services/SpaceService';
 import path from 'path';
 import fs from 'fs/promises';
-import logger from '~/server/logger'; // Make sure to import your configured logger
 import { Context, MetaData } from '~/server/types';
 import { getDocumentPath } from '~/server/utils';
-
-const handleErrors = (ctx, error) => {
-  if (
-    error instanceof SpaceServiceError &&
-    error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST
-  ) {
-    ctx.status = 404;
-    ctx.body = 'Space or document not found.';
-  } else {
-    logger.error(`Failed to process the attributes: ${error.message}`);
-    ctx.status = 500;
-    ctx.body = 'Unable to process the attributes due to server error.';
-  }
-};
 
 /**
  * @swagger
@@ -61,21 +42,17 @@ export const getDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
 
-  try {
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const metaFilePath = path.join(
-      getDocumentPath(space, documentPath),
-      'meta.json'
-    );
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const metaFilePath = path.join(
+    getDocumentPath(space, documentPath),
+    'meta.json'
+  );
 
-    const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
+  const meta = JSON.parse(fileMetaStr) as MetaData;
 
-    ctx.status = 200;
-    ctx.body = meta.attributes ?? {};
-  } catch (error) {
-    handleErrors(ctx, error);
-  }
+  ctx.status = 200;
+  ctx.body = meta.attributes ?? {};
 };
 
 /**
@@ -123,27 +100,23 @@ export const addUpdateDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
 
-  try {
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const metaFilePath = path.join(
-      getDocumentPath(space, documentPath),
-      'meta.json'
-    );
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const metaFilePath = path.join(
+    getDocumentPath(space, documentPath),
+    'meta.json'
+  );
 
-    const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
+  const meta = JSON.parse(fileMetaStr) as MetaData;
 
-    const updates = (ctx.request.body as { attributes: object }).attributes;
-    meta.attributes = { ...meta.attributes, ...updates };
+  const updates = (ctx.request.body as { attributes: object }).attributes;
+  meta.attributes = { ...meta.attributes, ...updates };
 
-    await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    await ctx.documentService.indexDocument(spaceKey, documentPath);
+  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  await ctx.documentService.indexDocument(spaceKey, documentPath);
 
-    ctx.status = 200;
-    ctx.body = 'Attributes added or updated successfully.';
-  } catch (error) {
-    handleErrors(ctx, error);
-  }
+  ctx.status = 200;
+  ctx.body = 'Attributes added or updated successfully.';
 };
 
 /**
@@ -189,26 +162,22 @@ export const deleteDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
 
-  try {
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const metaFilePath = path.join(
-      getDocumentPath(space, documentPath),
-      'meta.json'
-    );
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const metaFilePath = path.join(
+    getDocumentPath(space, documentPath),
+    'meta.json'
+  );
 
-    const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
+  const meta = JSON.parse(fileMetaStr) as MetaData;
 
-    const deletions = ctx.request.body as string[];
-    deletions.forEach((key) => {
-      delete meta.attributes[key];
-    });
+  const deletions = ctx.request.body as string[];
+  deletions.forEach((key) => {
+    delete meta.attributes?.[key];
+  });
 
-    await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    await ctx.documentService.indexDocument(spaceKey, documentPath);
-    ctx.status = 200;
-    ctx.body = 'Attributes deleted successfully.';
-  } catch (error) {
-    handleErrors(ctx, error);
-  }
+  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  await ctx.documentService.indexDocument(spaceKey, documentPath);
+  ctx.status = 200;
+  ctx.body = 'Attributes deleted successfully.';
 };

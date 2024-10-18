@@ -1,13 +1,14 @@
-import { AuthProxy } from '~/server/types';
+import {
+  SignUpRequest,
+  ConfirmSignUpRequest,
+  SignInRequest,
+  ForgotPasswordRequest,
+  ConfirmForgotPasswordRequest,
+} from '~/server/types';
+import { AuthInterface } from '~/server/proxy/types';
 
-export class AuthServiceError extends Error {
-  constructor(message: string, public readonly code: string) {
-    super(message);
-  }
-}
-
-export class AuthService implements AuthProxy {
-  constructor(private readonly authProxy: AuthProxy) {}
+export class AuthService implements AuthInterface {
+  constructor(private readonly authProxy: AuthInterface) {}
 
   async isAuthenticated() {
     return await this.authProxy.isAuthenticated();
@@ -17,69 +18,27 @@ export class AuthService implements AuthProxy {
     return await this.authProxy.userInfo();
   }
 
-  async signUp(params) {
-    try {
-      return await this.authProxy.signUp(params);
-    } catch (error) {
-      if (error.code) {
-        throw new AuthServiceError(error.message, error.code);
-      }
-      throw error;
-    }
+  async signUp(params: SignUpRequest) {
+    return await this.authProxy.signUp(params);
   }
 
-  async confirmSignUp(params) {
-    try {
-      return await this.authProxy.confirmSignUp(params);
-    } catch (error) {
-      if (error.code) {
-        throw new AuthServiceError(error.message, error.code);
-      }
-      throw error;
-    }
+  async confirmSignUp(params: ConfirmSignUpRequest) {
+    return await this.authProxy.confirmSignUp(params);
   }
 
-  async signIn(params) {
-    try {
-      return await this.authProxy.signIn(params);
-    } catch (error) {
-      if (error.code) {
-        throw new AuthServiceError(error.message, error.code);
-      }
-      throw error;
-    }
+  async signIn(params: SignInRequest) {
+    return await this.authProxy.signIn(params);
   }
 
   async signOut() {
-    try {
-      return await this.authProxy.signOut();
-    } catch (error) {
-      if (error.code) {
-        throw new AuthServiceError(error.message, error.code);
-      }
-      throw error;
-    }
+    return await this.authProxy.signOut();
   }
 
-  async forgotPassword(params) {
-    try {
-      return await this.authProxy.forgotPassword(params);
-    } catch (error) {
-      if (error.code) {
-        throw new AuthServiceError(error.message, error.code);
-      }
-      throw error;
-    }
+  async forgotPassword(params: ForgotPasswordRequest) {
+    return await this.authProxy.forgotPassword(params);
   }
 
-  async confirmForgotPassword(params) {
-    try {
-      return await this.authProxy.confirmForgotPassword(params);
-    } catch (error) {
-      if (error.code) {
-        throw new AuthServiceError(error.message, error.code);
-      }
-      throw error;
-    }
+  async confirmForgotPassword(params: ConfirmForgotPasswordRequest) {
+    return await this.authProxy.confirmForgotPassword(params);
   }
 }

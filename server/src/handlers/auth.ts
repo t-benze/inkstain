@@ -7,18 +7,20 @@ import {
   ForgotPasswordRequest,
   ConfirmForgotPasswordRequest,
 } from '@inkstain/client-api';
-import { AuthServiceError } from '~/server/services/AuthService';
+import { AuthError } from '~/server/proxy/types';
 import { guardAuthenticated } from '~/server/middlewares/guardAuthenticated';
 
-const handleError = (ctx: Context, error: Error) => {
-  if (error instanceof AuthServiceError) {
+function handleError(ctx: Context, error: unknown) {
+  if (error instanceof AuthError) {
     ctx.throw(400, error.message, {
       code: error.code,
     });
+  } else if (error instanceof Error) {
+    ctx.throw(500, error);
+  } else {
+    ctx.throw(500, new Error('Unknown error'));
   }
-  ctx.throw(500, error.message);
-};
-
+}
 /**
  * @swagger
  * /auth/signup:
@@ -40,12 +42,8 @@ const handleError = (ctx: Context, error: Error) => {
  */
 const signUp = async (ctx: Context) => {
   const body = ctx.request.body as SignUpRequest;
-  try {
-    await ctx.authService.signUp(body);
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  await ctx.authService.signUp(body);
+  ctx.status = 200;
 };
 
 /**
@@ -69,12 +67,8 @@ const signUp = async (ctx: Context) => {
  */
 const confirmSignUp = async (ctx: Context) => {
   const body = ctx.request.body as ConfirmSignUpRequest;
-  try {
-    await ctx.authService.confirmSignUp(body);
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  await ctx.authService.confirmSignUp(body);
+  ctx.status = 200;
 };
 
 /**
@@ -98,12 +92,8 @@ const confirmSignUp = async (ctx: Context) => {
  */
 const signIn = async (ctx: Context) => {
   const body = ctx.request.body as SignInRequest;
-  try {
-    await ctx.authService.signIn(body);
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  await ctx.authService.signIn(body);
+  ctx.status = 200;
 };
 
 /**
@@ -124,13 +114,9 @@ const signIn = async (ctx: Context) => {
  *         description: Server error
  */
 const userInfo = async (ctx: Context) => {
-  try {
-    const userInfo = await ctx.authService.userInfo();
-    ctx.body = userInfo;
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  const userInfo = await ctx.authService.userInfo();
+  ctx.body = userInfo;
+  ctx.status = 200;
 };
 
 /**
@@ -145,12 +131,8 @@ const userInfo = async (ctx: Context) => {
  *         description: User signed out successfully
  */
 const signOut = async (ctx: Context) => {
-  try {
-    await ctx.authService.signOut();
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  await ctx.authService.signOut();
+  ctx.status = 200;
 };
 
 /**
@@ -176,12 +158,8 @@ const signOut = async (ctx: Context) => {
  */
 const forgotPassword = async (ctx: Context) => {
   const body = ctx.request.body as ForgotPasswordRequest;
-  try {
-    await ctx.authService.forgotPassword(body);
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  await ctx.authService.forgotPassword(body);
+  ctx.status = 200;
 };
 
 /**
@@ -207,12 +185,8 @@ const forgotPassword = async (ctx: Context) => {
  */
 const confirmForgotPassword = async (ctx: Context) => {
   const body = ctx.request.body as ConfirmForgotPasswordRequest;
-  try {
-    await ctx.authService.confirmForgotPassword(body);
-    ctx.status = 200;
-  } catch (error) {
-    handleError(ctx, error);
-  }
+  await ctx.authService.confirmForgotPassword(body);
+  ctx.status = 200;
 };
 
 export const registerAuthRoutes = (router: Router) => {

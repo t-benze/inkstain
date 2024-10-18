@@ -141,41 +141,30 @@ const listDocuments = async (ctx: Context) => {
   const filePath = ctx.query.path as string;
   const folderOnly = ctx.query.folderOnly === '1';
 
-  try {
-    const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
-    const files = await fs.readdir(fullPath);
-    const results = files
-      .filter((file) => file !== '.inkstain' && file !== '.DS_Store')
-      .map(async (file) => {
-        const isFile = file.endsWith('.ink');
-        file = isFile ? file.slice(0, file.length - 4) : file;
-        return {
-          name: file,
-          type: isFile ? 'file' : 'folder',
-          path: path.join(filePath, file),
-          absolutePath: path.join(fullPath, file),
-        };
-      });
-    ctx.status = 200;
-    const data = await Promise.all(results);
-    if (folderOnly) {
-      ctx.body = data.filter((item) => item.type === 'folder');
-    } else {
-      ctx.body = data;
-    }
-    logger.info(
-      `Listed documents in space '${spaceKey}' at path '${filePath || '/'}'`
-    );
-  } catch (error) {
-    if (error instanceof SpaceServiceError) {
-      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
-        ctx.status = 404;
-        ctx.body = error.message;
-        return;
-      }
-    }
-    throw error;
+  const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
+  const files = await fs.readdir(fullPath);
+  const results = files
+    .filter((file) => file !== '.inkstain' && file !== '.DS_Store')
+    .map(async (file) => {
+      const isFile = file.endsWith('.ink');
+      file = isFile ? file.slice(0, file.length - 4) : file;
+      return {
+        name: file,
+        type: isFile ? 'file' : 'folder',
+        path: path.join(filePath, file),
+        absolutePath: path.join(fullPath, file),
+      };
+    });
+  ctx.status = 200;
+  const data = await Promise.all(results);
+  if (folderOnly) {
+    ctx.body = data.filter((item) => item.type === 'folder');
+  } else {
+    ctx.body = data;
   }
+  logger.info(
+    `Listed documents in space '${spaceKey}' at path '${filePath || '/'}'`
+  );
 };
 
 /**
@@ -214,33 +203,17 @@ const listDocuments = async (ctx: Context) => {
 const getDocumentContent = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const filePath = ctx.query.path + '.ink';
-  try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const fileMetaStr = await fs.readFile(
-      path.join(spaceRoot, filePath, 'meta.json'),
-      'utf-8'
-    );
-    const extension = path.extname(ctx.query.path as string);
-    const meta = JSON.parse(fileMetaStr);
-    ctx.response.type = meta.mimetype;
-    await send(ctx, path.join(filePath, `content${extension}`), {
-      root: spaceRoot,
-    });
-    // Log the successful operation
-    logger.info(
-      `Served document content from ${path.join(filePath, 'content')}`
-    );
-  } catch (error) {
-    if (error instanceof SpaceServiceError) {
-      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
-        ctx.status = 404;
-        ctx.body = error.message;
-        return;
-      }
-    }
-    logger.error(error.message);
-    throw error;
-  }
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const fileMetaStr = await fs.readFile(
+    path.join(spaceRoot, filePath, 'meta.json'),
+    'utf-8'
+  );
+  const extension = path.extname(ctx.query.path as string);
+  const meta = JSON.parse(fileMetaStr);
+  ctx.response.type = meta.mimetype;
+  await send(ctx, path.join(filePath, `content${extension}`), {
+    root: spaceRoot,
+  });
 };
 
 /**
@@ -273,21 +246,15 @@ const openDocumentWithSystemApp = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
   const filePath = ctx.query.path + '.ink';
   const open = await import('open');
-  try {
-    const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
-    const extension = path.extname(ctx.query.path as string);
-    const file = path.join(fullPath, `content${extension}`);
-    // If parameters or parameter values contain a space, they need to be surrounded with escaped double quotes.
-    // For more information, see https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules?view=powershell-7.4&viewFallbackFrom=powershell-7.1.
-    open.default(os.platform() === 'win32' ? '`"' + file + '`"' : file);
-    ctx.status = 200;
-    ctx.body = { message: 'Document opened successfully' };
-    logger.info(`Opened document at ${file}`);
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { message: error.message };
-    logger.error(`Failed to open document: ${error.message}`);
-  }
+  const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
+  const extension = path.extname(ctx.query.path as string);
+  const file = path.join(fullPath, `content${extension}`);
+  // If parameters or parameter values contain a space, they need to be surrounded with escaped double quotes.
+  // For more information, see https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules?view=powershell-7.4&viewFallbackFrom=powershell-7.1.
+  open.default(os.platform() === 'win32' ? '`"' + file + '`"' : file);
+  ctx.status = 200;
+  ctx.body = { message: 'Document opened successfully' };
+  logger.info(`Opened document at ${file}`);
 };
 
 /**
@@ -350,39 +317,33 @@ const addDocument = async (ctx: Context) => {
     return;
   }
 
-  try {
-    const ext = path.extname(file.originalname);
-    // const filename = path.basename(file.originalname, ext);
-    const targetDirectoryPath = await getFullPath(
-      ctx.spaceService,
-      spaceKey,
-      targetPath + '.ink'
-    );
-    // Create target directory
-    await fs.mkdir(targetDirectoryPath, { recursive: true });
+  const ext = path.extname(file.originalname);
+  // const filename = path.basename(file.originalname, ext);
+  const targetDirectoryPath = await getFullPath(
+    ctx.spaceService,
+    spaceKey,
+    targetPath + '.ink'
+  );
+  // Create target directory
+  await fs.mkdir(targetDirectoryPath, { recursive: true });
 
-    // Write file content
-    const contentPath = path.join(targetDirectoryPath, `content${ext}`);
-    await fs.writeFile(contentPath, file.buffer);
+  // Write file content
+  const contentPath = path.join(targetDirectoryPath, `content${ext}`);
+  await fs.writeFile(contentPath, file.buffer);
 
-    // Write metadata json
-    const metadata = {
-      mimetype: file.mimetype,
-      // Add other metadata if available
-    };
-    const metadataPath = path.join(targetDirectoryPath, 'meta.json');
-    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
-    await ctx.documentService.indexDocument(spaceKey, targetPath);
-    ctx.status = 201;
-    ctx.body = {
-      message: 'Document added successfully',
-      path: targetDirectoryPath,
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { message: error.message };
-    logger.error(`Failed to add document: ${error.message}`);
-  }
+  // Write metadata json
+  const metadata = {
+    mimetype: file.mimetype,
+    // Add other metadata if available
+  };
+  const metadataPath = path.join(targetDirectoryPath, 'meta.json');
+  await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+  await ctx.documentService.indexDocument(spaceKey, targetPath);
+  ctx.status = 201;
+  ctx.body = {
+    message: 'Document added successfully',
+    path: targetDirectoryPath,
+  };
 };
 
 /**
@@ -423,22 +384,16 @@ const deleteDocument = async (ctx: Context) => {
     return;
   }
 
-  try {
-    const targetDirectoryPath = await getFullPath(
-      ctx.spaceService,
-      spaceKey,
-      targetPath + '.ink'
-    );
+  const targetDirectoryPath = await getFullPath(
+    ctx.spaceService,
+    spaceKey,
+    targetPath + '.ink'
+  );
 
-    await ctx.documentService.deleteDocument(spaceKey, targetPath);
-    await fs.rm(targetDirectoryPath, { recursive: true, force: true });
-    ctx.status = 200;
-    ctx.body = 'Document deleted successfully';
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { message: error.message };
-    logger.error(`Failed to delete document: ${error.message}`);
-  }
+  await ctx.documentService.deleteDocument(spaceKey, targetPath);
+  await fs.rm(targetDirectoryPath, { recursive: true, force: true });
+  ctx.status = 200;
+  ctx.body = 'Document deleted successfully';
 };
 
 /**
@@ -479,21 +434,15 @@ const addFolder = async (ctx: Context) => {
     return;
   }
 
-  try {
-    const targetDirectoryPath = await getFullPath(
-      ctx.spaceService,
-      spaceKey,
-      targetPath
-    );
+  const targetDirectoryPath = await getFullPath(
+    ctx.spaceService,
+    spaceKey,
+    targetPath
+  );
 
-    await fs.mkdir(targetDirectoryPath, { recursive: true });
-    ctx.status = 200;
-    ctx.body = 'Folder created successfully';
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { message: error.message };
-    logger.error(`Failed to create folder: ${error.message}`);
-  }
+  await fs.mkdir(targetDirectoryPath, { recursive: true });
+  ctx.status = 200;
+  ctx.body = 'Folder created successfully';
 };
 
 /**
@@ -534,26 +483,20 @@ const deleteFolder = async (ctx: Context) => {
     return;
   }
 
-  try {
-    const targetDirectoryPath = await getFullPath(
-      ctx.spaceService,
-      spaceKey,
-      targetPath
-    );
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const documentsToIndex = [];
-    await traverseDirectory(space.path, targetPath, documentsToIndex);
-    for (const doc of documentsToIndex) {
-      ctx.documentService.deleteDocument(spaceKey, doc);
-    }
-    await fs.rm(targetDirectoryPath, { recursive: true, force: true });
-    ctx.status = 200;
-    ctx.body = 'Folder deleted successfully';
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { message: error.message };
-    logger.error(`Failed to delete folder: ${error.message}`);
+  const targetDirectoryPath = await getFullPath(
+    ctx.spaceService,
+    spaceKey,
+    targetPath
+  );
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const documentsToIndex: string[] = [];
+  await traverseDirectory(space.path, targetPath, documentsToIndex);
+  for (const doc of documentsToIndex) {
+    ctx.documentService.deleteDocument(spaceKey, doc);
   }
+  await fs.rm(targetDirectoryPath, { recursive: true, force: true });
+  ctx.status = 200;
+  ctx.body = 'Folder deleted successfully';
 };
 
 /**
@@ -608,50 +551,33 @@ export const exportDocument = async (ctx: Context) => {
   const filePath = (ctx.request.query.path as string) + '.ink';
   const withData = ctx.request.query.withData === '1';
 
-  try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const fileMetaStr = await fs.readFile(
-      path.join(spaceRoot, filePath, 'meta.json'),
-      'utf-8'
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const fileMetaStr = await fs.readFile(
+    path.join(spaceRoot, filePath, 'meta.json'),
+    'utf-8'
+  );
+  const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileName =
+    meta.attributes?.title ||
+    (ctx.request.query.path as string).replace(
+      path.basename(ctx.request.query.path as string),
+      ''
     );
-    const meta = JSON.parse(fileMetaStr) as MetaData;
-    const fileName =
-      meta.attributes.title ||
-      (ctx.request.query.path as string).replace(
-        path.basename(ctx.request.query.path as string),
-        ''
-      );
-    const extension = path.extname(ctx.query.path as string);
-    if (withData) {
-      ctx.set(
-        'Content-disposition',
-        `attachment; filename=${fileName}.ink.zip`
-      );
-      ctx.set('Content-type', 'application/zip');
-      ctx.body = await zipFolder(path.join(spaceRoot, filePath));
-    } else {
-      ctx.set(
-        'Content-disposition',
-        `attachment; filename=${meta.attributes.title || fileName}`
-      );
-      ctx.set('Content-type', meta.mimetype);
-      // Stream the file content
-      ctx.body = createReadStream(
-        path.join(spaceRoot, filePath, `content${extension}`)
-      );
-    }
-    // Log the successful operation
-    logger.info(`exported document from ${path.join(filePath, 'content')}`);
-  } catch (error) {
-    if (error instanceof SpaceServiceError) {
-      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
-        ctx.status = 404;
-        ctx.body = error.message;
-        return;
-      }
-    }
-    logger.error(error.message);
-    throw error;
+  const extension = path.extname(ctx.query.path as string);
+  if (withData) {
+    ctx.set('Content-disposition', `attachment; filename=${fileName}.ink.zip`);
+    ctx.set('Content-type', 'application/zip');
+    ctx.body = await zipFolder(path.join(spaceRoot, filePath));
+  } else {
+    ctx.set(
+      'Content-disposition',
+      `attachment; filename=${meta.attributes?.title || fileName}`
+    );
+    ctx.set('Content-type', meta.mimetype);
+    // Stream the file content
+    ctx.body = createReadStream(
+      path.join(spaceRoot, filePath, `content${extension}`)
+    );
   }
 };
 
@@ -696,43 +622,24 @@ const renameDocument = async (ctx: Context) => {
   const oldPath = ctx.query.path as string;
   const newName = ctx.query.newName as string;
 
-  try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const oldFullPath = path.join(spaceRoot, oldPath) + '.ink';
-    const newPath = path.join(path.dirname(oldPath), newName);
-    const newFullPath = path.join(spaceRoot, newPath) + '.ink';
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const oldFullPath = path.join(spaceRoot, oldPath) + '.ink';
+  const newPath = path.join(path.dirname(oldPath), newName);
+  const newFullPath = path.join(spaceRoot, newPath) + '.ink';
 
-    try {
-      if (await fs.stat(newFullPath)) {
-        ctx.status = 409;
-        ctx.body = {
-          message: 'A document with the new name already exists.',
-        };
-        return;
-      }
-    } catch (error) {
-      // newFullPath does not exist
-    }
-
-    await ctx.documentService.updateDocumentPath(spaceKey, oldPath, newPath);
-    await fs.rename(oldFullPath, newFullPath);
-    ctx.status = 200;
-    ctx.body = { message: 'Document renamed successfully', newPath };
-    logger.info(
-      `Renamed document ${oldPath} to ${newPath} in space ${spaceKey}`
-    );
-  } catch (error) {
-    if (error instanceof SpaceServiceError) {
-      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
-        ctx.status = 404;
-        ctx.body = { message: error.message };
-        return;
-      }
-    }
-    logger.error(`Failed to rename document: ${error.message}`);
-    ctx.status = 500;
-    ctx.body = { message: 'Internal server error' };
+  if (existsSync(newFullPath)) {
+    ctx.status = 409;
+    ctx.body = {
+      message: 'A document with the new name already exists.',
+    };
+    return;
   }
+
+  await ctx.documentService.updateDocumentPath(spaceKey, oldPath, newPath);
+  await fs.rename(oldFullPath, newFullPath);
+  ctx.status = 200;
+  ctx.body = { message: 'Document renamed successfully', newPath };
+  logger.info(`Renamed document ${oldPath} to ${newPath} in space ${spaceKey}`);
 };
 
 /**
@@ -776,50 +683,33 @@ const renameFolder = async (ctx: Context) => {
   const oldPath = ctx.query.path as string;
   const newName = ctx.query.newName as string;
 
-  try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const oldFullPath = path.join(spaceRoot, oldPath);
-    const newPath = path.join(path.dirname(oldPath), newName);
-    const newFullPath = path.join(spaceRoot, newPath);
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const oldFullPath = path.join(spaceRoot, oldPath);
+  const newPath = path.join(path.dirname(oldPath), newName);
+  const newFullPath = path.join(spaceRoot, newPath);
 
-    try {
-      if (await fs.stat(newFullPath)) {
-        ctx.status = 409;
-        ctx.body = {
-          message: 'A folder with the new name already exists.',
-        };
-        return;
-      }
-    } catch (error) {
-      // newFullPath does not exist
-    }
-
-    const documentsToUpdate = [];
-    await traverseDirectory(spaceRoot, oldPath, documentsToUpdate);
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    for (const doc of documentsToUpdate) {
-      await ctx.documentService.updateDocumentPath(
-        space.key,
-        doc,
-        doc.replace(oldPath, newPath)
-      );
-    }
-    await fs.rename(oldFullPath, newFullPath);
-    ctx.status = 200;
-    ctx.body = { message: 'Folder renamed successfully', newPath };
-    logger.info(`Renamed folder ${oldPath} to ${newPath} in space ${spaceKey}`);
-  } catch (error) {
-    if (error instanceof SpaceServiceError) {
-      if (error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST) {
-        ctx.status = 404;
-        ctx.body = { message: error.message };
-        return;
-      }
-    }
-    logger.error(`Failed to rename folder: ${error.message}`);
-    ctx.status = 500;
-    ctx.body = { message: 'Internal server error' };
+  if (existsSync(newFullPath)) {
+    ctx.status = 409;
+    ctx.body = {
+      message: 'A folder with the new name already exists.',
+    };
+    return;
   }
+
+  const documentsToUpdate: string[] = [];
+  await traverseDirectory(spaceRoot, oldPath, documentsToUpdate);
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  for (const doc of documentsToUpdate) {
+    await ctx.documentService.updateDocumentPath(
+      space.key,
+      doc,
+      doc.replace(oldPath, newPath)
+    );
+  }
+  await fs.rename(oldFullPath, newFullPath);
+  ctx.status = 200;
+  ctx.body = { message: 'Folder renamed successfully', newPath };
+  logger.info(`Renamed folder ${oldPath} to ${newPath} in space ${spaceKey}`);
 };
 
 /**
@@ -852,6 +742,10 @@ const renameFolder = async (ctx: Context) => {
  *               mimeType:
  *                 type: string
  *                 description: MIME type of the document to import
+ *             required:
+ *               - localFilePath
+ *               - targetPath
+ *               - mimeType
  *     responses:
  *       200:
  *         description: Document imported successfully.
@@ -877,24 +771,20 @@ const importDocument = async (ctx: Context) => {
     ctx.throw(400, 'A document with the new name already exists.');
   }
 
-  try {
-    await fs.mkdir(fullTargetPath, { recursive: true });
-    const ext = path.extname(localFilePath);
-    await fs.rename(localFilePath, path.join(fullTargetPath, `content${ext}`));
-    const meta: MetaData = {
-      mimetype: mimeType,
-      attributes: {},
-    };
-    await fs.writeFile(
-      path.join(fullTargetPath, 'meta.json'),
-      JSON.stringify(meta, null, 2)
-    );
-    await ctx.documentService.indexDocument(spaceKey, targetPath);
-    ctx.status = 200;
-    ctx.body = { message: 'Document imported successfully', targetPath };
-  } catch (error) {
-    ctx.throw(500, error.message);
-  }
+  await fs.mkdir(fullTargetPath, { recursive: true });
+  const ext = path.extname(localFilePath);
+  await fs.rename(localFilePath, path.join(fullTargetPath, `content${ext}`));
+  const meta: MetaData = {
+    mimetype: mimeType,
+    attributes: {},
+  };
+  await fs.writeFile(
+    path.join(fullTargetPath, 'meta.json'),
+    JSON.stringify(meta, null, 2)
+  );
+  await ctx.documentService.indexDocument(spaceKey, targetPath);
+  ctx.status = 200;
+  ctx.body = { message: 'Document imported successfully', targetPath };
 };
 
 // Register routes and export

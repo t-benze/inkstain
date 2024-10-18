@@ -33,14 +33,9 @@ export class SpaceService {
       //create the space data file with empty object if it doesn't exists
       await fs.writeFile(settings.spaceDataFile, '{}', 'utf-8');
     }
-    try {
-      const fileContent = await fs.readFile(settings.spaceDataFile, 'utf-8');
-      const data = JSON.parse(fileContent) as { [key: string]: Space };
-      return data;
-    } catch (error) {
-      logger.error(error.message);
-      throw error;
-    }
+    const fileContent = await fs.readFile(settings.spaceDataFile, 'utf-8');
+    const data = JSON.parse(fileContent) as { [key: string]: Space };
+    return data;
   }
 
   public async saveSpaceData(spaces: { [key: string]: Space }): Promise<void> {

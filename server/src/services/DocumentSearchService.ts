@@ -52,7 +52,7 @@ export class DocumentSearchService {
   ) {
     const space = await this.spaceService.getSpace(spaceKey);
     await this.clearIndex(spaceKey);
-    const documentsToIndex = [];
+    const documentsToIndex = [] as string[];
     await traverseDirectory(space.path, '', documentsToIndex);
     const totalDocuments = documentsToIndex.length;
     for (const [index, doc] of documentsToIndex.entries()) {

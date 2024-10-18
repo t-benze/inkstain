@@ -1,10 +1,8 @@
-import { spawn, ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import fs from 'fs/promises';
-import path, { join } from 'path';
+import path from 'path';
 import {
-  AuthProxy,
-  IntelligenceProxy,
   SignUpRequest,
   ConfirmSignUpRequest,
   SignInRequest,
@@ -12,50 +10,49 @@ import {
   ConfirmForgotPasswordRequest,
   DocumentTextDetectionData,
 } from '~/server/types';
+import { AuthInterface, IntelligenceInterface } from './types';
 import { directories, analyzeImagePath } from '~/server/settings';
 import logger from '../logger';
 
 const inputPath = path.join(directories.stateDir, 'task-input.data');
 const outputPath = path.join(directories.stateDir, 'task-output.json');
 
-export class LocalProxy implements AuthProxy, IntelligenceProxy {
-  private pythonProcess: ChildProcess | null = null;
-  private stopTimer: NodeJS.Timeout | null = null;
+export class LocalProxy implements AuthInterface, IntelligenceInterface {
+  private pythonProcess = this.startDocAnalysisProcess();
   private eventEmitter: EventEmitter;
 
   constructor() {
+    this.pythonProcess = this.startDocAnalysisProcess();
     this.eventEmitter = new EventEmitter();
   }
 
-  async startDocAnalysisProcess() {
-    this.pythonProcess = spawn(analyzeImagePath, [], {
+  startDocAnalysisProcess() {
+    const pythonProcess = spawn(analyzeImagePath, [], {
+      stdio: ['pipe', 'pipe', 'pipe'],
       env: {
         INPUT: inputPath,
         OUTPUT: outputPath,
       },
     });
     if (process.env.NODE_ENV == 'development') {
-      this.pythonProcess.stderr.on('data', (data) => {
+      pythonProcess.stderr.on('data', (data) => {
         console.log(data.toString());
       });
     }
-    this.pythonProcess.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', (data) => {
       const command = data.toString().trim();
       if (command === 'done') {
         this.eventEmitter.emit('done');
       }
     });
-    this.pythonProcess.on('error', (error) => {
+    pythonProcess.on('error', (error) => {
       this.eventEmitter.emit('error_exit', error);
       logger.error(`Failed to start doc analysis process: ${error.message}`);
     });
-    this.pythonProcess.on('close', (code) => {
+    pythonProcess.on('close', (code) => {
       logger.info(`Doc analysis process exited with code ${code}`);
     });
-    // await new Promise((resolve, reject) => {
-    //   this.eventEmitter.once('ready', resolve);
-    //   this.eventEmitter.once('error_exit', reject);
-    // });
+    return pythonProcess;
   }
 
   async isAuthenticated() {
@@ -94,13 +91,7 @@ export class LocalProxy implements AuthProxy, IntelligenceProxy {
   }
 
   async analyzeImage(image: string) {
-    if (this.stopTimer) {
-      clearTimeout(this.stopTimer);
-    }
     await fs.writeFile(inputPath, image);
-    if (!this.pythonProcess) {
-      await this.startDocAnalysisProcess();
-    }
     this.pythonProcess.stdin.write('run\n');
     const startTime = Date.now();
     await new Promise((resolve, reject) => {
@@ -110,14 +101,7 @@ export class LocalProxy implements AuthProxy, IntelligenceProxy {
     logger.info(
       `Doc analysis process took ${(Date.now() - startTime) / 1000}s`
     );
-
     const data = await fs.readFile(outputPath, 'utf8');
-    this.stopTimer = setTimeout(() => {
-      logger.info('Stopping doc analysis process');
-      this.pythonProcess.stdin.write('exit\n');
-      this.pythonProcess.stdin.end();
-      this.pythonProcess = null;
-    }, 5000);
     return JSON.parse(data) as DocumentTextDetectionData;
   }
 }

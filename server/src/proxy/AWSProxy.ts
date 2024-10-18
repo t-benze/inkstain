@@ -14,8 +14,6 @@ import {
 } from '~/server/settings';
 import fs from 'fs/promises';
 import {
-  AuthProxy,
-  IntelligenceProxy,
   SignUpRequest,
   ConfirmSignUpRequest,
   SignInRequest,
@@ -24,6 +22,7 @@ import {
   DocumentTextDetectionData,
 } from '~/server/types';
 import logger from '~/server/logger';
+import { AuthInterface, IntelligenceInterface, AuthError } from './types';
 
 type Tokens = {
   idToken: string;
@@ -31,7 +30,7 @@ type Tokens = {
   expiration: number;
 };
 
-export class AWSProxy implements AuthProxy, IntelligenceProxy {
+export class AWSProxy implements AuthInterface, IntelligenceInterface {
   private userPool: CognitoUserPool;
   private tokens: Tokens | null = null;
 
@@ -87,7 +86,14 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
   }
 
   async userInfo() {
-    const { idToken: tokenString } = await this.getTokens();
+    const tokens = await this.getTokens();
+    if (!tokens) {
+      throw new AuthError(
+        'User is not authenticated',
+        AuthError.CODE_INVALID_TOKENS
+      );
+    }
+    const { idToken: tokenString } = tokens;
     return this.decodeIDToken(tokenString);
   }
 
@@ -123,7 +129,7 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
         params.username,
         params.password,
         [new CognitoUserAttribute({ Name: 'email', Value: params.email })],
-        null,
+        [],
         (err) => {
           if (err) {
             reject(err);
@@ -225,7 +231,14 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
   }
 
   async analyzeImage(image: string): Promise<DocumentTextDetectionData> {
-    const { idToken: tokenString } = await this.getTokens();
+    const tokens = await this.getTokens();
+    if (!tokens) {
+      throw new AuthError(
+        'User is not authenticated',
+        AuthError.CODE_INVALID_TOKENS
+      );
+    }
+    const { idToken: tokenString } = tokens;
     const response = await fetch(`${intelligenceAPIBase}/analyze-document`, {
       method: 'POST',
       body: image,
@@ -242,7 +255,23 @@ export class AWSProxy implements AuthProxy, IntelligenceProxy {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      Id: string;
+      BlockType: string;
+      Geometry: {
+        BoundingBox: {
+          Width: number;
+          Height: number;
+          Left: number;
+          Top: number;
+        };
+      };
+      Relationships?: {
+        Type: string;
+        Ids?: string[];
+      }[];
+      Text?: string;
+    }[];
     const blockIdToIndex: Record<string, number> = {};
     data.forEach((block, index) => {
       blockIdToIndex[block['Id'] as string] = index;

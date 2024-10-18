@@ -19,7 +19,7 @@ interface TaskEvents {
   taskStarted: (taskId: string) => void;
   taskProgress: (taskId: string, progress: number) => void;
   taskCompleted: (taskId: string) => void;
-  taskFailed: (taskId: string, error: Error) => void;
+  taskFailed: (taskId: string, error: unknown) => void;
 }
 
 export class TaskService extends EventEmitter {
@@ -57,12 +57,11 @@ export class TaskService extends EventEmitter {
     return taskId;
   }
 
-  async executeTask(taskId) {
-    if (!this.tasks.has(taskId)) {
+  async executeTask(taskId: string) {
+    const task = this.tasks.get(taskId);
+    if (!task) {
       throw new Error(`Task with ID ${taskId} does not exist`);
     }
-
-    const task = this.tasks.get(taskId);
     task.status = 'running';
     this.emit('taskStarted', taskId);
 
@@ -76,17 +75,22 @@ export class TaskService extends EventEmitter {
       task.progress = 100;
       this.emit('taskCompleted', taskId);
     } catch (error) {
-      logger.error(`Task ${taskId} failed: ${error.message}: ${error.stack}`);
       task.status = 'failed';
+      if (error instanceof Error) {
+        logger.error(`Task ${taskId} failed: ${error.message}: ${error.stack}`);
+      } else {
+        logger.error(`Task ${taskId} failed: ${error}`);
+      }
       this.emit('taskFailed', taskId, error);
     }
   }
 
-  getTaskStatus(taskId) {
-    if (!this.tasks.has(taskId)) {
+  getTaskStatus(taskId: string) {
+    const task = this.tasks.get(taskId);
+    if (!task) {
       throw new Error(`Task with ID ${taskId} does not exist`);
     }
-    return this.tasks.get(taskId);
+    return task;
   }
 }
 

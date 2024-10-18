@@ -1,5 +1,4 @@
 import Router from '@koa/router';
-import fs from 'fs/promises';
 import { Context } from '~/server/types';
 import { guardAuthenticated } from '~/server/middlewares/guardAuthenticated';
 import { IntelligenceAnalyzeDocumentRequest } from '@inkstain/client-api';
@@ -29,6 +28,8 @@ import { IntelligenceAnalyzeDocumentRequest } from '@inkstain/client-api';
  *               documentPath:
  *                 type: string
  *                 description: The relative path to the document within the space
+ *             required:
+ *               - documentPath
  *     responses:
  *       200:
  *         description: Analyzed document successfully.
@@ -51,16 +52,12 @@ export const analyzePDFDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { documentPath } = ctx.request
     .body as IntelligenceAnalyzeDocumentRequest;
-  try {
-    const taskId = await ctx.intelligenceService.analyzePDFDocument({
-      spaceKey,
-      documentPath,
-    });
-    ctx.status = 200;
-    ctx.body = { taskId };
-  } catch (e) {
-    ctx.throw(500, e.message);
-  }
+  const taskId = await ctx.intelligenceService.analyzePDFDocument({
+    spaceKey,
+    documentPath,
+  });
+  ctx.status = 200;
+  ctx.body = { taskId };
 };
 
 /**
@@ -88,6 +85,8 @@ export const analyzePDFDocument = async (ctx: Context) => {
  *               documentPath:
  *                 type: string
  *                 description: The relative path to the document within the space
+ *             required:
+ *               - documentPath
  *     responses:
  *       200:
  *         description: Analyzed document successfully.
@@ -110,16 +109,12 @@ export const analyzeWebclipDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { documentPath } = ctx.request
     .body as IntelligenceAnalyzeDocumentRequest;
-  try {
-    const taskId = await ctx.intelligenceService.analyzeWebclipDocument({
-      spaceKey,
-      documentPath,
-    });
-    ctx.status = 200;
-    ctx.body = { taskId };
-  } catch (e) {
-    ctx.throw(500, e.message);
-  }
+  const taskId = await ctx.intelligenceService.analyzeWebclipDocument({
+    spaceKey,
+    documentPath,
+  });
+  ctx.status = 200;
+  ctx.body = { taskId };
 };
 
 /**
@@ -174,20 +169,16 @@ const getDocumentLayout = async (ctx: Context) => {
     ctx.throw(400, 'Missing required parameters');
   }
 
-  try {
-    const result = await ctx.intelligenceService.readAnalyzedDocumentCache(
-      spaceKey,
-      documentPath,
-      pageNum
-    );
+  const result = await ctx.intelligenceService.readAnalyzedDocumentCache(
+    spaceKey,
+    documentPath,
+    pageNum
+  );
 
-    ctx.status = 200;
-    ctx.body = {
-      data: result,
-    };
-  } catch (e) {
-    ctx.throw(500, e.message);
-  }
+  ctx.status = 200;
+  ctx.body = {
+    data: result,
+  };
 };
 
 /**
@@ -231,17 +222,12 @@ const docLayoutStatus = async (ctx: Context) => {
     path: string;
     pageNum: string;
   };
-  try {
-    const status = await ctx.intelligenceService.getDocLayoutStatus({
-      spaceKey,
-      documentPath,
-    });
-    ctx.status = 200;
-    ctx.body = { status };
-  } catch (e) {
-    ctx.status = 200;
-    ctx.body = { status: null };
-  }
+  const status = await ctx.intelligenceService.getDocLayoutStatus({
+    spaceKey,
+    documentPath,
+  });
+  ctx.status = 200;
+  ctx.body = { status };
 };
 
 export const registerIntelligenceRoutes = (router: Router) => {

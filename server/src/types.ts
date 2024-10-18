@@ -4,6 +4,7 @@ import { DocumentSearchService } from './services/DocumentSearchService';
 import { SpaceService } from './services/SpaceService';
 import { TaskService } from './services/TaskService';
 import { AuthService } from './services/AuthService';
+import { FileService } from './services/FileService';
 import { IntelligenceService } from './services/IntelligenceService';
 import {
   Space,
@@ -30,31 +31,8 @@ export {
   AnnotationData,
   DocumentMeta as MetaData,
   DocumentTextDetectionData,
+  Space,
 };
-
-export { Space };
-
-export interface AuthProxy {
-  isAuthenticated: () => Promise<boolean>;
-  userInfo: () => Promise<UserInfo>;
-  signUp: (request: SignUpRequest) => Promise<void>;
-  confirmSignUp: (request: ConfirmSignUpRequest) => Promise<void>;
-  signIn: (request: SignInRequest) => Promise<void>;
-  signOut: () => Promise<void>;
-  forgotPassword: (request: ForgotPasswordRequest) => Promise<void>;
-  confirmForgotPassword: (
-    request: ConfirmForgotPasswordRequest
-  ) => Promise<void>;
-}
-
-export interface IntelligenceProxy {
-  /**
-   * Analyzes a document image and returns the layout data
-   * @param image - The base64 encoded document image
-   * @returns The layout data of the document
-   */
-  analyzeImage: (image: string) => Promise<DocumentTextDetectionData>;
-}
 
 export type Context = Router.RouterContext & {
   validator: AJV;
@@ -63,6 +41,7 @@ export type Context = Router.RouterContext & {
   taskService: TaskService;
   authService: AuthService;
   intelligenceService: IntelligenceService;
+  fileService: FileService;
 };
 
 export type DocLayoutIndex = {

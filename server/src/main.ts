@@ -1,4 +1,4 @@
-import Koa from 'koa';
+import Koa, { HttpError } from 'koa';
 import Router from '@koa/router';
 import path from 'path';
 import fs from 'fs/promises';
@@ -10,6 +10,7 @@ import { host, port, sqlitePath } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
 import AJV from 'ajv';
+// @ts-expect-error swagger-ui-dist is not typed
 import swaggerUi from 'swagger-ui-dist';
 import { Sequelize } from 'sequelize';
 import { SpaceService } from './services/SpaceService';
@@ -19,6 +20,7 @@ import { AuthService } from './services/AuthService';
 import { IntelligenceService } from './services/IntelligenceService';
 import { ImageService } from './services/ImageService';
 import { PDFService } from './services/PDFService';
+import { FileService } from './services/FileService';
 import { initDB } from './db';
 import { Context } from './types';
 import { registerRoutes } from './handlers';
@@ -100,12 +102,22 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (err) {
-    ctx.status = err.statusCode || err.status || 500;
-    ctx.body = {
-      message: err.message || 'Internal server error',
-      error: err.code,
-    };
-    ctx.app.emit('error', err, ctx);
+    if (err instanceof Error) {
+      if (err instanceof HttpError) {
+        ctx.status = err.statusCode || err.status || 500;
+        ctx.body = {
+          message: err.message || 'Internal server error',
+          error: err.code,
+        };
+      }
+      ctx.app.emit('error', err, ctx);
+    } else {
+      ctx.status = 500;
+      ctx.body = {
+        message: 'Internal server error',
+      };
+      ctx.app.emit('error', new Error(`Internal server error: ${err}`), ctx);
+    }
   }
 });
 
@@ -114,7 +126,7 @@ app.on('error', (err: Error, ctx: Context) => {
     method: ctx.request.method,
     url: ctx.request.url,
     error: err.message,
-    stack: err.stack,
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
   });
 });
 
@@ -137,7 +149,11 @@ async function start() {
       'utf8'
     );
     const validator = new AJV();
-    const schema = YAML.load(schemaContent);
+    const schema = YAML.load(schemaContent) as {
+      components: {
+        schemas: { [key: string]: object };
+      };
+    };
     Object.keys(schema.components.schemas).forEach((key) => {
       validator.addSchema(schema.components.schemas[key], key);
     });
@@ -167,6 +183,7 @@ async function start() {
       app.context.imageService,
       proxy
     );
+    app.context.fileService = new FileService(app.context.spaceService);
   } catch (e) {
     logger.error('Failed to load schema');
     throw e;

@@ -8,38 +8,31 @@ const staticProxy = async (ctx: Context) => {
   const responseType = query.responseType as string;
 
   if (!targetUrl) {
-    ctx.status = 400;
-    ctx.body = 'Missing target URL';
-    return;
+    ctx.throw(400, 'Missing target URL');
   }
 
-  try {
-    const response = await fetch(targetUrl);
-    const contentType =
-      response.headers.get('Content-Type') || 'application/octet-stream';
+  const response = await fetch(targetUrl);
+  const contentType =
+    response.headers.get('Content-Type') || 'application/octet-stream';
 
-    if (responseType === 'text') {
-      // For text responseType, convert to data URL
-      const buffer = await response.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      const dataUrl = `data:${contentType};base64,${base64}`;
+  if (responseType === 'text') {
+    // For text responseType, convert to data URL
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    const dataUrl = `data:${contentType};base64,${base64}`;
 
-      ctx.body = dataUrl;
-      ctx.set('Content-Type', 'text/plain');
-      ctx.set('Content-Length', Buffer.byteLength(dataUrl).toString());
-    } else {
-      // For blob responseType (default), stream the response
-      ctx.set('Content-Type', contentType);
-      const contentLength = response.headers.get('Content-Length');
-      if (contentLength) {
-        ctx.set('Content-Length', contentLength);
-      }
-      // ctx.body = Readable.from(response.body);
-      ctx.body = response.body;
+    ctx.body = dataUrl;
+    ctx.set('Content-Type', 'text/plain');
+    ctx.set('Content-Length', Buffer.byteLength(dataUrl).toString());
+  } else {
+    // For blob responseType (default), stream the response
+    ctx.set('Content-Type', contentType);
+    const contentLength = response.headers.get('Content-Length');
+    if (contentLength) {
+      ctx.set('Content-Length', contentLength);
     }
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = `Error fetching target URL: ${error.message}`;
+    // ctx.body = Readable.from(response.body);
+    ctx.body = response.body;
   }
 };
 
