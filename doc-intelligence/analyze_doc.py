@@ -20,6 +20,8 @@ from surya.ocr import run_recognition
 from surya.ocr import batch_text_detection
 from surya.postprocessing.heatmap import draw_polys_on_image
 import copy
+import gc
+import threading
 
 ram = psutil.virtual_memory().total / 1024**3  # Convert to GB
 if torch.cuda.is_available():
@@ -41,11 +43,20 @@ def load_image(image_path):
     return image
         
 def load_models():
+    global det_processor, det_model, layout_det_model, layout_det_processor, rec_model, rec_processor
     det_processor, det_model = load_det_processor(), load_det_model()
     rec_model, rec_processor = load_rec_model(), load_rec_processor()
     layout_det_model = load_det_model(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
     layout_det_processor = load_det_processor(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
-    return det_processor, det_model, layout_det_model, layout_det_processor, rec_model, rec_processor
+
+def unload_models():
+    global det_processor, det_model, layout_det_model, layout_det_processor, rec_model, rec_processor
+    del det_processor, det_model, layout_det_model, layout_det_processor, rec_model, rec_processor
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    elif torch.backends.mps.is_available():
+        torch.mps.empty_cache()
+    gc.collect()
 
 def convert_bbox_to_relative(bbox, image_bbox):
     return {
@@ -72,11 +83,17 @@ def process_detection_result(text_lines, layout_blocks, image_bbox):
         blocks.append({ "text": text, "boundingBox": convert_bbox_to_relative(block.bbox, image_bbox), "id": convert_bbox_to_id(block.bbox) })
     return lines, blocks
 
-def analyze_image(input_path, output_path):
+def analyze_image():
+    global unload_timer
+    if 'unload_timer' in globals() and unload_timer is not None:
+        unload_timer.cancel()
+    input_path = os.getenv("INPUT")
+    output_path = os.getenv("OUTPUT")
     image = load_image(input_path)
-    print(image.width, image.height)
     langs = ["en"] # Replace with your languages - optional but recommended
-    det_processor, det_model, layout_det_model, layout_det_processor, rec_model, rec_processor = load_models()
+    global det_processor, det_model, layout_det_model, layout_det_processor, rec_model, rec_processor
+    if 'det_processor' not in globals():
+        load_models()
     line_predictions = batch_text_detection([image], det_model, det_processor)
     line_polygons = [p.polygon for p in line_predictions[0].bboxes]
     # line_bbox_image = draw_polys_on_image(line_polygons, copy.deepcopy(image))
@@ -93,16 +110,19 @@ def analyze_image(input_path, output_path):
             "lines": lines,
             "blocks": blocks
         }, f, ensure_ascii=False, indent=2)
+    unload_timer = threading.Timer(180, unload_models)
+    unload_timer.start()
+
 
 
 if __name__ == "__main__":
-    input_path = os.getenv("INPUT")
-    output_path = os.getenv("OUTPUT")
     while True:
         command = sys.stdin.readline().strip()
         if command == "run":
-            analyze_image(input_path, output_path)
+            analyze_image()
             sys.stdout.write("done\n")
             sys.stdout.flush()
         elif command == "exit":
+            if 'unload_timer' in globals() and unload_timer is not None:
+                unload_timer.cancel()
             break

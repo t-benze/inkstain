@@ -143,53 +143,54 @@ app.use(router.routes()).use(router.allowedMethods());
 const openApiSpecPath = path.resolve(__dirname, '../assets/openapi.yml');
 
 async function start() {
-  try {
-    const schemaContent = await fs.readFile(
-      path.resolve(__dirname, '../assets/schema/components.yml'),
-      'utf8'
-    );
-    const validator = new AJV();
-    const schema = YAML.load(schemaContent) as {
-      components: {
-        schemas: { [key: string]: object };
-      };
+  const schemaContent = await fs.readFile(
+    path.resolve(__dirname, '../assets/schema/components.yml'),
+    'utf8'
+  );
+  const validator = new AJV();
+  const schema = YAML.load(schemaContent) as {
+    components: {
+      schemas: { [key: string]: object };
     };
-    Object.keys(schema.components.schemas).forEach((key) => {
-      validator.addSchema(schema.components.schemas[key], key);
-    });
-    const sequelize = new Sequelize({
-      dialect: 'sqlite',
-      storage: sqlitePath,
-      logging: false,
-    });
-    await sequelize.authenticate();
-    await initDB(sequelize);
-    app.context.validator = validator;
-    app.context.spaceService = new SpaceService();
-    app.context.documentService = new DocumentSearchService(
-      sequelize,
-      app.context.spaceService
-    );
-    app.context.taskService = new TaskService();
-    // const proxy = new AWSProxy();
-    const proxy = new LocalProxy();
-    app.context.authService = new AuthService(proxy);
-    app.context.pdfService = new PDFService();
-    app.context.imageService = new ImageService();
-    app.context.intelligenceService = new IntelligenceService(
-      app.context.spaceService,
-      app.context.taskService,
-      app.context.pdfService,
-      app.context.imageService,
-      proxy
-    );
-    app.context.fileService = new FileService(app.context.spaceService);
-  } catch (e) {
-    logger.error('Failed to load schema');
-    throw e;
-  }
+  };
+  Object.keys(schema.components.schemas).forEach((key) => {
+    validator.addSchema(schema.components.schemas[key], key);
+  });
+  const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: sqlitePath,
+    logging: false,
+  });
+  await sequelize.authenticate();
+  await initDB(sequelize);
+  app.context.validator = validator;
+  app.context.spaceService = new SpaceService();
+  app.context.documentService = new DocumentSearchService(
+    sequelize,
+    app.context.spaceService
+  );
+  app.context.taskService = new TaskService();
+  // const proxy = new AWSProxy();
+  const proxy = new LocalProxy();
+  app.context.authService = new AuthService(proxy);
+  app.context.pdfService = new PDFService();
+  app.context.imageService = new ImageService();
+  app.context.intelligenceService = new IntelligenceService(
+    app.context.spaceService,
+    app.context.taskService,
+    app.context.pdfService,
+    app.context.imageService,
+    proxy
+  );
+  app.context.fileService = new FileService(app.context.spaceService);
   app.listen(port, host, () => {
     console.log(`Server running on http://${host}:${port}`);
+  });
+  process.on('SIGINT', () => {
+    process.exit(0);
+  });
+  process.on('SIGTERM', () => {
+    process.exit(0);
   });
 }
 
