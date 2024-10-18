@@ -9,9 +9,11 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "doc-intelligence/surya",
+        "parallel": false,
         "commands": [
-          "poetry config virtualenvs.in-project true && poetry install",
-          "poetry install pyOpenSSL"
+          "poetry config virtualenvs.in-project true",
+          "poetry install",
+          "pip install pyinstaller"
         ]
       }
     },

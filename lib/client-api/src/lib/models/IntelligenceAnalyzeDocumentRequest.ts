@@ -24,7 +24,7 @@ export interface IntelligenceAnalyzeDocumentRequest {
    * @type {string}
    * @memberof IntelligenceAnalyzeDocumentRequest
    */
-  documentPath?: string;
+  documentPath: string;
 }
 
 /**
@@ -34,6 +34,7 @@ export function instanceOfIntelligenceAnalyzeDocumentRequest(
   value: object
 ): boolean {
   let isInstance = true;
+  isInstance = isInstance && 'documentPath' in value;
 
   return isInstance;
 }
@@ -52,9 +53,7 @@ export function IntelligenceAnalyzeDocumentRequestFromJSONTyped(
     return json;
   }
   return {
-    documentPath: !exists(json, 'documentPath')
-      ? undefined
-      : json['documentPath'],
+    documentPath: json['documentPath'],
   };
 }
 

@@ -1,6 +1,5 @@
 import Router from '@koa/router';
 import { Context } from '~/server/types';
-import logger from '~/server/logger';
 
 /**
  * @swagger
@@ -30,21 +29,12 @@ import logger from '~/server/logger';
  */
 export const getTaskStatus = async (ctx: Context) => {
   const { id } = ctx.params;
-
-  try {
-    const task = await ctx.taskService.getTaskStatus(id);
-    ctx.status = 200;
-    ctx.body = {
-      status: task.status,
-      progress: task.progress,
-    };
-    logger.info(
-      `Task ${id} status: ${task.status}, progress: ${task.progress}`
-    );
-  } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 400 : 500;
-    ctx.body = error.message;
-  }
+  const task = await ctx.taskService.getTaskStatus(id);
+  ctx.status = 200;
+  ctx.body = {
+    status: task.status,
+    progress: task.progress,
+  };
 };
 
 export const registerTaskRoutes = (router: Router) => {

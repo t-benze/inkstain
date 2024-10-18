@@ -1,11 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
 import Router from '@koa/router';
-import logger from '~/server/logger'; // Make sure to import your configured logger
-import {
-  SpaceServiceError,
-  ErrorCode as SpaceServiceErrorCode,
-} from '~/server/services/SpaceService';
 import { Context } from '~/server/types';
 import { getDocumentPath } from '~/server/utils';
 
@@ -78,48 +73,34 @@ export const searchDocuments = async (ctx: Context) => {
     ? JSON.parse(attributeFilters)
     : undefined;
 
-  try {
-    const documents = await ctx.documentService.searchDocuments(spaceKey, {
-      tagFilter: tagFilter
-        ? Array.isArray(tagFilter)
-          ? tagFilter
-          : [tagFilter]
-        : undefined,
-      attributeFilters: attributeFiltersObj,
-      offset: offset ? parseInt(offset) : undefined,
-      limit: limit ? parseInt(limit) : undefined,
-    });
+  const documents = await ctx.documentService.searchDocuments(spaceKey, {
+    tagFilter: tagFilter
+      ? Array.isArray(tagFilter)
+        ? tagFilter
+        : [tagFilter]
+      : undefined,
+    attributeFilters: attributeFiltersObj,
+    offset: offset ? parseInt(offset) : undefined,
+    limit: limit ? parseInt(limit) : undefined,
+  });
 
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const result = await Promise.all(
-      documents.map(async (doc) => {
-        const filePath = await getDocumentPath(space, doc.documentPath);
-        const metaFile = path.join(filePath, 'meta.json');
-        const meta = JSON.parse(await fs.readFile(metaFile, 'utf-8'));
-        return {
-          documentPath: doc.documentPath,
-          meta,
-        };
-      })
-    );
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const result = await Promise.all(
+    documents.map(async (doc) => {
+      const filePath = await getDocumentPath(space, doc.documentPath);
+      const metaFile = path.join(filePath, 'meta.json');
+      const meta = JSON.parse(await fs.readFile(metaFile, 'utf-8'));
+      return {
+        documentPath: doc.documentPath,
+        meta,
+      };
+    })
+  );
 
-    ctx.status = 200;
-    ctx.body = {
-      data: result,
-    };
-  } catch (error) {
-    if (
-      error instanceof SpaceServiceError &&
-      error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST
-    ) {
-      ctx.status = 404;
-      ctx.body = 'Space not found.';
-    } else {
-      logger.error(`Failed to search documents: ${error.message}`);
-      ctx.status = 500;
-      ctx.body = 'Unable to process the search due to server error.';
-    }
-  }
+  ctx.status = 200;
+  ctx.body = {
+    data: result,
+  };
 };
 
 /**

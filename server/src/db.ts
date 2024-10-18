@@ -22,21 +22,30 @@ interface TagAttributes {
   name: string;
   spaceKey: string;
 }
-interface TagCreationAttributes extends Optional<TagAttributes, 'id'> {}
+type TagCreationAttributes = Optional<TagAttributes, 'id'>;
 
-export class Tag
-  extends Model<TagAttributes, TagCreationAttributes>
-  implements TagAttributes
-{
-  public id!: number;
-  public name!: string;
-  public spaceKey!: string;
+export class Tag extends Model<TagAttributes, TagCreationAttributes> {
+  declare id: number;
+  declare name: string;
+  declare spaceKey: string;
 
-  public addDocument!: BelongsToManyAddAssociationMixin<Document, number>;
-  public removeDocument!: BelongsToManyRemoveAssociationMixin<Document, number>;
-  public setDocuments!: BelongsToManySetAssociationsMixin<Document, number>;
-  public getDocuments!: BelongsToManyGetAssociationsMixin<Document>;
-  public addDocuments!: BelongsToManyAddAssociationsMixin<Document, number>;
+  public declare addDocument: BelongsToManyAddAssociationMixin<
+    Document,
+    number
+  >;
+  public declare removeDocument: BelongsToManyRemoveAssociationMixin<
+    Document,
+    number
+  >;
+  public declare setDocuments: BelongsToManySetAssociationsMixin<
+    Document,
+    number
+  >;
+  public declare getDocuments: BelongsToManyGetAssociationsMixin<Document>;
+  public declare addDocuments: BelongsToManyAddAssociationsMixin<
+    Document,
+    number
+  >;
 }
 
 interface DocAttributeAttributes {
@@ -46,20 +55,16 @@ interface DocAttributeAttributes {
   value: string;
 }
 
-interface DocAttributeCreationAttributes
-  extends Optional<DocAttributeAttributes, 'id'> {}
+type DocAttributeCreationAttributes = Optional<DocAttributeAttributes, 'id'>;
 
-export class DocAttribute
-  extends Model<DocAttributeAttributes, DocAttributeCreationAttributes>
-  implements DocAttributeAttributes
-{
-  public id!: number;
-  public spaceKey!: string;
-  public key!: string;
-  public value!: string;
-
-  // public setDocument!: BelongsToSetAssociationMixin<Document, number>;
-  // public getDocument!: BelongsToGetAssociationMixin<Document>;
+export class DocAttribute extends Model<
+  DocAttributeAttributes,
+  DocAttributeCreationAttributes
+> {
+  public declare id: number;
+  public declare spaceKey: string;
+  public declare key: string;
+  public declare value: string;
 }
 
 interface DocumentAttributes {
@@ -68,32 +73,40 @@ interface DocumentAttributes {
   documentPath: string;
 }
 
-interface DocumentCreationAttributes
-  extends Optional<DocumentAttributes, 'id'> {}
+type DocumentCreationAttributes = Optional<DocumentAttributes, 'id'>;
 
-export class Document
-  extends Model<DocumentAttributes, DocumentCreationAttributes>
-  implements DocumentAttributes
-{
-  public id!: number;
-  public spaceKey!: string;
-  public documentPath!: string;
+export class Document extends Model<
+  DocumentAttributes,
+  DocumentCreationAttributes
+> {
+  public declare id: number;
+  public declare spaceKey: string;
+  public declare documentPath: string;
 
-  public addTag!: BelongsToManyAddAssociationMixin<Tag, number>;
-  public removeTag!: BelongsToManyRemoveAssociationMixin<Tag, number>;
-  public setTags!: BelongsToManySetAssociationsMixin<Tag, number>;
-  public getTags!: BelongsToManyGetAssociationsMixin<Tag>;
-  public addTags!: BelongsToManyAddAssociationsMixin<Tag, number>;
+  public declare addTag: BelongsToManyAddAssociationMixin<Tag, number>;
+  public declare removeTag: BelongsToManyRemoveAssociationMixin<Tag, number>;
+  public declare setTags: BelongsToManySetAssociationsMixin<Tag, number>;
+  public declare getTags: BelongsToManyGetAssociationsMixin<Tag>;
+  public declare addTags: BelongsToManyAddAssociationsMixin<Tag, number>;
 
-  public createDocAttribute!: HasManyCreateAssociationMixin<DocAttribute>;
-  public addDocAttribute!: HasManyAddAssociationMixin<DocAttribute, number>;
-  public removeDocAttribute!: HasManyRemoveAssociationMixin<
+  public declare createDocAttribute: HasManyCreateAssociationMixin<DocAttribute>;
+  public declare addDocAttribute: HasManyAddAssociationMixin<
     DocAttribute,
     number
   >;
-  public setDocAttributes!: HasManySetAssociationsMixin<DocAttribute, number>;
-  public getDocAttributes!: HasManyGetAssociationsMixin<DocAttribute>;
-  public addDocAttributes!: HasManyAddAssociationsMixin<DocAttribute, number>;
+  public declare removeDocAttribute: HasManyRemoveAssociationMixin<
+    DocAttribute,
+    number
+  >;
+  public declare setDocAttributes: HasManySetAssociationsMixin<
+    DocAttribute,
+    number
+  >;
+  public declare getDocAttributes: HasManyGetAssociationsMixin<DocAttribute>;
+  public declare addDocAttributes: HasManyAddAssociationsMixin<
+    DocAttribute,
+    number
+  >;
 }
 
 export async function initDB(sequelize: Sequelize) {

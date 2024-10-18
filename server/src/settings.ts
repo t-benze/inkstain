@@ -9,10 +9,7 @@ export const env =
 export const host = process.env.HOST ?? 'localhost';
 export const port = process.env.PORT ? Number(process.env.PORT) : 6060;
 
-const runtimePath =
-  os.platform() == 'win32'
-    ? process.env.LOCALAPPDATA
-    : path.join(os.homedir(), '.local');
+const runtimePath = path.join(os.homedir(), '.local');
 
 export const directories = {
   configDir: path.join(runtimePath, 'inkstain', 'config'),
@@ -42,10 +39,10 @@ export const tokensFile = path.join(
   env == 'production' ? 'tokens.json' : `tokens.${env}.json`
 );
 
-export const cognitoUserPoolId = process.env.AWS_COGNITO_USER_POOL_ID;
+export const cognitoUserPoolId = process.env.AWS_COGNITO_USER_POOL_ID ?? '';
 export const cognitoUserPoolClientId =
-  process.env.AWS_COGNITO_USER_POOL_CLIENT_ID;
-export const intelligenceAPIBase = process.env.AWS_INTELLIGENCE_ENDPOINT;
+  process.env.AWS_COGNITO_USER_POOL_CLIENT_ID ?? '';
+export const intelligenceAPIBase = process.env.AWS_INTELLIGENCE_ENDPOINT ?? '';
 
 export const analyzeImagePath = path.resolve(
   __dirname,

@@ -1,10 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
-import {
-  SpaceServiceError,
-  ErrorCode as SpaceServiceErrorCode,
-} from '~/server/services/SpaceService';
-import logger from '~/server/logger'; // Make sure to import your configured logger
+import logger from '~/server/logger';
 import { getFullPath } from '../../utils';
 import { Context, MetaData } from '~/server/types';
 
@@ -58,45 +54,31 @@ export const addDocumentTags = async (ctx: Context) => {
   const { path: documentPath } = ctx.request.query as { path: string };
 
   const documentDirectory = documentPath + '.ink';
-  try {
-    // Retrieve the full path for the document storage space
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
+  // Retrieve the full path for the document storage space
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
-    // Load existing metadata
-    const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr);
-    const existingTags = meta.tags ?? [];
+  // Load existing metadata
+  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
+  const meta = JSON.parse(fileMetaStr);
+  const existingTags = meta.tags ?? [];
 
-    // Add new tags while avoiding duplicates
-    const updatedTags = new Set([...existingTags, ...tags]);
-    meta.tags = [...updatedTags];
+  // Add new tags while avoiding duplicates
+  const updatedTags = new Set([...existingTags, ...tags]);
+  meta.tags = [...updatedTags];
 
-    // Save updated metadata
-    await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    await ctx.documentService.indexDocument(spaceKey, documentPath);
-    // Log successful operation
-    logger.info(
-      `Tags added to ${path.join(documentDirectory, 'meta.json')}: ${tags.join(
-        ', '
-      )}`
-    );
+  // Save updated metadata
+  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  await ctx.documentService.indexDocument(spaceKey, documentPath);
+  // Log successful operation
+  logger.info(
+    `Tags added to ${path.join(documentDirectory, 'meta.json')}: ${tags.join(
+      ', '
+    )}`
+  );
 
-    ctx.status = 200;
-    ctx.body = 'Tags were successfully added to the document.';
-  } catch (error) {
-    if (
-      error instanceof SpaceServiceError &&
-      error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST
-    ) {
-      ctx.status = 404;
-      ctx.body = 'Space or document not found.';
-    } else {
-      logger.error(`Failed to add tags to document: ${error.message}`);
-      ctx.status = 500;
-      ctx.body = 'Unable to process the tagging due to server error.';
-    }
-  }
+  ctx.status = 200;
+  ctx.body = 'Tags were successfully added to the document.';
 };
 
 /**
@@ -149,43 +131,29 @@ export const removeDocumentTags = async (ctx: Context) => {
   const { path: documentPath } = ctx.request.query as { path: string };
 
   const documentDirectory = documentPath + '.ink';
-  try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
 
-    const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
+  const meta = JSON.parse(fileMetaStr) as MetaData;
 
-    const existingTags = meta.tags ?? [];
-    // Remove the specified tags
-    meta.tags = existingTags.filter((tag) => !tags.includes(tag));
+  const existingTags = meta.tags ?? [];
+  // Remove the specified tags
+  meta.tags = existingTags.filter((tag) => !tags.includes(tag));
 
-    await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    await ctx.documentService.indexDocument(space.key, documentPath);
+  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  await ctx.documentService.indexDocument(space.key, documentPath);
 
-    logger.info(
-      `Tags removed from ${path.join(
-        documentDirectory,
-        'meta.json'
-      )}: ${tags.join(', ')}`
-    );
+  logger.info(
+    `Tags removed from ${path.join(
+      documentDirectory,
+      'meta.json'
+    )}: ${tags.join(', ')}`
+  );
 
-    ctx.status = 200;
-    ctx.body = 'Tags were successfully removed from the document.';
-  } catch (error) {
-    if (
-      error instanceof SpaceServiceError &&
-      error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST
-    ) {
-      ctx.status = 404;
-      ctx.body = 'Space or document not found.';
-    } else {
-      logger.error(`Failed to remove tags from document: ${error.message}`);
-      ctx.status = 500;
-      ctx.body = 'Unable to process the tagging due to server error.';
-    }
-  }
+  ctx.status = 200;
+  ctx.body = 'Tags were successfully removed from the document.';
 };
 
 /**
@@ -229,24 +197,10 @@ export const getDocumentTags = async (ctx: Context) => {
   const documentPath = ctx.query.path;
   const documentDirectory = documentPath + '.ink';
 
-  try {
-    const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-    const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
-    const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-    const meta = JSON.parse(fileMetaStr) as MetaData;
-    ctx.status = 200;
-    ctx.body = meta.tags ?? [];
-  } catch (error) {
-    if (
-      error instanceof SpaceServiceError &&
-      error.code === SpaceServiceErrorCode.SPACE_DOES_NOT_EXIST
-    ) {
-      ctx.status = 404;
-      ctx.body = 'Space or document not found.';
-    } else {
-      logger.error(`Failed to retrieve tags from document: ${error.message}`);
-      ctx.status = 500;
-      ctx.body = 'Unable to retrieve the tags due to server error.';
-    }
-  }
+  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
+  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
+  const meta = JSON.parse(fileMetaStr) as MetaData;
+  ctx.status = 200;
+  ctx.body = meta.tags ?? [];
 };

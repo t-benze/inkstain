@@ -1,11 +1,5 @@
 import Router from '@koa/router';
-import { SpaceServiceError, ErrorCode } from '~/server/services/SpaceService';
-import logger from '../logger';
-import { RequestParamsError } from './common';
-import { Context } from '~/server/types';
-import { DefinedError } from 'ajv';
-import { traverseDirectory } from '~/server/utils';
-
+import { Context, Space } from '~/server/types';
 /**
  * @swagger
  * /spaces:
@@ -26,16 +20,11 @@ import { traverseDirectory } from '~/server/utils';
  *         description: Failed to get spaces.
  */
 export const getSpaces = async (ctx: Context) => {
-  try {
-    const data = await ctx.spaceService.loadSpaceData();
-    ctx.body = Object.keys(data)
-      .sort()
-      .map((key) => ({ ...data[key], key }));
-  } catch (error) {
-    logger.error(error);
-    ctx.status = 500;
-    ctx.body = 'Failed to get spaces';
-  }
+  const data = await ctx.spaceService.loadSpaceData();
+  ctx.status = 200;
+  ctx.body = Object.keys(data)
+    .sort()
+    .map((key) => ({ ...data[key], key }));
 };
 
 /**
@@ -78,51 +67,31 @@ export const createSpace = async (ctx: Context) => {
   // Extract details from the request body
   const type = ctx.query.type || 'new';
   const data = ctx.request.body;
-  const validate = ctx.validator.getSchema('CreateSpaceRequest');
-  if (!validate(data)) {
-    const definedErrors: DefinedError[] =
-      validate.errors?.map((error) => error as DefinedError) || [];
-    throw new RequestParamsError('Create space params error', definedErrors);
-  }
 
-  try {
-    switch (type) {
-      case 'new': {
-        const space = await ctx.spaceService.createSpace(
-          data as { name: string; path: string }
-        );
-        ctx.body = {
-          space: space,
-        };
-        break;
-      }
-      case 'inkstain': {
-        const path = (data as { path: string }).path;
-        const taskId = ctx.taskService.addTask(async (progressCallback) => {
-          const space = await ctx.spaceService.importExistingInkStainSpace(
-            path
-          );
-          await ctx.documentService.indexSpace(space.key, progressCallback);
-        });
-        ctx.taskService.executeTask(taskId);
-        ctx.body = { taskId };
-        break;
-      }
-      default:
-        throw new Error('Invalid space type');
+  switch (type) {
+    case 'new': {
+      const space = await ctx.spaceService.createSpace(
+        data as { name: string; path: string }
+      );
+      ctx.body = {
+        space: space,
+      };
+      break;
     }
-    ctx.status = 201; // Space created successfully
-  } catch (error) {
-    logger.error(error.message);
-    if (error instanceof SpaceServiceError) {
-      if (error.code === ErrorCode.SPACE_ALREADY_EXISTS) {
-        ctx.status = 400;
-        ctx.body = error.message;
-        return;
-      }
+    case 'inkstain': {
+      const path = (data as { path: string }).path;
+      const taskId = ctx.taskService.addTask(async (progressCallback) => {
+        const space = await ctx.spaceService.importExistingInkStainSpace(path);
+        await ctx.documentService.indexSpace(space.key, progressCallback);
+      });
+      ctx.taskService.executeTask(taskId);
+      ctx.body = { taskId };
+      break;
     }
-    throw error;
+    default:
+      throw new Error('Invalid space type in request');
   }
+  ctx.status = 201; // Space created successfully
 };
 
 /**
@@ -162,16 +131,11 @@ export const createSpace = async (ctx: Context) => {
  */
 export const updateSpace = async (ctx: Context) => {
   const { key } = ctx.params;
-  const data = ctx.request.body;
+  const data = ctx.request.body as Partial<Space>;
 
-  try {
-    await ctx.spaceService.updateSpace(key, data);
-    ctx.status = 200;
-    ctx.body = 'Space updated successfully';
-  } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 400 : 500;
-    ctx.body = error.message;
-  }
+  await ctx.spaceService.updateSpace(key, data);
+  ctx.status = 200;
+  ctx.body = 'Space updated successfully';
 };
 
 /**
@@ -199,14 +163,9 @@ export const updateSpace = async (ctx: Context) => {
 export const deleteSpace = async (ctx: Context) => {
   const { key } = ctx.params;
 
-  try {
-    await ctx.spaceService.deleteSpace(key);
-    ctx.status = 200;
-    ctx.body = 'Space deleted successfully';
-  } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 400 : 500;
-    ctx.body = error.message;
-  }
+  await ctx.spaceService.deleteSpace(key);
+  ctx.status = 200;
+  ctx.body = 'Space deleted successfully';
 };
 
 /**
@@ -240,14 +199,9 @@ export const deleteSpace = async (ctx: Context) => {
 export const getSpaceDocumentTags = async (ctx: Context) => {
   const { key } = ctx.params;
 
-  try {
-    const tags = await ctx.documentService.getDocumentTags(key);
-    ctx.status = 200;
-    ctx.body = tags;
-  } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 400 : 500;
-    ctx.body = error.message;
-  }
+  const tags = await ctx.documentService.getDocumentTags(key);
+  ctx.status = 200;
+  ctx.body = tags;
 };
 
 export const registerSpaceRoutes = (router: Router) => {

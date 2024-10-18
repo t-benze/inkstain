@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import child_process from 'child_process';
 import util from 'util';
+import { Context } from '~/server/types';
 const router = new Router();
 
 /**
@@ -55,7 +56,7 @@ const router = new Router();
  *                 - pathSep
  *                 - attributes
  */
-const platformInfo = async (ctx) => {
+const platformInfo = async (ctx: Context) => {
   // const drives = await drivelist.list();
   let drives = null;
   const exec = util.promisify(child_process.exec);
@@ -111,30 +112,24 @@ const platformInfo = async (ctx) => {
  *       400:
  *         description: An error occurred while trying to list the folder.
  */
-const listDirectories = async (ctx) => {
-  const fullPath = ctx.query.path;
+const listDirectories = async (ctx: Context) => {
+  const fullPath = ctx.query.path as string;
 
-  try {
-    const files = await fs.readdir(fullPath, { withFileTypes: true });
-    const directories = files.filter((f) => f.isDirectory());
-    const symbolicLinks = files.filter((f) => f.isSymbolicLink());
-    for (const link of symbolicLinks) {
-      const realpath = await fs.realpath(path.join(fullPath, link.name));
-      const stat = await fs.stat(realpath);
-      if (stat.isDirectory()) {
-        directories.push(link);
-      }
+  const files = await fs.readdir(fullPath, { withFileTypes: true });
+  const directories = files.filter((f) => f.isDirectory());
+  const symbolicLinks = files.filter((f) => f.isSymbolicLink());
+  for (const link of symbolicLinks) {
+    const realpath = await fs.realpath(path.join(fullPath, link.name));
+    const stat = await fs.stat(realpath);
+    if (stat.isDirectory()) {
+      directories.push(link);
     }
-    ctx.body = directories.map((file) => ({
-      name: file.name,
-      path: path.join(fullPath, file.name),
-    }));
-
-    ctx.status = 200;
-  } catch (error) {
-    ctx.status = error.message.includes('does not exist') ? 404 : 400;
-    ctx.body = { message: error.message };
   }
+  ctx.body = directories.map((file) => ({
+    name: file.name,
+    path: path.join(fullPath, file.name),
+  }));
+  ctx.status = 200;
 };
 
 export const registerSystemRoutes = (router: Router) => {

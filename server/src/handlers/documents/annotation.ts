@@ -1,39 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import logger from '~/server/logger';
-import { getFullPath } from '~/server/utils';
 import { Context, Annotation } from '~/server/types';
-
-export enum ErrorCode {
-  ANNOTATION_ALREADY_EXISTS = 1,
-  ANNOTATION_DOES_NOT_EXIST,
-  INVALID_DOCUMENT,
-}
-
-export class AnnotationServiceError extends Error {
-  constructor(message: string, public code?: ErrorCode) {
-    super(message);
-    this.name = 'AnnotationServiceError';
-  }
-
-  static ANNOTATION_EXISTS = new AnnotationServiceError(
-    'Annotation already exists.'
-  );
-}
-
-const handleAnnotationErrors = (ctx, error) => {
-  if (
-    error instanceof AnnotationServiceError &&
-    error.code === ErrorCode.ANNOTATION_DOES_NOT_EXIST
-  ) {
-    ctx.status = 404;
-    ctx.body = 'Document or annotation not found.';
-  } else {
-    logger.error(`Failed to process the annotations: ${error.message}`);
-    ctx.status = 500;
-    ctx.body = 'Unable to process the annotations due to server error.';
-  }
-};
 
 /**
  * @swagger
@@ -74,29 +41,12 @@ const handleAnnotationErrors = (ctx, error) => {
 export const getDocumentAnnotations = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-  const documentDirectory = documentPath + '.ink';
 
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const spaceRoot = space.path;
-  const annotationsFilePath = path.join(
-    spaceRoot,
-    documentDirectory,
-    'annotations.json'
-  );
-  try {
-    await fs.access(annotationsFilePath);
-    const fileContent = await fs.readFile(annotationsFilePath, 'utf-8');
-    const annotations = JSON.parse(fileContent);
-    ctx.status = 200;
-    ctx.body = annotations ?? [];
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      ctx.status = 200;
-      ctx.body = [];
-    } else {
-      throw e;
-    }
-  }
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readAnnotationFile(documentPath);
+  const annotations = JSON.parse(fileContent);
+  ctx.status = 200;
+  ctx.body = annotations ?? [];
 };
 
 /**
@@ -143,24 +93,9 @@ export const getDocumentAnnotations = async (ctx: Context) => {
 export const addDocumentAnnotation = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-  const documentDirectory = documentPath + '.ink';
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
 
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const spaceRoot = space.path;
-  const annotationsFilePath = path.join(
-    spaceRoot,
-    documentDirectory,
-    'annotations.json'
-  );
-
-  try {
-    await fs.access(annotationsFilePath);
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      await fs.writeFile(annotationsFilePath, '[]', 'utf-8');
-    }
-  }
-  const fileContent = await fs.readFile(annotationsFilePath, 'utf-8');
+  const fileContent = await fileManager.readAnnotationFile(documentPath);
   const existingAnnotations = JSON.parse(fileContent) ?? [];
   const newAnnotation = ctx.request.body as Annotation;
 
@@ -172,10 +107,9 @@ export const addDocumentAnnotation = async (ctx: Context) => {
   };
   const updatedAnnotations = [...existingAnnotations, created];
 
-  await fs.writeFile(
-    annotationsFilePath,
-    JSON.stringify(updatedAnnotations),
-    'utf-8'
+  await fileManager.writeAnnotationFile(
+    documentPath,
+    JSON.stringify(updatedAnnotations)
   );
 
   ctx.status = 200;
@@ -222,41 +156,28 @@ export const addDocumentAnnotation = async (ctx: Context) => {
 export const updateDocumentAnnotation = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-  const documentDirectory = documentPath + '.ink';
 
-  try {
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const spaceRoot = space.path;
-    const annotationsFilePath = path.join(
-      spaceRoot,
-      documentDirectory,
-      'annotations.json'
-    );
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readAnnotationFile(documentPath);
+  const annotations = (JSON.parse(fileContent) as Annotation[]) ?? [];
+  const update = ctx.request.body as Annotation;
 
-    const fileContent = await fs.readFile(annotationsFilePath, 'utf-8');
-    const annotations: Annotation[] = JSON.parse(fileContent) ?? [];
-    const update = ctx.request.body as Annotation;
-
-    // Merge existing annotations with the new ones
-    const index = annotations.findIndex((a) => a.id === update.id);
-    if (index != -1) {
-      annotations[index] = {
-        ...annotations[index],
-        ...update,
-      };
-    }
-
-    await fs.writeFile(
-      annotationsFilePath,
-      JSON.stringify(annotations),
-      'utf-8'
-    );
-
-    ctx.status = 200;
-    ctx.body = 'Annotations updated successfully.';
-  } catch (error) {
-    handleAnnotationErrors(ctx, error);
+  // Merge existing annotations with the new ones
+  const index = annotations.findIndex((a) => a.id === update.id);
+  if (index != -1) {
+    annotations[index] = {
+      ...annotations[index],
+      ...update,
+    };
   }
+
+  await fileManager.writeAnnotationFile(
+    documentPath,
+    JSON.stringify(annotations)
+  );
+
+  ctx.status = 200;
+  ctx.body = 'Annotations updated successfully.';
 };
 
 /**
@@ -303,33 +224,29 @@ export const deleteDocumentAnnotations = async (ctx: Context) => {
   const documentPath = ctx.query.path as string;
   const documentDirectory = documentPath + '.ink';
 
-  try {
-    const space = await ctx.spaceService.getSpace(spaceKey);
-    const spaceRoot = space.path;
-    const annotationsFilePath = path.join(
-      spaceRoot,
-      documentDirectory,
-      'annotations.json'
-    );
+  const space = await ctx.spaceService.getSpace(spaceKey);
+  const spaceRoot = space.path;
+  const annotationsFilePath = path.join(
+    spaceRoot,
+    documentDirectory,
+    'annotations.json'
+  );
 
-    const fileContent = await fs.readFile(annotationsFilePath, 'utf-8');
-    const existingAnnotations = JSON.parse(fileContent) ?? [];
-    const deletions = ctx.request.body as string[];
+  const fileContent = await fs.readFile(annotationsFilePath, 'utf-8');
+  const existingAnnotations = (JSON.parse(fileContent) as Annotation[]) ?? [];
+  const deletions = ctx.request.body as string[];
 
-    // Filter out the annotations to be deleted
-    const remainingAnnotations = existingAnnotations.filter(
-      (a) => !deletions.includes(a.id)
-    );
+  // Filter out the annotations to be deleted
+  const remainingAnnotations = existingAnnotations.filter(
+    (a) => !deletions.includes(a.id)
+  );
 
-    await fs.writeFile(
-      annotationsFilePath,
-      JSON.stringify(remainingAnnotations),
-      'utf-8'
-    );
+  await fs.writeFile(
+    annotationsFilePath,
+    JSON.stringify(remainingAnnotations),
+    'utf-8'
+  );
 
-    ctx.status = 200;
-    ctx.body = 'Annotations deleted successfully.';
-  } catch (error) {
-    handleAnnotationErrors(ctx, error);
-  }
+  ctx.status = 200;
+  ctx.body = 'Annotations deleted successfully.';
 };
