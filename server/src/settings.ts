@@ -9,7 +9,10 @@ export const env =
 export const host = process.env.HOST ?? 'localhost';
 export const port = process.env.PORT ? Number(process.env.PORT) : 6060;
 
-const runtimePath = path.join(os.homedir(), '.local');
+const runtimePath =
+  os.platform() == 'win32'
+    ? (process.env.LOCALAPPDATA as string)
+    : path.join(os.homedir(), '.local');
 
 export const directories = {
   configDir: path.join(runtimePath, 'inkstain', 'config'),
