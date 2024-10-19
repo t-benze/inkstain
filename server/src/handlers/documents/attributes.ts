@@ -1,7 +1,4 @@
-import path from 'path';
-import fs from 'fs/promises';
 import { Context, MetaData } from '~/server/types';
-import { getDocumentPath } from '~/server/utils';
 
 /**
  * @swagger
@@ -41,16 +38,9 @@ import { getDocumentPath } from '~/server/utils';
 export const getDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const metaFilePath = path.join(
-    getDocumentPath(space, documentPath),
-    'meta.json'
-  );
-
-  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-  const meta = JSON.parse(fileMetaStr) as MetaData;
-
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readMetaFile(documentPath);
+  const meta = JSON.parse(fileContent) as MetaData;
   ctx.status = 200;
   ctx.body = meta.attributes ?? {};
 };
@@ -99,20 +89,14 @@ export const getDocumentAttributes = async (ctx: Context) => {
 export const addUpdateDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const metaFilePath = path.join(
-    getDocumentPath(space, documentPath),
-    'meta.json'
-  );
-
-  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-  const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readMetaFile(documentPath);
+  const meta = JSON.parse(fileContent) as MetaData;
 
   const updates = (ctx.request.body as { attributes: object }).attributes;
   meta.attributes = { ...meta.attributes, ...updates };
 
-  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  await fileManager.writeMetaFile(documentPath, JSON.stringify(meta));
   await ctx.documentService.indexDocument(spaceKey, documentPath);
 
   ctx.status = 200;
@@ -161,22 +145,16 @@ export const addUpdateDocumentAttributes = async (ctx: Context) => {
 export const deleteDocumentAttributes = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const metaFilePath = path.join(
-    getDocumentPath(space, documentPath),
-    'meta.json'
-  );
-
-  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-  const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readMetaFile(documentPath);
+  const meta = JSON.parse(fileContent) as MetaData;
 
   const deletions = ctx.request.body as string[];
   deletions.forEach((key) => {
     delete meta.attributes?.[key];
   });
 
-  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  await fileManager.writeMetaFile(documentPath, JSON.stringify(meta));
   await ctx.documentService.indexDocument(spaceKey, documentPath);
   ctx.status = 200;
   ctx.body = 'Attributes deleted successfully.';

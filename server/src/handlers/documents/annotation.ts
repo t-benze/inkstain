@@ -1,5 +1,3 @@
-import fs from 'fs/promises';
-import path from 'path';
 import { Context, Annotation } from '~/server/types';
 
 /**
@@ -222,17 +220,9 @@ export const updateDocumentAnnotation = async (ctx: Context) => {
 export const deleteDocumentAnnotations = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const documentPath = ctx.query.path as string;
-  const documentDirectory = documentPath + '.ink';
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
 
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const spaceRoot = space.path;
-  const annotationsFilePath = path.join(
-    spaceRoot,
-    documentDirectory,
-    'annotations.json'
-  );
-
-  const fileContent = await fs.readFile(annotationsFilePath, 'utf-8');
+  const fileContent = await fileManager.readAnnotationFile(documentPath);
   const existingAnnotations = (JSON.parse(fileContent) as Annotation[]) ?? [];
   const deletions = ctx.request.body as string[];
 
@@ -241,10 +231,9 @@ export const deleteDocumentAnnotations = async (ctx: Context) => {
     (a) => !deletions.includes(a.id)
   );
 
-  await fs.writeFile(
-    annotationsFilePath,
-    JSON.stringify(remainingAnnotations),
-    'utf-8'
+  await fileManager.writeAnnotationFile(
+    documentPath,
+    JSON.stringify(remainingAnnotations)
   );
 
   ctx.status = 200;

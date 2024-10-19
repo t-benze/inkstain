@@ -2,17 +2,8 @@ import Router from '@koa/router';
 import os from 'os';
 import send from 'koa-send';
 import path from 'path';
-import fs from 'fs/promises';
-import { createReadStream, existsSync } from 'fs';
-
-import { PassThrough } from 'stream';
 import multer, { File } from '@koa/multer';
-import {
-  SpaceServiceError,
-  ErrorCode as SpaceServiceErrorCode,
-} from '~/server/services/SpaceService';
 import logger from '~/server/logger'; // Make sure to import your configured logger
-import archiver from 'archiver';
 
 import {
   getDocumentAttributes,
@@ -28,42 +19,7 @@ import {
 
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
 import { Context, MetaData } from '~/server/types';
-import {
-  traverseDirectory,
-  getFullPath,
-  getDocumentPath,
-} from '~/server/utils';
 import { ImportDocumentRequest } from '@inkstain/client-api';
-
-/**
- * Zips the contents of the specified folder and returns a buffer.
- * @param folderPath - The path of the folder to zip.
- * @returns A promise that resolves with the zip buffer.
- */
-const zipFolder = (folderPath: string): Promise<Buffer> => {
-  return new Promise((resolve, reject) => {
-    const archive = archiver('zip', {
-      zlib: { level: 9 }, // Sets the compression level.
-    });
-
-    const buffers: Buffer[] = [];
-    const passthrough = new PassThrough();
-
-    passthrough.on('data', (chunk) => buffers.push(chunk));
-    passthrough.on('end', () => resolve(Buffer.concat(buffers)));
-    passthrough.on('error', (err) => reject(err));
-
-    archive.on('error', (err) => reject(err));
-
-    archive.pipe(passthrough);
-
-    // Append files from the directory
-    archive.directory(folderPath, false);
-
-    // Finalize the archive (i.e., we are done appending files but streams have to finish yet)
-    archive.finalize();
-  });
-};
 
 const isValidFileName = (filePath: string): boolean => {
   // List of illegal characters for Windows and Unix-like systems
@@ -75,6 +31,7 @@ const isValidFileName = (filePath: string): boolean => {
 const upload = multer({
   storage: multer.memoryStorage(),
 });
+
 /**
  * @swagger
  * /documents/{spaceKey}/list:
@@ -123,14 +80,10 @@ const upload = multer({
  *                   path:
  *                     type: string
  *                     description: The full path of the file or folder.
- *                   absolutePath:
- *                     type: string
- *                     description: The absolute path of the file or folder.
  *                 required:
  *                   - name
  *                   - type
  *                   - path
- *                   - absolutePath
  *       400:
  *         description: Invalid parameters provided.
  *       404:
@@ -140,23 +93,9 @@ const listDocuments = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
   const filePath = ctx.query.path as string;
   const folderOnly = ctx.query.folderOnly === '1';
-
-  const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
-  const files = await fs.readdir(fullPath);
-  const results = files
-    .filter((file) => file !== '.inkstain' && file !== '.DS_Store')
-    .map(async (file) => {
-      const isFile = file.endsWith('.ink');
-      file = isFile ? file.slice(0, file.length - 4) : file;
-      return {
-        name: file,
-        type: isFile ? 'file' : 'folder',
-        path: path.join(filePath, file),
-        absolutePath: path.join(fullPath, file),
-      };
-    });
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const data = await fileManager.readDir(filePath);
   ctx.status = 200;
-  const data = await Promise.all(results);
   if (folderOnly) {
     ctx.body = data.filter((item) => item.type === 'folder');
   } else {
@@ -202,17 +141,14 @@ const listDocuments = async (ctx: Context) => {
  */
 const getDocumentContent = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const filePath = ctx.query.path + '.ink';
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const fileMetaStr = await fs.readFile(
-    path.join(spaceRoot, filePath, 'meta.json'),
-    'utf-8'
-  );
-  const extension = path.extname(ctx.query.path as string);
+  const filePath = ctx.query.path as string;
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileMetaStr = await fileManager.readMetaFile(filePath);
   const meta = JSON.parse(fileMetaStr);
+  const extension = path.extname(filePath);
   ctx.response.type = meta.mimetype;
-  await send(ctx, path.join(filePath, `content${extension}`), {
-    root: spaceRoot,
+  await send(ctx, path.join(`${filePath}.ink`, `content${extension}`), {
+    root: fileManager.space.path,
   });
 };
 
@@ -244,17 +180,18 @@ const getDocumentContent = async (ctx: Context) => {
  */
 const openDocumentWithSystemApp = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
-  const filePath = ctx.query.path + '.ink';
+  const filePath = ctx.query.path as string;
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const actualPath = fileManager.getDocumentContentPath(filePath);
   const open = await import('open');
-  const fullPath = await getFullPath(ctx.spaceService, spaceKey, filePath);
-  const extension = path.extname(ctx.query.path as string);
-  const file = path.join(fullPath, `content${extension}`);
   // If parameters or parameter values contain a space, they need to be surrounded with escaped double quotes.
   // For more information, see https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules?view=powershell-7.4&viewFallbackFrom=powershell-7.1.
-  open.default(os.platform() === 'win32' ? '`"' + file + '`"' : file);
+  open.default(
+    os.platform() === 'win32' ? '`"' + actualPath + '`"' : actualPath
+  );
   ctx.status = 200;
   ctx.body = { message: 'Document opened successfully' };
-  logger.info(`Opened document at ${file}`);
+  logger.info(`Opened document at ${actualPath}`);
 };
 
 /**
@@ -312,38 +249,12 @@ const addDocument = async (ctx: Context) => {
   }
   const fileName = path.basename(targetPath);
   if (!isValidFileName(fileName)) {
-    ctx.status = 400;
-    ctx.body = 'Invalid file name';
-    return;
+    ctx.throw(400, 'Invalid file name');
   }
-
-  const ext = path.extname(file.originalname);
-  // const filename = path.basename(file.originalname, ext);
-  const targetDirectoryPath = await getFullPath(
-    ctx.spaceService,
-    spaceKey,
-    targetPath + '.ink'
-  );
-  // Create target directory
-  await fs.mkdir(targetDirectoryPath, { recursive: true });
-
-  // Write file content
-  const contentPath = path.join(targetDirectoryPath, `content${ext}`);
-  await fs.writeFile(contentPath, file.buffer);
-
-  // Write metadata json
-  const metadata = {
-    mimetype: file.mimetype,
-    // Add other metadata if available
-  };
-  const metadataPath = path.join(targetDirectoryPath, 'meta.json');
-  await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  await fileManager.addDocument(targetPath, file);
   await ctx.documentService.indexDocument(spaceKey, targetPath);
   ctx.status = 201;
-  ctx.body = {
-    message: 'Document added successfully',
-    path: targetDirectoryPath,
-  };
 };
 
 /**
@@ -377,21 +288,12 @@ const addDocument = async (ctx: Context) => {
 const deleteDocument = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
   const targetPath = ctx.request.query.path as string;
-
   if (!targetPath) {
-    ctx.status = 400;
-    ctx.body = 'Missing target path';
-    return;
+    ctx.throw(400, 'Missing target path');
   }
-
-  const targetDirectoryPath = await getFullPath(
-    ctx.spaceService,
-    spaceKey,
-    targetPath + '.ink'
-  );
-
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
   await ctx.documentService.deleteDocument(spaceKey, targetPath);
-  await fs.rm(targetDirectoryPath, { recursive: true, force: true });
+  await fileManager.removeDocument(targetPath);
   ctx.status = 200;
   ctx.body = 'Document deleted successfully';
 };
@@ -427,20 +329,8 @@ const deleteDocument = async (ctx: Context) => {
 const addFolder = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
   const targetPath = ctx.request.query.path as string;
-
-  if (!targetPath) {
-    ctx.status = 400;
-    ctx.body = 'Missing target path';
-    return;
-  }
-
-  const targetDirectoryPath = await getFullPath(
-    ctx.spaceService,
-    spaceKey,
-    targetPath
-  );
-
-  await fs.mkdir(targetDirectoryPath, { recursive: true });
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  await fileManager.addFolder(targetPath);
   ctx.status = 200;
   ctx.body = 'Folder created successfully';
 };
@@ -476,27 +366,15 @@ const addFolder = async (ctx: Context) => {
 const deleteFolder = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
   const targetPath = ctx.request.query.path as string;
-
-  if (!targetPath) {
-    ctx.status = 400;
-    ctx.body = 'Missing target path';
-    return;
-  }
-
-  const targetDirectoryPath = await getFullPath(
-    ctx.spaceService,
-    spaceKey,
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const documentsToIndex = await fileManager.findDocumentsUnderFolder(
     targetPath
   );
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const documentsToIndex: string[] = [];
-  await traverseDirectory(space.path, targetPath, documentsToIndex);
   for (const doc of documentsToIndex) {
     ctx.documentService.deleteDocument(spaceKey, doc);
   }
-  await fs.rm(targetDirectoryPath, { recursive: true, force: true });
+  await fileManager.removeFolder(targetPath);
   ctx.status = 200;
-  ctx.body = 'Folder deleted successfully';
 };
 
 /**
@@ -548,14 +426,12 @@ const deleteFolder = async (ctx: Context) => {
  */
 export const exportDocument = async (ctx: Context) => {
   const spaceKey = ctx.params.spaceKey;
-  const filePath = (ctx.request.query.path as string) + '.ink';
+  const filePath = ctx.request.query.path as string;
   const withData = ctx.request.query.withData === '1';
 
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const fileMetaStr = await fs.readFile(
-    path.join(spaceRoot, filePath, 'meta.json'),
-    'utf-8'
-  );
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  // const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
+  const fileMetaStr = await fileManager.readMetaFile(filePath);
   const meta = JSON.parse(fileMetaStr) as MetaData;
   const fileName =
     meta.attributes?.title ||
@@ -563,11 +439,10 @@ export const exportDocument = async (ctx: Context) => {
       path.basename(ctx.request.query.path as string),
       ''
     );
-  const extension = path.extname(ctx.query.path as string);
   if (withData) {
     ctx.set('Content-disposition', `attachment; filename=${fileName}.ink.zip`);
     ctx.set('Content-type', 'application/zip');
-    ctx.body = await zipFolder(path.join(spaceRoot, filePath));
+    ctx.body = await fileManager.exportDocumentWithData(filePath);
   } else {
     ctx.set(
       'Content-disposition',
@@ -575,9 +450,7 @@ export const exportDocument = async (ctx: Context) => {
     );
     ctx.set('Content-type', meta.mimetype);
     // Stream the file content
-    ctx.body = createReadStream(
-      path.join(spaceRoot, filePath, `content${extension}`)
-    );
+    ctx.body = fileManager.exportDocument(filePath);
   }
 };
 
@@ -621,22 +494,10 @@ const renameDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const oldPath = ctx.query.path as string;
   const newName = ctx.query.newName as string;
-
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const oldFullPath = path.join(spaceRoot, oldPath) + '.ink';
   const newPath = path.join(path.dirname(oldPath), newName);
-  const newFullPath = path.join(spaceRoot, newPath) + '.ink';
-
-  if (existsSync(newFullPath)) {
-    ctx.status = 409;
-    ctx.body = {
-      message: 'A document with the new name already exists.',
-    };
-    return;
-  }
-
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
   await ctx.documentService.updateDocumentPath(spaceKey, oldPath, newPath);
-  await fs.rename(oldFullPath, newFullPath);
+  await fileManager.renameDocument(oldPath, newPath);
   ctx.status = 200;
   ctx.body = { message: 'Document renamed successfully', newPath };
   logger.info(`Renamed document ${oldPath} to ${newPath} in space ${spaceKey}`);
@@ -682,22 +543,9 @@ const renameFolder = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const oldPath = ctx.query.path as string;
   const newName = ctx.query.newName as string;
-
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const oldFullPath = path.join(spaceRoot, oldPath);
   const newPath = path.join(path.dirname(oldPath), newName);
-  const newFullPath = path.join(spaceRoot, newPath);
-
-  if (existsSync(newFullPath)) {
-    ctx.status = 409;
-    ctx.body = {
-      message: 'A folder with the new name already exists.',
-    };
-    return;
-  }
-
-  const documentsToUpdate: string[] = [];
-  await traverseDirectory(spaceRoot, oldPath, documentsToUpdate);
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const documentsToUpdate = await fileManager.findDocumentsUnderFolder(oldPath);
   const space = await ctx.spaceService.getSpace(spaceKey);
   for (const doc of documentsToUpdate) {
     await ctx.documentService.updateDocumentPath(
@@ -706,7 +554,7 @@ const renameFolder = async (ctx: Context) => {
       doc.replace(oldPath, newPath)
     );
   }
-  await fs.rename(oldFullPath, newFullPath);
+  await fileManager.renameFolder(oldPath, newPath);
   ctx.status = 200;
   ctx.body = { message: 'Folder renamed successfully', newPath };
   logger.info(`Renamed folder ${oldPath} to ${newPath} in space ${spaceKey}`);
@@ -765,23 +613,8 @@ const importDocument = async (ctx: Context) => {
   if (targetPath.startsWith(path.sep)) {
     targetPath = targetPath.replace(path.sep, '');
   }
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  const fullTargetPath = getDocumentPath(space, targetPath);
-  if (existsSync(fullTargetPath)) {
-    ctx.throw(400, 'A document with the new name already exists.');
-  }
-
-  await fs.mkdir(fullTargetPath, { recursive: true });
-  const ext = path.extname(localFilePath);
-  await fs.rename(localFilePath, path.join(fullTargetPath, `content${ext}`));
-  const meta: MetaData = {
-    mimetype: mimeType,
-    attributes: {},
-  };
-  await fs.writeFile(
-    path.join(fullTargetPath, 'meta.json'),
-    JSON.stringify(meta, null, 2)
-  );
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  await fileManager.importDocument(localFilePath, targetPath, mimeType);
   await ctx.documentService.indexDocument(spaceKey, targetPath);
   ctx.status = 200;
   ctx.body = { message: 'Document imported successfully', targetPath };
