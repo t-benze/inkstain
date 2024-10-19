@@ -34,7 +34,7 @@ jobs:
       - name: Copy env file
         run: cp .env.example .env
       - name: e2e test
-        run: npx nx run cypress:e2e
+        run: npm run e2e
 
   cypress-run-windows:
     runs-on: windows-latest
@@ -63,4 +63,4 @@ jobs:
       - name: Copy env file
         run: copy .env.example .env
       - name: e2e test
-        run: npx nx run cypress:e2e
+        run: npm run e2e

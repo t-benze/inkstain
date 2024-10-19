@@ -5,12 +5,12 @@ import { createReadStream, createWriteStream } from 'fs';
 import { EOL } from 'os';
 import { DocumentTextDetectionData } from '~/server/types';
 import { IntelligenceInterface } from '~/server/proxy/types';
-import { getDocumentPath } from '~/server/utils';
 import { PDFService } from './PDFService';
 import { DocLayoutIndex, WebclipData } from '~/server/types';
 import { SpaceService } from './SpaceService';
 import { TaskService } from './TaskService';
 import { ImageService } from './ImageService';
+import { FileService } from './FileService';
 // @ts-expect-error import type from p-limit
 import type { LimitFunction } from 'p-limit';
 
@@ -20,6 +20,7 @@ export class IntelligenceService {
     private readonly spaceService: SpaceService,
     private readonly taskService: TaskService,
     private readonly pdfService: PDFService,
+    private readonly fileService: FileService,
     private readonly imageService: ImageService,
     private readonly intelligenceProxy: IntelligenceInterface
   ) {
@@ -134,9 +135,9 @@ export class IntelligenceService {
     spaceKey: string;
     documentPath: string;
   }) {
-    const space = await this.spaceService.getSpace(spaceKey);
+    const fileManager = await this.fileService.getFileManager(spaceKey);
     const taskId = this.taskService.addTask(async (progressCallback) => {
-      const pdfPath = await getDocumentPath(space, documentPath);
+      const pdfPath = fileManager.getDocumentContentPath(documentPath);
       const doc = await this.pdfService.loadPDFFile(
         path.join(pdfPath, 'content.pdf')
       );
@@ -145,9 +146,9 @@ export class IntelligenceService {
         indexMap: {},
       };
       try {
-        const indexFile = await fs.readFile(
-          path.join(pdfPath, 'analyzed-layout-index.json'),
-          'utf-8'
+        const indexFile = await fileManager.readFile(
+          documentPath,
+          'analyzed-layout-index.json'
         );
         indexData = JSON.parse(indexFile) as DocLayoutIndex;
       } catch (e) {
@@ -195,14 +196,11 @@ export class IntelligenceService {
     spaceKey: string;
     documentPath: string;
   }) {
-    const space = await this.spaceService.getSpace(spaceKey);
+    const fileManager = await this.fileService.getFileManager(spaceKey);
     const maxPixelCounts = 1400 * 1400;
     const taskId = this.taskService.addTask(async (progressCallback) => {
-      const docPath = await getDocumentPath(space, documentPath);
-      const content = await fs.readFile(
-        path.join(docPath, 'content.inkclip'),
-        'utf-8'
-      );
+      const docContentPath = fileManager.getDocumentContentPath(documentPath);
+      const content = await fs.readFile(docContentPath, 'utf-8');
       const webclipData = JSON.parse(content) as WebclipData;
       const imageDataUrl = webclipData.imageData;
       const dimension = webclipData.dimension;
@@ -265,14 +263,12 @@ export class IntelligenceService {
     spaceKey: string;
     documentPath: string;
   }) {
-    const space = await this.spaceService.getSpace(spaceKey);
-    const fileContent = await fs.readFile(
-      path.join(
-        getDocumentPath(space, documentPath),
-        'analyzed-layout-index.json'
-      )
+    const fileManager = await this.fileService.getFileManager(spaceKey);
+    const fileContent = await fileManager.readFile(
+      documentPath,
+      'analyzed-layout-index.json'
     );
-    const indexMap = JSON.parse(fileContent.toString()) as DocLayoutIndex;
+    const indexMap = JSON.parse(fileContent) as DocLayoutIndex;
     return indexMap.status || null;
   }
 }

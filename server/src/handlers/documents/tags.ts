@@ -1,7 +1,3 @@
-import path from 'path';
-import fs from 'fs/promises';
-import logger from '~/server/logger';
-import { getFullPath } from '../../utils';
 import { Context, MetaData } from '~/server/types';
 
 /**
@@ -52,15 +48,10 @@ export const addDocumentTags = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { tags } = ctx.request.body as { tags: string[] };
   const { path: documentPath } = ctx.request.query as { path: string };
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readMetaFile(documentPath);
+  const meta = JSON.parse(fileContent) as MetaData;
 
-  const documentDirectory = documentPath + '.ink';
-  // Retrieve the full path for the document storage space
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
-
-  // Load existing metadata
-  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-  const meta = JSON.parse(fileMetaStr);
   const existingTags = meta.tags ?? [];
 
   // Add new tags while avoiding duplicates
@@ -68,14 +59,8 @@ export const addDocumentTags = async (ctx: Context) => {
   meta.tags = [...updatedTags];
 
   // Save updated metadata
-  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
+  await fileManager.writeMetaFile(documentPath, JSON.stringify(meta));
   await ctx.documentService.indexDocument(spaceKey, documentPath);
-  // Log successful operation
-  logger.info(
-    `Tags added to ${path.join(documentDirectory, 'meta.json')}: ${tags.join(
-      ', '
-    )}`
-  );
 
   ctx.status = 200;
   ctx.body = 'Tags were successfully added to the document.';
@@ -129,28 +114,17 @@ export const removeDocumentTags = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { tags } = ctx.request.body as { tags: string[] };
   const { path: documentPath } = ctx.request.query as { path: string };
-
-  const documentDirectory = documentPath + '.ink';
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
-
-  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-  const meta = JSON.parse(fileMetaStr) as MetaData;
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readMetaFile(documentPath);
+  const meta = JSON.parse(fileContent) as MetaData;
 
   const existingTags = meta.tags ?? [];
+
   // Remove the specified tags
   meta.tags = existingTags.filter((tag) => !tags.includes(tag));
 
-  await fs.writeFile(metaFilePath, JSON.stringify(meta), 'utf-8');
-  const space = await ctx.spaceService.getSpace(spaceKey);
-  await ctx.documentService.indexDocument(space.key, documentPath);
-
-  logger.info(
-    `Tags removed from ${path.join(
-      documentDirectory,
-      'meta.json'
-    )}: ${tags.join(', ')}`
-  );
+  await fileManager.writeMetaFile(documentPath, JSON.stringify(meta));
+  await ctx.documentService.indexDocument(spaceKey, documentPath);
 
   ctx.status = 200;
   ctx.body = 'Tags were successfully removed from the document.';
@@ -194,13 +168,10 @@ export const removeDocumentTags = async (ctx: Context) => {
  */
 export const getDocumentTags = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const documentPath = ctx.query.path;
-  const documentDirectory = documentPath + '.ink';
-
-  const spaceRoot = await getFullPath(ctx.spaceService, spaceKey, '');
-  const metaFilePath = path.join(spaceRoot, documentDirectory, 'meta.json');
-  const fileMetaStr = await fs.readFile(metaFilePath, 'utf-8');
-  const meta = JSON.parse(fileMetaStr) as MetaData;
+  const documentPath = ctx.query.path as string;
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
+  const fileContent = await fileManager.readMetaFile(documentPath);
+  const meta = JSON.parse(fileContent) as MetaData;
   ctx.status = 200;
   ctx.body = meta.tags ?? [];
 };

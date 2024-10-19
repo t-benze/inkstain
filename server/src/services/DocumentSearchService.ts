@@ -1,10 +1,8 @@
-import path from 'path';
 import { Sequelize, Op, Includeable } from 'sequelize';
-import { readFile } from 'fs/promises';
 import { MetaData } from '~/server/types';
 import { Document, DocAttribute, Tag } from '~/server/db';
 import { SpaceService } from './SpaceService';
-import { traverseDirectory } from '~/server/utils';
+import { FileService } from './FileService';
 
 export class DocumentSearchService {
   private attributesWithIndex = ['title', 'author'];
@@ -12,7 +10,8 @@ export class DocumentSearchService {
 
   constructor(
     private readonly sequelize: Sequelize,
-    private readonly spaceService: SpaceService
+    private readonly spaceService: SpaceService,
+    private readonly fileService: FileService
   ) {}
 
   getAttributes() {
@@ -50,10 +49,9 @@ export class DocumentSearchService {
     spaceKey: string,
     progressCallback: (progress: number) => void
   ) {
-    const space = await this.spaceService.getSpace(spaceKey);
     await this.clearIndex(spaceKey);
-    const documentsToIndex = [] as string[];
-    await traverseDirectory(space.path, '', documentsToIndex);
+    const fileManager = await this.fileService.getFileManager(spaceKey);
+    const documentsToIndex = await fileManager.findDocumentsUnderFolder('');
     const totalDocuments = documentsToIndex.length;
     for (const [index, doc] of documentsToIndex.entries()) {
       await this.indexDocument(spaceKey, doc);
@@ -62,10 +60,11 @@ export class DocumentSearchService {
   }
 
   async indexDocument(spaceKey: string, documentPath: string) {
-    const space = await this.spaceService.getSpace(spaceKey);
-    const fullPath = path.join(space.path, documentPath);
-    const metaPath = path.join(`${fullPath}.ink`, 'meta.json');
-    const metaData = JSON.parse(await readFile(metaPath, 'utf-8')) as MetaData;
+    const fileManager = await this.fileService.getFileManager(spaceKey);
+
+    const metaData = JSON.parse(
+      await fileManager.readMetaFile(documentPath)
+    ) as MetaData;
 
     await this.sequelize.transaction(async (transaction) => {
       const tags = metaData.tags ?? [];

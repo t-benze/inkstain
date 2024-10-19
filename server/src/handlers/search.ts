@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs/promises';
 import Router from '@koa/router';
 import { Context } from '~/server/types';
-import { getDocumentPath } from '~/server/utils';
 
 /**
  * @swagger
@@ -84,12 +83,10 @@ export const searchDocuments = async (ctx: Context) => {
     limit: limit ? parseInt(limit) : undefined,
   });
 
-  const space = await ctx.spaceService.getSpace(spaceKey);
+  const fileManager = await ctx.fileService.getFileManager(spaceKey);
   const result = await Promise.all(
     documents.map(async (doc) => {
-      const filePath = await getDocumentPath(space, doc.documentPath);
-      const metaFile = path.join(filePath, 'meta.json');
-      const meta = JSON.parse(await fs.readFile(metaFile, 'utf-8'));
+      const meta = JSON.parse(await fileManager.readMetaFile(doc.documentPath));
       return {
         documentPath: doc.documentPath,
         meta,
