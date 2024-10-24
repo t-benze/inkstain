@@ -5,7 +5,7 @@ import { FolderRegular, DocumentRegular } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { documentsApi } from '~/chrome-extension/utils/apiClient';
 import { ListDocuments200ResponseInner as Document } from '@inkstain/client-api';
-import { AppContext } from '~/chrome-extension/popup/context';
+import { PopupContext } from '~/chrome-extension/screenshot/SpacePopup/context';
 
 interface FolderTreeProps {
   spaceKey: string;
@@ -17,10 +17,13 @@ const useClasses = makeStyles({
   root: {
     flexGrow: 1,
     height: '0px',
+    width: '100%',
     display: 'flex',
     flexDirection: 'column',
   },
-  breadcrumb: {},
+  breadcrumb: {
+    padding: tokens.spacingHorizontalM,
+  },
   breadcrumbItem: {
     display: 'inline-block',
     cursor: 'pointer',
@@ -31,18 +34,34 @@ const useClasses = makeStyles({
   list: {
     flexGrow: 1,
     height: '0px',
+    width: '100%',
     overflow: 'scroll',
-    padding: tokens.spacingVerticalMNudge,
+    scrollbarWidth: 'none',
+    // padding: tokens.spacingVerticalMNudge,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
   },
   listItem: {
     fontSize: tokens.fontSizeBase400,
     display: 'flex',
     alignItems: 'center',
+    flexDirection: 'row',
     paddingLeft: tokens.spacingHorizontalMNudge,
     cursor: 'pointer',
     '&:hover': {
       backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+    '& > svg': {
+      marginRight: tokens.spacingHorizontalMNudge,
+      width: '16px',
+      height: '16px',
+    },
+    '& > span': {
+      display: 'inline-block',
+      width: '0px',
+      flexGrow: 1,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
     },
   },
 });
@@ -65,7 +84,7 @@ const FileItem = ({
       }}
     >
       {isFolder ? <FolderRegular /> : <DocumentRegular />}
-      {file.name}
+      <span>{file.name}</span>
     </div>
   );
 };
@@ -79,7 +98,7 @@ export const FolderExplorer = ({
   const { t } = useTranslation();
   const {
     platformInfo: { pathSep },
-  } = React.useContext(AppContext);
+  } = React.useContext(PopupContext);
   const { data } = useQuery({
     queryKey: ['folders', spaceKey, currentFolder.join(pathSep)],
     queryFn: async () => {
