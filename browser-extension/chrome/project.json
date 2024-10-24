@@ -5,16 +5,16 @@
   "projectType": "application",
   "tags": [],
   "targets": {
-    "build-popup": {
+    "build-screenshot": {
       "executor": "@nx/webpack:webpack",
       "defaultConfiguration": "production",
       "options": {
         "compiler": "babel",
-        "outputPath": "dist/browser-extension/chrome/popup",
-        "index": "browser-extension/chrome/src/popup/index.html",
-        "baseHref": "/popup/",
-        "main": "browser-extension/chrome/src/popup/main.tsx",
-        "tsConfig": "browser-extension/chrome/tsconfig.popup.json",
+        "outputPath": "dist/browser-extension/chrome/screenshot",
+        "index": "browser-extension/chrome/src/screenshot/index.html",
+        "baseHref": "/screenshot/",
+        "main": "browser-extension/chrome/src/screenshot/main.tsx",
+        "tsConfig": "browser-extension/chrome/tsconfig.screenshot.json",
         "assets": [],
         "scripts": [],
         "webpackConfig": "browser-extension/chrome/webpack.config.js"
@@ -27,12 +27,6 @@
           "vendorChunk": true
         },
         "production": {
-          "fileReplacements": [
-            {
-              "replace": "browser-extension/chrome/src/environments/environment.ts",
-              "with": "browser-extension/chrome/src/environments/environment.prod.ts"
-            }
-          ],
           "optimization": true,
           "sourceMap": false,
           "namedChunks": false,
@@ -65,16 +59,16 @@
       "executor": "@nx/webpack:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "chome-extension-inkstain:build-popup",
+        "buildTarget": "chrome-extension-inkstain:build-screenshot",
         "hmr": true,
         "proxyConfig": "browser-extension/chrome/proxy.conf.json"
       },
       "configurations": {
         "development": {
-          "buildTarget": "chome-extension-inkstain:build-popup:development"
+          "buildTarget": "chrome-extension-inkstain:build-screenshot:development"
         },
         "production": {
-          "buildTarget": "chome-extension-inkstain:build-popup:production",
+          "buildTarget": "chrome-extension-inkstain:build-screenshot:production",
           "hmr": false
         }
       }
@@ -83,9 +77,9 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "nx run chrome-extension-inkstain:build-popup",
           "nx run chrome-extension-inkstain:build-service-worker",
           "nx run chrome-extension-inkstain:build-content-script",
+          "nx run chrome-extension-inkstain:build-screenshot",
           "node scripts/generateChromeExtensionManifest.js"
         ],
         "parallel": false

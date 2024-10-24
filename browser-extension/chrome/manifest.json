@@ -9,12 +9,17 @@
     "48": "assets/images/logo-48.png",
     "128": "assets/images/logo-128.png"
   },
-  "action": {
-    "default_popup": "popup/index.html"
-  },
   "background": {
     "service_worker": "service-worker/main.js",
     "type": "module"
+  },
+  "action": {
+    "default_icon": {
+      "16": "assets/images/logo-16.png",
+      "32": "assets/images/logo-32.png",
+      "48": "assets/images/logo-48.png",
+      "128": "assets/images/logo-128.png"
+    }
   },
   "content_scripts": [
     {
@@ -22,6 +27,12 @@
       "js": ["content-script/main.js"]
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["screenshot/index.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "host_permissions": ["https://*/*", "http://*/*"],
-  "permissions": ["storage", "downloads"]
+  "permissions": ["storage", "downloads", "activeTab", "tabs", "windows"]
 }

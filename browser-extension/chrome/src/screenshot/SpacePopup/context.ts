@@ -5,7 +5,7 @@ interface AppContext {
   platformInfo: PlatformInfo200Response;
 }
 
-export const AppContext = React.createContext<AppContext>({
+export const PopupContext = React.createContext<AppContext>({
   platformInfo: {
     platform: '',
     homedir: '',

@@ -37,12 +37,6 @@ export interface ListDocuments200ResponseInner {
    * @memberof ListDocuments200ResponseInner
    */
   path: string;
-  /**
-   * The absolute path of the file or folder.
-   * @type {string}
-   * @memberof ListDocuments200ResponseInner
-   */
-  absolutePath: string;
 }
 
 /**
@@ -65,7 +59,6 @@ export function instanceOfListDocuments200ResponseInner(
   isInstance = isInstance && 'name' in value;
   isInstance = isInstance && 'type' in value;
   isInstance = isInstance && 'path' in value;
-  isInstance = isInstance && 'absolutePath' in value;
 
   return isInstance;
 }
@@ -87,7 +80,6 @@ export function ListDocuments200ResponseInnerFromJSONTyped(
     name: json['name'],
     type: json['type'],
     path: json['path'],
-    absolutePath: json['absolutePath'],
   };
 }
 
@@ -104,6 +96,5 @@ export function ListDocuments200ResponseInnerToJSON(
     name: value.name,
     type: value.type,
     path: value.path,
-    absolutePath: value.absolutePath,
   };
 }

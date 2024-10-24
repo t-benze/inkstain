@@ -18,6 +18,9 @@
     },
     {
       "path": "./tsconfig.worker.json"
+    },
+    {
+      "path": "./tsconfig.screenshot.json"
     }
   ],
   "extends": "../../tsconfig.base.json"

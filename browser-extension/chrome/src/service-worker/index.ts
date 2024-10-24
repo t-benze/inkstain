@@ -1,3 +1,13 @@
+let pageCaptureData: {
+  url: string;
+  title?: string;
+  screenshotData: string[];
+  targetRects: {
+    width: number;
+    height: number;
+  }[];
+} | null = null;
+
 function getAppSettings(): Promise<{ host: string; port: string }> {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get('app_settings', (result) => {
@@ -19,144 +29,82 @@ function getAppSettings(): Promise<{ host: string; port: string }> {
   });
 }
 
-const downloadTasks: {
-  id: number;
-  url: string;
-  spaceKey: string;
-  targetFolder: string;
-  pathSep: string;
-  title: string | undefined;
-}[] = [];
-
-async function updateAttributes(
-  spaceKey: string,
-  documentPath: string,
-  attributes: Record<string, string | undefined>
+function capturePage(
+  params: {
+    width: number;
+    height: number;
+    top: number;
+    left: number;
+    scrollTop: number;
+    contentHeight: number;
+    contentWidth: number;
+    windowHeight: number;
+    windowWidth: number;
+  },
+  extraParams: {
+    url: string;
+    title?: string;
+  },
+  callback: () => void
 ) {
-  const settings = await getAppSettings();
-  const apiPrefix = `http://${settings.host}:${settings.port}`;
-  const response = await fetch(
-    `${apiPrefix}/api/v1/documents/${spaceKey}/attributes?path=${encodeURIComponent(
-      documentPath
-    )}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        attributes: attributes,
-      }),
+  const images: string[] = [];
+  const targetRects: {
+    width: number;
+    height: number;
+    top: number;
+    left: number;
+  }[] = [];
+  const { url, title } = extraParams;
+  chrome.tabs.query(
+    { active: true, lastFocusedWindow: true },
+    async ([tab]) => {
+      if (tab && tab.id) {
+        let scrollTop = params.scrollTop;
+        let scrollDistance = params.height;
+        let remainingRange = params.contentHeight - scrollDistance;
+        while (scrollDistance > 0) {
+          // Capture the visible portion of the page
+          const screenshotUrl = await chrome.tabs.captureVisibleTab(undefined, {
+            format: 'png',
+          });
+          images.push(screenshotUrl);
+          targetRects.push({
+            width: params.width / params.windowWidth,
+            left: params.left / params.windowWidth,
+            top:
+              (params.top + params.height - scrollDistance) /
+              params.windowHeight,
+            height: scrollDistance / params.windowHeight,
+          });
+          scrollDistance = Math.min(remainingRange, params.height);
+          remainingRange -= scrollDistance;
+          scrollTop += scrollDistance;
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'scrollTo',
+            scrollTop: scrollTop,
+          });
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        pageCaptureData = {
+          screenshotData: images,
+          url: url,
+          title: title,
+          targetRects: targetRects,
+        };
+        chrome.windows.create({
+          url: chrome.runtime.getURL('screenshot/index.html'), // Reference to internal HTML file
+          type: 'popup',
+          width: Math.max(800, params.width),
+          height: params.windowHeight,
+        });
+        callback();
+      }
     }
   );
-  if (response.status === 200) {
-    return { error: null };
-  }
-  return { error: 'Error while adding attributes to inkstain server' };
 }
-
-async function addWebclipDocument(
-  spaceKey: string,
-  documentPath: string,
-  webclipData: string,
-  url: string,
-  title: string | undefined
-) {
-  const settings = await getAppSettings();
-  const apiPrefix = `http://${settings.host}:${settings.port}`;
-  const path = documentPath + '.inkclip';
-  try {
-    // Convert the string to a Blob
-    const blob = new Blob([JSON.stringify(webclipData)], {
-      type: 'application/inkclip',
-    });
-    const formData = new FormData();
-    formData.append('document', blob, `webclip.inkclip`);
-    const response = await fetch(
-      `${apiPrefix}/api/v1/documents/${spaceKey}/add?path=${encodeURIComponent(
-        path
-      )}`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
-    if (response.status === 201) {
-      await updateAttributes(spaceKey, path, {
-        url: url,
-        title: title,
-      });
-      return { error: null };
-    } else if (response.status === 400) {
-      return { error: 'Invalid parameters or unable to process the file.' };
-    } else if (response.status === 500) {
-      return { error: 'Internal server error while adding the document.' };
-    } else {
-      return { error: 'Unexpected response status:' + response.status };
-    }
-  } catch (error) {
-    return { error: 'Error while adding the document:' + error };
-  }
-}
-
-chrome.downloads.onChanged.addListener(async function (delta) {
-  if (!delta.state || delta.state.current !== 'complete') {
-    return;
-  }
-  const task = downloadTasks.find((task) => task.id === delta.id);
-  if (!task) {
-    return;
-  }
-
-  downloadTasks.splice(downloadTasks.indexOf(task), 1);
-  chrome.downloads.search({ id: task.id }, async (downloads) => {
-    if (downloads.length === 0) {
-      return;
-    }
-    const download = downloads[0];
-    const settings = await getAppSettings();
-    const apiPrefix = `http://${settings.host}:${settings.port}`;
-    const filename = download.filename.split(task.pathSep).pop();
-    const targetPath = task.targetFolder + task.pathSep + filename;
-    const response = await fetch(
-      `${apiPrefix}/api/v1/documents/${task.spaceKey}/import`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          localFilePath: download.filename,
-          targetPath: targetPath,
-          mimeType: download.mime,
-        }),
-      }
-    );
-    if (response.status === 200) {
-      await updateAttributes(task.spaceKey, targetPath, {
-        url: task.url,
-        title: task.title,
-      });
-    } else {
-      console.error('Error while importing the document:', response.status);
-    }
-  });
-});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'stopClip') {
-    addWebclipDocument(
-      message.spaceKey,
-      message.documentPath,
-      message.webclipData,
-      message.url,
-      message.title
-    ).then((result) => {
-      // @ts-expect-error sendResponse is not typed correctly
-      sendResponse(result);
-    });
-    return true;
-  } else if (message.action === 'getSpaceKey') {
+  if (message.action === 'getSpaceKey') {
     chrome.storage.local.get('spaceKey', (result) => {
       // @ts-expect-error sendResponse is not typed correctly
       sendResponse((result && result.spaceKey) || '');
@@ -190,32 +138,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse(true);
       });
     return true;
-  } else if (message.action === 'download') {
+  } else if (message.action === 'capturePage') {
+    const dimension = message.dimension;
     const url = message.url;
-    fetch(url).then((response) => {
-      const contentType = response.headers.get('content-type');
-      const filename = url.split('/').pop();
-      if (contentType && contentType.startsWith('application/')) {
-        chrome.downloads.download(
-          {
-            url,
-            filename: filename,
-            conflictAction: 'overwrite',
-          },
-          (downloadId) => {
-            const { targetFolder, pathSep } = message;
-            downloadTasks.push({
-              id: downloadId,
-              url: url,
-              spaceKey: message.spaceKey,
-              pathSep: pathSep,
-              targetFolder: targetFolder,
-              title: message.title,
-            });
-          }
-        );
-      }
+    const title = message.title;
+    capturePage(dimension, { url, title }, () => {
+      sendResponse();
     });
     return true;
+  } else if (message.action === 'getPageCaptureData') {
+    // @ts-expect-error sendResponse is not typed correctly
+    sendResponse(pageCaptureData);
+  }
+});
+
+chrome.action.onClicked.addListener(async (tab) => {
+  if (tab.id) {
+    chrome.tabs.sendMessage(tab.id, {
+      action: 'startClip',
+    });
   }
 });

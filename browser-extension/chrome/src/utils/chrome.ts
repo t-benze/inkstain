@@ -1,4 +1,7 @@
 export function getSettings(): Promise<{ host: string; port: string }> {
+  if (!chrome.runtime) {
+    return Promise.resolve({ host: 'localhost', port: '4200' });
+  }
   return new Promise((resolve, reject) => {
     chrome &&
       chrome.runtime &&

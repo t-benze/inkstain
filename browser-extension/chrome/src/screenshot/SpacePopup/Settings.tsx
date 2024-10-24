@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   Label,
   Input,
+  Subtitle2,
   makeStyles,
   tokens,
   Button,
@@ -9,9 +10,21 @@ import {
 import { useTranslation } from 'react-i18next';
 import { getSettings, setSettings } from '~/chrome-extension/utils/chrome';
 import { configureApiClient } from '~/chrome-extension/utils/apiClient';
+import { DismissRegular } from '@fluentui/react-icons';
 
 const useClasses = makeStyles({
   root: {
+    height: '100%',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  rootInner: {
     display: 'flex',
     flexDirection: 'column',
     padding: tokens.spacingHorizontalM,
@@ -33,11 +46,7 @@ const useClasses = makeStyles({
   },
 });
 
-export const Settings = ({
-  onSaveSettings,
-}: {
-  onSaveSettings: () => void;
-}) => {
+const SettingsInner = ({ onSaveSettings }: { onSaveSettings: () => void }) => {
   const classes = useClasses();
   const { t } = useTranslation();
   const [host, setHost] = React.useState<string>('');
@@ -53,7 +62,7 @@ export const Settings = ({
       });
   }, []);
   return (
-    <div className={classes.root}>
+    <div className={classes.rootInner}>
       <div className={classes.row}>
         <Label>{`${t('settings_host_label')}:`}</Label>
         <Input
@@ -86,6 +95,33 @@ export const Settings = ({
           {t('save_settings')}
         </Button>
       </div>
+    </div>
+  );
+};
+
+export const Settings = ({
+  setShowSettings,
+}: {
+  setShowSettings: (show: boolean) => void;
+}) => {
+  const classes = useClasses();
+  const { t } = useTranslation();
+  return (
+    <div className={classes.root}>
+      <div className={classes.header}>
+        <Subtitle2>{t('settings')}</Subtitle2>
+        <Button
+          onClick={() => {
+            setShowSettings(false);
+          }}
+          icon={<DismissRegular />}
+        ></Button>
+      </div>
+      <SettingsInner
+        onSaveSettings={() => {
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };
