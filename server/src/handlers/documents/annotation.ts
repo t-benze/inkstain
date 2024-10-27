@@ -41,10 +41,15 @@ export const getDocumentAnnotations = async (ctx: Context) => {
   const documentPath = ctx.query.path as string;
 
   const fileManager = await ctx.fileService.getFileManager(spaceKey);
-  const fileContent = await fileManager.readAnnotationFile(documentPath);
-  const annotations = JSON.parse(fileContent);
-  ctx.status = 200;
-  ctx.body = annotations ?? [];
+  try {
+    const fileContent = await fileManager.readAnnotationFile(documentPath);
+    const annotations = JSON.parse(fileContent);
+    ctx.status = 200;
+    ctx.body = annotations ?? [];
+  } catch (error) {
+    ctx.status = 200;
+    ctx.body = [];
+  }
 };
 
 /**

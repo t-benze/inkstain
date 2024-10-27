@@ -5,7 +5,7 @@ import {
   Button,
   PopoverSurface,
 } from '@fluentui/react-components';
-import { SpacePopup } from './SpacePopup';
+import { SpacePopup } from '~/chrome-extension/components/SpacePopup';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 
@@ -31,11 +31,15 @@ const useClasses = makeStyles({
 });
 
 interface HeaderProps {
+  data: {
+    url?: string;
+    title?: string;
+  };
   onCrop: () => void;
   onSave: (spaceKey: string, documentPath: string) => void;
 }
 
-export const Header = ({ onCrop, onSave }: HeaderProps) => {
+export const Header = ({ data, onCrop, onSave }: HeaderProps) => {
   const classes = useClasses();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -54,6 +58,8 @@ export const Header = ({ onCrop, onSave }: HeaderProps) => {
       <PopoverSurface>
         <div className={classes.popupSurface}>
           <SpacePopup
+            data={data}
+            behavior="clip"
             onSave={(spaceKey, documentPath) => {
               onSave(spaceKey, documentPath);
               setIsOpen(false);

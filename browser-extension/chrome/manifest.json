@@ -31,6 +31,10 @@
     {
       "resources": ["screenshot/index.html"],
       "matches": ["<all_urls>"]
+    },
+    {
+      "resources": ["assets/images/cursor-camera.svg"],
+      "matches": ["<all_urls>"]
     }
   ],
   "host_permissions": ["https://*/*", "http://*/*"],

@@ -65,6 +65,9 @@ class FileManager {
     // Write metadata json
     const metadata = {
       mimetype: file.mimetype,
+      attributes: {
+        title: file.originalname.replace(ext, ''),
+      },
     };
     await this.writeMetaFile(documentPath, JSON.stringify(metadata, null, 2));
     return await fs.writeFile(contentPath, file.buffer);

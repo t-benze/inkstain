@@ -1,3 +1,8 @@
+import {
+  addDocument,
+  updateAttributes,
+} from '~/chrome-extension/utils/document';
+
 let pageCaptureData: {
   url: string;
   title?: string;
@@ -149,13 +154,58 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.action === 'getPageCaptureData') {
     // @ts-expect-error sendResponse is not typed correctly
     sendResponse(pageCaptureData);
+  } else if (message.action === 'download') {
+    const { targetPath, url, spaceKey, title } = message;
+    fetch(url).then((response) => {
+      const contentType = response.headers.get('content-type') as string;
+      response
+        .blob()
+        .then(async (documentData) => {
+          const settings = await getAppSettings();
+          return addDocument(
+            settings,
+            spaceKey,
+            targetPath,
+            documentData,
+            contentType,
+            {
+              url: url,
+              title: title,
+            }
+          );
+        })
+        .then(() => {
+          sendResponse();
+        })
+        .catch((error) => {
+          console.error('Error while downloading:', error);
+          sendResponse();
+        });
+    });
+    return true;
   }
 });
 
 chrome.action.onClicked.addListener(async (tab) => {
   if (tab.id) {
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'startClip',
-    });
+    const url = tab.url || '';
+    if (url) {
+      try {
+        const response = await fetch(url, { method: 'HEAD' });
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'startClip',
+          });
+        } else {
+          // chrome.action.openPopup();
+          chrome.action.setPopup({
+            popup: 'popup/index.html',
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
   }
 });
