@@ -67,7 +67,9 @@ const Main = ({
 }) => {
   const [spaceKey, setSpaceKey] = React.useState<string>('');
   const [currentFolder, setCurrentFolder] = React.useState<Array<string>>(['']);
-  const [name, setName] = React.useState<string>('');
+  const popupContext = React.useContext(PopupContext);
+  const [name, setName] = React.useState<string>(popupContext.data.title || '');
+
   const classes = useClasses();
   const { t } = useTranslation();
   const handleFolderSelected = React.useCallback((folder: string[]) => {
@@ -88,7 +90,7 @@ const Main = ({
   });
 
   return (
-    <PopupContext.Provider value={{ platformInfo: platformInfo }}>
+    <>
       <div className={classes.header}>
         <SpaceSelector spaceKey={spaceKey} onSpaceKeyChange={setSpaceKey} />
         <Button onClick={onSettingsClick} icon={<SettingsRegular />}></Button>
@@ -111,12 +113,12 @@ const Main = ({
                 )
               }
             >
-              {t('save')}
+              {popupContext.behavior === 'download' ? t('download') : t('save')}
             </Button>
           </div>
         </div>
       ) : null}
-    </PopupContext.Provider>
+    </>
   );
 };
 
@@ -127,43 +129,14 @@ interface HomeProps {
 
 export function Home({ setShowSettings, onSave }: HomeProps) {
   const classes = useClasses();
-  const { t } = useTranslation();
-  const {
-    isLoading: loadingPlatform,
-    isError: errorPlatform,
-    data: platformInfo,
-  } = useQuery({
-    queryKey: ['platformInfo'],
-    retry: false,
-    queryFn: async () => {
-      const response = await systemApi.platformInfo();
-      return response;
-    },
-  });
+  const { platformInfo } = React.useContext(PopupContext);
   return (
     <div className={classes.root}>
-      {loadingPlatform ? (
-        <div className={classes.loading}>
-          <Spinner />
-        </div>
-      ) : errorPlatform ? (
-        <div className={classes.error}>
-          <Body1>{t('not_able_to_connect_inkstain')}</Body1>
-          <Button
-            onClick={() => {
-              setShowSettings(true);
-            }}
-          >
-            {t('settings')}
-          </Button>
-        </div>
-      ) : platformInfo ? (
-        <Main
-          platformInfo={platformInfo}
-          onSettingsClick={() => setShowSettings(true)}
-          onSave={onSave}
-        />
-      ) : null}
+      <Main
+        platformInfo={platformInfo}
+        onSettingsClick={() => setShowSettings(true)}
+        onSave={onSave}
+      />
     </div>
   );
 }

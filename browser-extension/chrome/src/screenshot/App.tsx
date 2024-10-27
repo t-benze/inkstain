@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { getSettings } from '~/chrome-extension/utils/chrome';
 import {
   FluentProvider,
   webLightTheme,
@@ -6,7 +7,7 @@ import {
 } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getPageCaptureData, addWebclipDocument } from './utils';
+import { getPageCaptureData, addWebclipDocument } from '../utils/document';
 import { CropArea } from './CropArea';
 import { Header } from './Header';
 
@@ -201,9 +202,11 @@ export const App = () => {
   }, [cropRect, data]);
 
   const onSave = useCallback(
-    (spaceKey: string, documentPath: string) => {
+    async (spaceKey: string, documentPath: string) => {
       if (data) {
+        const settings = await getSettings();
         addWebclipDocument(
+          settings,
           spaceKey,
           documentPath,
           {
@@ -223,7 +226,11 @@ export const App = () => {
     <FluentProvider theme={webLightTheme}>
       <QueryClientProvider client={queryClient}>
         <div className={classes.root}>
-          <Header onCrop={onCrop} onSave={onSave} />
+          <Header
+            onCrop={onCrop}
+            onSave={onSave}
+            data={{ url: data?.url, title: data?.title }}
+          />
           <div className={classes.content}>
             {!data && (
               <canvas ref={hiddenCanvasRef} className={classes.hiddenCanvas} />

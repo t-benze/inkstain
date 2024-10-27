@@ -1,11 +1,9 @@
-import { getSettings } from '~/chrome-extension/utils/chrome';
-
-async function updateAttributes(
+export async function updateAttributes(
+  settings: { host: string; port: string },
   spaceKey: string,
   documentPath: string,
   attributes: Record<string, string | undefined>
 ) {
-  const settings = await getSettings();
   const apiPrefix = `http://${settings.host}:${settings.port}`;
   const response = await fetch(
     `${apiPrefix}/api/v1/documents/${spaceKey}/attributes?path=${encodeURIComponent(
@@ -26,8 +24,53 @@ async function updateAttributes(
   }
   return { error: 'Error while adding attributes to inkstain server' };
 }
+export async function addDocument(
+  settings: { host: string; port: string },
+  spaceKey: string,
+  documentPath: string,
+  documentData: Blob,
+  mimeType: string,
+  attributes: {
+    url: string;
+    title?: string;
+  }
+) {
+  const apiPrefix = `http://${settings.host}:${settings.port}`;
+  const extension = mimeType.split('/')[1];
+  const path = documentPath + `.${extension}`;
+  try {
+    // Convert the string to a Blob
+    const blob = new Blob([documentData], {
+      type: mimeType,
+    });
+    const formData = new FormData();
+    formData.append('document', blob, `${documentPath}.${extension}`);
+    const response = await fetch(
+      `${apiPrefix}/api/v1/documents/${spaceKey}/add?path=${encodeURIComponent(
+        path
+      )}`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+    if (response.status === 201) {
+      await updateAttributes(settings, spaceKey, path, attributes);
+      return { error: null };
+    } else if (response.status === 400) {
+      return { error: 'Invalid parameters or unable to process the file.' };
+    } else if (response.status === 500) {
+      return { error: 'Internal server error while adding the document.' };
+    } else {
+      return { error: 'Unexpected response status:' + response.status };
+    }
+  } catch (error) {
+    return { error: 'Error while adding the document:' + error };
+  }
+}
 
 export async function addWebclipDocument(
+  settings: { host: string; port: string },
   spaceKey: string,
   documentPath: string,
   webclipData: {
@@ -37,7 +80,6 @@ export async function addWebclipDocument(
   url: string,
   title?: string
 ) {
-  const settings = await getSettings();
   const apiPrefix = `http://${settings.host}:${settings.port}`;
   const path = documentPath + '.inkclip';
   try {
@@ -57,7 +99,7 @@ export async function addWebclipDocument(
       }
     );
     if (response.status === 201) {
-      await updateAttributes(spaceKey, path, {
+      await updateAttributes(settings, spaceKey, path, {
         url: url,
         title: title,
       });

@@ -5,6 +5,36 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "build-popup": {
+      "executor": "@nx/webpack:webpack",
+      "defaultConfiguration": "production",
+      "options": {
+        "compiler": "babel",
+        "outputPath": "dist/browser-extension/chrome/popup",
+        "index": "browser-extension/chrome/src/popup/index.html",
+        "baseHref": "/popup/",
+        "main": "browser-extension/chrome/src/popup/main.tsx",
+        "tsConfig": "browser-extension/chrome/tsconfig.popup.json",
+        "assets": [],
+        "scripts": [],
+        "webpackConfig": "browser-extension/chrome/webpack.config.js"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true,
+          "vendorChunk": true
+        },
+        "production": {
+          "optimization": true,
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        }
+      }
+    },
     "build-screenshot": {
       "executor": "@nx/webpack:webpack",
       "defaultConfiguration": "production",
@@ -79,6 +109,7 @@
         "commands": [
           "nx run chrome-extension-inkstain:build-service-worker",
           "nx run chrome-extension-inkstain:build-content-script",
+          "nx run chrome-extension-inkstain:build-popup",
           "nx run chrome-extension-inkstain:build-screenshot",
           "node scripts/generateChromeExtensionManifest.js"
         ],

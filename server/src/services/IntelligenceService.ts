@@ -264,11 +264,15 @@ export class IntelligenceService {
     documentPath: string;
   }) {
     const fileManager = await this.fileService.getFileManager(spaceKey);
-    const fileContent = await fileManager.readFile(
-      documentPath,
-      'analyzed-layout-index.json'
-    );
-    const indexMap = JSON.parse(fileContent) as DocLayoutIndex;
-    return indexMap.status || null;
+    try {
+      const fileContent = await fileManager.readFile(
+        documentPath,
+        'analyzed-layout-index.json'
+      );
+      const indexMap = JSON.parse(fileContent) as DocLayoutIndex;
+      return indexMap.status || null;
+    } catch (error) {
+      return null;
+    }
   }
 }
