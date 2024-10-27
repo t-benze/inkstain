@@ -3,6 +3,11 @@ import { PlatformInfo200Response } from '@inkstain/client-api';
 
 interface AppContext {
   platformInfo: PlatformInfo200Response;
+  data: {
+    url?: string;
+    title?: string;
+  };
+  behavior: 'download' | 'clip';
 }
 
 export const PopupContext = React.createContext<AppContext>({
@@ -15,4 +20,9 @@ export const PopupContext = React.createContext<AppContext>({
       attributes: [],
     },
   },
+  data: {
+    url: '',
+    title: '',
+  },
+  behavior: 'download',
 });
