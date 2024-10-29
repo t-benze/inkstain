@@ -138,9 +138,7 @@ export class IntelligenceService {
     const fileManager = await this.fileService.getFileManager(spaceKey);
     const taskId = this.taskService.addTask(async (progressCallback) => {
       const pdfPath = fileManager.getDocumentContentPath(documentPath);
-      const doc = await this.pdfService.loadPDFFile(
-        path.join(pdfPath, 'content.pdf')
-      );
+      const doc = await this.pdfService.loadPDFFile(pdfPath);
       let indexData: DocLayoutIndex = {
         status: 'partial',
         indexMap: {},

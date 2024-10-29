@@ -1,0 +1,57 @@
+{
+  "name": "inkstain-site",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "site",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/site"
+      },
+      "configurations": {
+        "development": {
+          "outputPath": "site"
+        },
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/next:server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "inkstain-site:build",
+        "dev": true
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "inkstain-site:build:development",
+          "dev": true
+        },
+        "production": {
+          "buildTarget": "inkstain-site:build:production",
+          "dev": false
+        }
+      }
+    },
+    "export": {
+      "executor": "@nx/next:export",
+      "options": {
+        "buildTarget": "inkstain-site:build:production"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "site/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

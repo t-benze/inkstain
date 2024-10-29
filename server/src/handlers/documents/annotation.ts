@@ -98,8 +98,13 @@ export const addDocumentAnnotation = async (ctx: Context) => {
   const documentPath = ctx.query.path as string;
   const fileManager = await ctx.fileService.getFileManager(spaceKey);
 
-  const fileContent = await fileManager.readAnnotationFile(documentPath);
-  const existingAnnotations = JSON.parse(fileContent) ?? [];
+  let fileContent;
+  try {
+    fileContent = await fileManager.readAnnotationFile(documentPath);
+  } catch {
+    fileContent = '[]';
+  }
+  const existingAnnotations = JSON.parse(fileContent);
   const newAnnotation = ctx.request.body as Annotation;
 
   // Merge existing annotations with the new ones
