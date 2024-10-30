@@ -28,6 +28,7 @@ import { useDocuments } from './hooks/useDocuments';
 import { useSpace } from './hooks/useSpace';
 import { useShortcuts } from './hooks/useShortcuts';
 import { useUser } from '~/web/hooks/auth';
+import { useSettings } from './hooks/useSettings';
 
 const queryClient = new QueryClient();
 const useClasses = makeStyles({
@@ -69,6 +70,7 @@ const InkStain = () => {
     activeDocumentViewRef,
     setActiveDocumentViewRef,
   } = useDocuments(platform);
+  const { settings, updateSettings } = useSettings();
 
   React.useEffect(() => {
     if (!activeSpace) {
@@ -94,7 +96,8 @@ const InkStain = () => {
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
   const { pressedKeys } = useShortcuts();
   const { userInfo } = useUser();
-  return platform ? (
+
+  return platform && settings ? (
     <AppContext.Provider
       value={{
         toasterId,
@@ -114,6 +117,8 @@ const InkStain = () => {
         activeSpace,
         openSpace,
         documentsAlive,
+        settings,
+        updateSettings,
       }}
     >
       <div className={classes.root}>

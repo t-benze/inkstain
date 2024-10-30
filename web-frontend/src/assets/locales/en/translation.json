@@ -68,6 +68,7 @@
   "confirmation_code_is_required": "Confirmation code is required",
   "username_is_required": "Username is required",
   "password_is_required": "Password is required",
+  "intelligence": "Intelligence",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",
@@ -127,5 +128,11 @@
     "bookmark": "Bookmark",
     "comment_optional": "Comment (optional)",
     "no_outline_available": "No outline available"
+  },
+  "setting": {
+    "ocr_service": "OCR Service",
+    "ocr_service_description": "Choose to use local OCR service or cloud OCR service",
+    "remote": "Remote",
+    "local": "Local"
   }
 }

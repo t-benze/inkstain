@@ -22,11 +22,15 @@ export class IntelligenceService {
     private readonly pdfService: PDFService,
     private readonly fileService: FileService,
     private readonly imageService: ImageService,
-    private readonly intelligenceProxy: IntelligenceInterface
+    private intelligenceProxy: IntelligenceInterface
   ) {
     this.limit = import('p-limit').then((pLimit) => {
       return pLimit.default(1);
     });
+  }
+
+  setProxy(proxy: IntelligenceInterface) {
+    this.intelligenceProxy = proxy;
   }
   // Read and write analyzed document cache to a jsonl file
   // The first line of the jsonl file is the index to map the page number to the line number
@@ -138,9 +142,7 @@ export class IntelligenceService {
     const fileManager = await this.fileService.getFileManager(spaceKey);
     const taskId = this.taskService.addTask(async (progressCallback) => {
       const pdfPath = fileManager.getDocumentContentPath(documentPath);
-      const doc = await this.pdfService.loadPDFFile(
-        path.join(pdfPath, 'content.pdf')
-      );
+      const doc = await this.pdfService.loadPDFFile(pdfPath);
       let indexData: DocLayoutIndex = {
         status: 'partial',
         indexMap: {},

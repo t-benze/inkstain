@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import child_process from 'child_process';
 import util from 'util';
-import { Context } from '~/server/types';
+import { Context, Settings } from '~/server/types';
 const router = new Router();
 
 /**
@@ -132,9 +132,66 @@ const listDirectories = async (ctx: Context) => {
   ctx.status = 200;
 };
 
+/**
+ * @swagger
+ * /system/settings:
+ *   get:
+ *     operationId: getSettings
+ *     summary: Retrieve system settings
+ *     description: Fetches the current system settings.
+ *     tags:
+ *       - System
+ *     responses:
+ *       200:
+ *         description: A JSON object containing the system settings.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Settings'
+ */
+const settings = async (ctx: Context) => {
+  const settings = await ctx.settingsService.getSettings();
+  ctx.status = 200;
+  ctx.body = settings;
+};
+
+/**
+ * @swagger
+ * /system/settings:
+ *   put:
+ *     operationId: updateSettings
+ *     summary: Update system settings
+ *     description: Updates the system settings with the provided values.
+ *     tags:
+ *       - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Settings'
+ *     responses:
+ *       200:
+ *         description: Settings successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Settings'
+ *       400:
+ *         description: Invalid settings provided
+ */
+const updateSettings = async (ctx: Context) => {
+  const settings = ctx.request.body as Settings;
+  const updatedSettings = await ctx.settingsService.updateSettings(settings);
+  ctx.status = 200;
+  ctx.body = updatedSettings;
+};
+
 export const registerSystemRoutes = (router: Router) => {
   router.get('/system/platform', platformInfo);
   router.get('/system/directories', listDirectories);
+  router.get('/system/settings', settings);
+  router.put('/system/settings', updateSettings);
 };
 
 export default router;

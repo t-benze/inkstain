@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   PlatformInfo200Response as PlatformData,
   UserInfo,
+  Settings,
 } from '@inkstain/client-api';
 import { Space, Document, SystemDocumentType } from '~/web/types';
 import { Appearance } from './types';
@@ -28,6 +29,8 @@ export type ContextType = {
     newName: string;
     isFolder: boolean;
   }) => void;
+  settings: Settings;
+  updateSettings: (settings: Settings) => void;
 };
 
 export const AppContext = React.createContext<ContextType>({} as ContextType);

@@ -2,6 +2,7 @@ import Router from '@koa/router';
 import { Context } from '~/server/types';
 import { guardAuthenticated } from '~/server/middlewares/guardAuthenticated';
 import { IntelligenceAnalyzeDocumentRequest } from '@inkstain/client-api';
+import { AuthError } from '../proxy/types';
 
 /**
  * @swagger
@@ -52,12 +53,20 @@ export const analyzePDFDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { documentPath } = ctx.request
     .body as IntelligenceAnalyzeDocumentRequest;
-  const taskId = await ctx.intelligenceService.analyzePDFDocument({
-    spaceKey,
-    documentPath,
-  });
-  ctx.status = 200;
-  ctx.body = { taskId };
+  try {
+    const taskId = await ctx.intelligenceService.analyzePDFDocument({
+      spaceKey,
+      documentPath,
+    });
+    ctx.status = 200;
+    ctx.body = { taskId };
+  } catch (e) {
+    if (e instanceof AuthError) {
+      ctx.throw(401, e.message);
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -109,12 +118,20 @@ export const analyzeWebclipDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const { documentPath } = ctx.request
     .body as IntelligenceAnalyzeDocumentRequest;
-  const taskId = await ctx.intelligenceService.analyzeWebclipDocument({
-    spaceKey,
-    documentPath,
-  });
-  ctx.status = 200;
-  ctx.body = { taskId };
+  try {
+    const taskId = await ctx.intelligenceService.analyzeWebclipDocument({
+      spaceKey,
+      documentPath,
+    });
+    ctx.status = 200;
+    ctx.body = { taskId };
+  } catch (e) {
+    if (e instanceof AuthError) {
+      ctx.throw(401, e.message);
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -231,16 +248,8 @@ const docLayoutStatus = async (ctx: Context) => {
 };
 
 export const registerIntelligenceRoutes = (router: Router) => {
-  router.post(
-    '/intelligence/:spaceKey/analyze',
-    guardAuthenticated,
-    analyzePDFDocument
-  );
-  router.post(
-    '/intelligence/:spaceKey/webclip',
-    guardAuthenticated,
-    analyzeWebclipDocument
-  );
+  router.post('/intelligence/:spaceKey/analyze', analyzePDFDocument);
+  router.post('/intelligence/:spaceKey/webclip', analyzeWebclipDocument);
   router.get('/intelligence/:spaceKey/layout-status', docLayoutStatus);
   router.get('/intelligence/:spaceKey/layout', getDocumentLayout);
 };

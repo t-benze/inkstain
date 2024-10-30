@@ -9,7 +9,6 @@ import send from 'koa-send';
 import { host, port, sqlitePath } from './settings';
 import logger from './logger';
 import bodyParser from 'koa-bodyparser';
-import AJV from 'ajv';
 // @ts-expect-error swagger-ui-dist is not typed
 import swaggerUi from 'swagger-ui-dist';
 import { Sequelize } from 'sequelize';
@@ -22,10 +21,11 @@ import { ImageService } from './services/ImageService';
 import { PDFService } from './services/PDFService';
 import { FileService } from './services/FileService';
 import { initDB } from './db';
-import { Context } from './types';
+import { Context, Settings } from './types';
 import { registerRoutes } from './handlers';
 import { AWSProxy } from './proxy/AWSProxy';
 import { LocalProxy } from './proxy/LocalProxy';
+import { SettingsService } from './services/SettingsService';
 const app = new Koa<Koa.DefaultState, Context>();
 
 app.use(async (ctx, next) => {
@@ -109,6 +109,11 @@ app.use(async (ctx, next) => {
           message: err.message || 'Internal server error',
           error: err.code,
         };
+      } else {
+        ctx.status = 500;
+        ctx.body = {
+          message: err.message || 'Internal server error',
+        };
       }
       ctx.app.emit('error', err, ctx);
     } else {
@@ -122,12 +127,14 @@ app.use(async (ctx, next) => {
 });
 
 app.on('error', (err: Error, ctx: Context) => {
-  logger.error({
-    method: ctx.request.method,
-    url: ctx.request.url,
-    error: err.message,
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
-  });
+  if (ctx.status >= 500) {
+    logger.error({
+      method: ctx.request.method,
+      url: ctx.request.url,
+      error: err.message,
+      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+    });
+  }
 });
 
 const router = new Router({
@@ -142,33 +149,16 @@ app.use(router.routes()).use(router.allowedMethods());
 
 const openApiSpecPath = path.resolve(__dirname, '../assets/openapi.yml');
 
-async function start() {
-  const schemaContent = await fs.readFile(
-    path.resolve(__dirname, '../assets/schema/components.yml'),
-    'utf8'
-  );
-  const validator = new AJV();
-  const schema = YAML.load(schemaContent) as {
-    components: {
-      schemas: { [key: string]: object };
-    };
-  };
-  Object.keys(schema.components.schemas).forEach((key) => {
-    validator.addSchema(schema.components.schemas[key], key);
-  });
-  const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: sqlitePath,
-    logging: false,
-  });
-  await sequelize.authenticate();
-  await initDB(sequelize);
-  app.context.validator = validator;
+async function initServices(
+  app: Koa<Koa.DefaultState, Context>,
+  sequelize: Sequelize
+) {
+  app.context.settingsService = new SettingsService();
   app.context.spaceService = new SpaceService();
   app.context.taskService = new TaskService();
-  // const proxy = new AWSProxy();
-  const proxy = new LocalProxy();
-  app.context.authService = new AuthService(proxy);
+  const awsProxy = new AWSProxy();
+  const localProxy = new LocalProxy();
+  app.context.authService = new AuthService(awsProxy);
   app.context.pdfService = new PDFService();
   app.context.imageService = new ImageService();
   app.context.fileService = new FileService(app.context.spaceService);
@@ -177,6 +167,9 @@ async function start() {
     app.context.spaceService,
     app.context.fileService
   );
+
+  const settings = await app.context.settingsService.getSettings();
+  const proxy = settings.ocrService === 'remote' ? awsProxy : localProxy;
   app.context.intelligenceService = new IntelligenceService(
     app.context.spaceService,
     app.context.taskService,
@@ -185,6 +178,23 @@ async function start() {
     app.context.imageService,
     proxy
   );
+  app.context.settingsService.onSettingsChanged(async (updates: Settings) => {
+    if (updates.ocrService) {
+      const proxy = updates.ocrService === 'remote' ? awsProxy : localProxy;
+      app.context.intelligenceService.setProxy(proxy);
+    }
+  });
+}
+
+async function start() {
+  const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: sqlitePath,
+    logging: false,
+  });
+  await sequelize.authenticate();
+  await initDB(sequelize);
+  await initServices(app, sequelize);
   app.listen(port, host, () => {
     console.log(`Server running on http://${host}:${port}`);
   });

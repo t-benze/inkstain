@@ -2,22 +2,15 @@ import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
-import {
-  SignUpRequest,
-  ConfirmSignUpRequest,
-  SignInRequest,
-  ForgotPasswordRequest,
-  ConfirmForgotPasswordRequest,
-  DocumentTextDetectionData,
-} from '~/server/types';
-import { AuthInterface, IntelligenceInterface } from './types';
+import { DocumentTextDetectionData } from '~/server/types';
+import { IntelligenceInterface } from './types';
 import { directories, analyzeImagePath } from '~/server/settings';
-import logger from '../logger';
+import logger from '~/server/logger';
 
 const inputPath = path.join(directories.stateDir, 'task-input.data');
 const outputPath = path.join(directories.stateDir, 'task-output.json');
 
-export class LocalProxy implements AuthInterface, IntelligenceInterface {
+export class LocalProxy implements IntelligenceInterface {
   private pythonProcess = this.startDocAnalysisProcess();
   private eventEmitter: EventEmitter;
 
@@ -59,41 +52,6 @@ export class LocalProxy implements AuthInterface, IntelligenceInterface {
       pythonProcess.kill();
     });
     return pythonProcess;
-  }
-
-  async isAuthenticated() {
-    return true;
-  }
-
-  async userInfo() {
-    return {
-      username: '',
-      email: '',
-    };
-  }
-
-  async signUp(_: SignUpRequest) {
-    return;
-  }
-
-  async confirmSignUp(_: ConfirmSignUpRequest) {
-    return;
-  }
-
-  async signIn(_: SignInRequest) {
-    return;
-  }
-
-  async signOut() {
-    return;
-  }
-
-  async forgotPassword(_: ForgotPasswordRequest) {
-    return;
-  }
-
-  async confirmForgotPassword(_: ConfirmForgotPasswordRequest) {
-    return;
   }
 
   async analyzeImage(image: string) {

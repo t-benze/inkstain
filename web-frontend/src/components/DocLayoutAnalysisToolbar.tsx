@@ -25,7 +25,7 @@ export const DocLayoutAnalysisToolbar = ({
   docLayoutStatus,
 }: DocLayoutAnalysisToolbarProps) => {
   const { t } = useTranslation();
-  const { showAuthDialog, userInfo } = useAppContext();
+  const { showAuthDialog, userInfo, settings } = useAppContext();
   const hasRunningTask = taskStatus
     ? taskStatus.status !== 'completed' && taskStatus.status !== 'failed'
     : false;
@@ -38,10 +38,14 @@ export const DocLayoutAnalysisToolbar = ({
         icon={<TextEffectsSparkleRegular />}
         disabled={hasRunningTask}
         onClick={() => {
-          if (userInfo) {
-            startLayoutTask();
+          if (settings.ocrService === 'remote') {
+            if (userInfo) {
+              startLayoutTask();
+            } else {
+              showAuthDialog();
+            }
           } else {
-            showAuthDialog();
+            startLayoutTask();
           }
         }}
       />
