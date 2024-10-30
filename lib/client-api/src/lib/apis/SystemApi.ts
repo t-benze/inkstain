@@ -16,22 +16,66 @@ import * as runtime from '../runtime';
 import type {
   ListDirectories200ResponseInner,
   PlatformInfo200Response,
+  Settings,
 } from '../models/index';
 import {
   ListDirectories200ResponseInnerFromJSON,
   ListDirectories200ResponseInnerToJSON,
   PlatformInfo200ResponseFromJSON,
   PlatformInfo200ResponseToJSON,
+  SettingsFromJSON,
+  SettingsToJSON,
 } from '../models/index';
 
 export interface ListDirectoriesRequest {
   path: string;
 }
 
+export interface UpdateSettingsRequest {
+  settings: Settings;
+}
+
 /**
  *
  */
 export class SystemApi extends runtime.BaseAPI {
+  /**
+   * Fetches the current system settings.
+   * Retrieve system settings
+   */
+  async getSettingsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Settings>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/system/settings`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      SettingsFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Fetches the current system settings.
+   * Retrieve system settings
+   */
+  async getSettings(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Settings> {
+    const response = await this.getSettingsRaw(initOverrides);
+    return await response.value();
+  }
+
   /**
    * This endpoint returns a list of directories in the specified path.
    * List directories of a specified path
@@ -122,6 +166,61 @@ export class SystemApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<PlatformInfo200Response> {
     const response = await this.platformInfoRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Updates the system settings with the provided values.
+   * Update system settings
+   */
+  async updateSettingsRaw(
+    requestParameters: UpdateSettingsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<Settings>> {
+    if (
+      requestParameters.settings === null ||
+      requestParameters.settings === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'settings',
+        'Required parameter requestParameters.settings was null or undefined when calling updateSettings.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/system/settings`,
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+        body: SettingsToJSON(requestParameters.settings),
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      SettingsFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Updates the system settings with the provided values.
+   * Update system settings
+   */
+  async updateSettings(
+    requestParameters: UpdateSettingsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<Settings> {
+    const response = await this.updateSettingsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

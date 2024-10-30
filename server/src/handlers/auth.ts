@@ -7,20 +7,8 @@ import {
   ForgotPasswordRequest,
   ConfirmForgotPasswordRequest,
 } from '@inkstain/client-api';
-import { AuthError } from '~/server/proxy/types';
 import { guardAuthenticated } from '~/server/middlewares/guardAuthenticated';
 
-function handleError(ctx: Context, error: unknown) {
-  if (error instanceof AuthError) {
-    ctx.throw(400, error.message, {
-      code: error.code,
-    });
-  } else if (error instanceof Error) {
-    ctx.throw(500, error);
-  } else {
-    ctx.throw(500, new Error('Unknown error'));
-  }
-}
 /**
  * @swagger
  * /auth/signup:

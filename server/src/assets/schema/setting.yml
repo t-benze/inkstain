@@ -1,0 +1,10 @@
+components:
+  schemas:
+    Settings:
+      type: object
+      properties:
+        ocrService:
+          type: string
+          enum: ['local', 'remote']
+      required:
+        - ocrService

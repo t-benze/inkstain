@@ -150,7 +150,11 @@ class FileManager {
   }
 
   async readAnnotationFile(documentPath: string) {
-    return await this.readFile(documentPath, 'annotations.json');
+    try {
+      return await this.readFile(documentPath, 'annotations.json');
+    } catch (err) {
+      return '[]';
+    }
   }
 
   async writeAnnotationFile(documentPath: string, content: string) {
