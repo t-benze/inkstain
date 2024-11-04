@@ -23,6 +23,7 @@ import {
 } from '~/web/components/ZoomToolbar';
 import { DocLayoutAnalysisToolbar } from '~/web/components/DocLayoutAnalysisToolbar';
 import { usePDFLayoutTask } from '~/web/components/PDFView/hooks';
+import { ToolbarChatButton } from '~/web/components/DocumentChatView';
 
 interface PDFToolbarProps extends ZoomToolbarProps {
   numOfPages: number;
@@ -30,6 +31,8 @@ interface PDFToolbarProps extends ZoomToolbarProps {
   onPageChange: (pageNum: number) => void;
   enableScroll: boolean;
   onEnableScrollChange: (enableScroll: boolean) => void;
+  showChatOverlay: boolean;
+  onShowChatOverlayChange: (show: boolean) => void;
 }
 
 const useClasses = makeStyles({
@@ -86,6 +89,8 @@ export const PDFToolbar = ({
   onZoomFitWidth,
   onZoomIn,
   onZoomOut,
+  showChatOverlay,
+  onShowChatOverlayChange,
 }: PDFToolbarProps) => {
   const styles = useClasses();
   const { t } = useTranslation();
@@ -175,6 +180,12 @@ export const PDFToolbar = ({
         taskStatus={taskStatus}
         startLayoutTask={startLayoutTask}
         docLayoutStatus={docLayoutStatus}
+      />
+      <ToolbarChatButton
+        docLayoutStatus={docLayoutStatus?.status}
+        dataTest="webclip-toolbar-chat"
+        showChat={showChatOverlay}
+        onShowChatChange={onShowChatOverlayChange}
       />
     </Toolbar>
   );

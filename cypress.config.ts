@@ -105,13 +105,13 @@ export default defineConfig({
           targetPath
         );
         const meta = await fs.readFile(
-          path.join(targetPath, '.inkstain'),
+          path.join(targetPath, '.inkstain', 'space.json'),
           'utf-8'
         );
         const spaceMeta = JSON.parse(meta);
         spaceMeta.name = spaceName;
         await fs.writeFile(
-          path.join(targetPath, '.inkstain'),
+          path.join(targetPath, '.inkstain', 'space.json'),
           JSON.stringify(spaceMeta),
           'utf-8'
         );

@@ -6,20 +6,27 @@ import {
   ToolbarDivider,
   shorthands,
 } from '@fluentui/react-components';
+import { useTranslation } from 'react-i18next';
 import { Toolbar as StylusToolbar } from '~/web/components/DrawingAnnotationOverlay';
 import {
   ZoomToolbar,
   ToolbarProps as ZoomToolbarProps,
 } from '~/web/components/ZoomToolbar';
+
 import { useWebclipLayoutTask } from './hooks';
 import { DocLayoutAnalysisToolbar } from '~/web/components/DocLayoutAnalysisToolbar';
+import { ToolbarChatButton } from '~/web/components/DocumentChatView';
 
-type ToolbarProps = ZoomToolbarProps;
+type ToolbarProps = ZoomToolbarProps & {
+  showChatOverlay: boolean;
+  onShowChatOverlayChange: (show: boolean) => void;
+};
 
 const useClasses = makeStyles({
   root: {
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderBottom('1px', 'solid', tokens.colorNeutralStroke1),
+    height: '32px',
   },
   pageNumInput: {
     width: '32px',
@@ -65,6 +72,8 @@ export const WebclipToolbar = ({
   onZoomIn,
   onZoomOut,
   onZoomFitHeight,
+  showChatOverlay,
+  onShowChatOverlayChange,
 }: ToolbarProps) => {
   const styles = useClasses();
   const { docLayoutStatus, startLayoutTask, taskStatus } =
@@ -85,6 +94,13 @@ export const WebclipToolbar = ({
         docLayoutStatus={docLayoutStatus}
         startLayoutTask={startLayoutTask}
         taskStatus={taskStatus}
+      />
+
+      <ToolbarChatButton
+        docLayoutStatus={docLayoutStatus?.status}
+        dataTest="webclip-toolbar-chat"
+        showChat={showChatOverlay}
+        onShowChatChange={onShowChatOverlayChange}
       />
     </Toolbar>
   );

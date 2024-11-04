@@ -223,3 +223,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentLayoutTextLine'
+    ChatMessage:
+      type: object
+      properties:
+        content:
+          type: string
+        role:
+          type: string
+        id:
+          type: string
+      required:
+        - content
+        - role
+        - id

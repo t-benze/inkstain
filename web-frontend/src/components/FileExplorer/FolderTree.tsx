@@ -236,6 +236,7 @@ export const FolderTree = ({
                   />
                 ) : (
                   <Text
+                    role="button"
                     wrap={false}
                     truncate={true}
                     className={styles.itemText}

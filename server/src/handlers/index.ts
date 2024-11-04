@@ -6,6 +6,7 @@ import { registerTaskRoutes } from './task';
 import { registerIntelligenceRoutes } from './intelligence';
 import { registerSearchRoutes } from './search';
 import { registerAuthRoutes } from './auth';
+import { registerChatRoutes } from './chat';
 
 export const registerRoutes = (router: Router) => {
   registerDocumentRoutes(router);
@@ -15,4 +16,5 @@ export const registerRoutes = (router: Router) => {
   registerIntelligenceRoutes(router);
   registerSearchRoutes(router);
   registerAuthRoutes(router);
+  registerChatRoutes(router);
 };

@@ -6,10 +6,12 @@ import { ContentView } from './ContentView';
 import { WebclipToolbar } from './Toolbar';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
 import { useStylus } from '~/web/components/DrawingAnnotationOverlay/hooks/useStylus';
-import { DrawingAnnotationOverlayContext } from '../DrawingAnnotationOverlay';
+import { DrawingAnnotationOverlayContext } from '~/web/components/DrawingAnnotationOverlay';
+import { ChatView } from '~/web/components/DocumentChatView';
 
 const useClasses = makeStyles({
   root: {
+    position: 'relative',
     width: '100%',
     height: '100%',
     display: 'flex',
@@ -22,6 +24,23 @@ const useClasses = makeStyles({
     display: 'flex',
     flexGrow: 1,
     overflow: 'scroll scroll',
+  },
+
+  chatOverlayMask: {
+    position: 'absolute',
+    top: `32px`,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  chatOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: `20%`,
+    backgroundColor: tokens.colorNeutralBackground1,
   },
 });
 
@@ -107,6 +126,8 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
     handleStylusChange,
   } = useStylus();
 
+  const [showChatOverlay, setShowChatOverlay] = React.useState(false);
+
   return (
     <DrawingAnnotationOverlayContext.Provider
       value={{
@@ -125,6 +146,8 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onZoomFitHeight={handleZoomFitHeight}
+          showChatOverlay={showChatOverlay}
+          onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
         />
         <div
           className={classes.scene}
@@ -150,6 +173,19 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
             <Spinner />
           )}
         </div>
+        {showChatOverlay && (
+          <>
+            <div
+              className={classes.chatOverlayMask}
+              onClick={() => {
+                setShowChatOverlay(false);
+              }}
+            ></div>
+            <div className={classes.chatOverlay}>
+              <ChatView spaceKey={spaceKey} documentPath={documentPath} />
+            </div>
+          </>
+        )}
       </div>
     </DrawingAnnotationOverlayContext.Provider>
   );
