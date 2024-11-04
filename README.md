@@ -14,7 +14,7 @@ InkStain is a comprehensive document management tool designed to serve and inter
 - **Document Organization**: Tagging, custom metadata, and notes to improve file management.
 - **Search**: Look up documents by tags, custom data, and attached notes.
 - **Data I integrity**: Annotations, highlights, and custom data are stored in a way that does not alter the original documents.
-- **Document Management Directory**: `.inkstain` folders encapsulating documents and their metadata for easy management and potential cloud syncing.
+- **Document Management Directory**: `.ink` folders encapsulating documents and their metadata for easy management and potential cloud syncing.
 - **Scalability**: Designed to manage a growing number of documents and users.
 
 ## License

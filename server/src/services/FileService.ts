@@ -53,6 +53,16 @@ class FileManager {
     }
   }
 
+  createReadStream(
+    documentPath: string,
+    file: string,
+    encoding = 'utf-8' as BufferEncoding
+  ) {
+    const documentDirectory = documentPath + '.ink';
+    const filePath = path.join(this.space.path, documentDirectory, file);
+    return createReadStream(filePath, encoding);
+  }
+
   async addDocument(documentPath: string, file: File) {
     const ext = path.extname(file.originalname);
     const documentDirectory = documentPath + '.ink';
@@ -173,8 +183,18 @@ class FileManager {
     });
   }
 
-  async readDir(documentPath: string) {
-    const fullPath = path.join(this.space.path, documentPath);
+  async listChatSessions(documentPath: string) {
+    const documentDirectory = documentPath + '.ink';
+    const realPath = path.join(this.space.path, documentDirectory);
+    const files = await fs.readdir(realPath);
+    return files
+      .filter((file) => file.startsWith('chat-') && file.endsWith('.jsonl'))
+      .map((file) => file.replace('.jsonl', ''))
+      .sort((a, b) => b.localeCompare(a));
+  }
+
+  async readDir(folderPath: string) {
+    const fullPath = path.join(this.space.path, folderPath);
     const files = await fs.readdir(fullPath);
     const results = files
       .filter((file) => file !== '.inkstain' && file !== '.DS_Store')
@@ -184,7 +204,7 @@ class FileManager {
         return {
           name: file,
           type: isFile ? 'file' : 'folder',
-          path: path.join(documentPath, file),
+          path: path.join(folderPath, file),
         };
       });
     return await Promise.all(results);

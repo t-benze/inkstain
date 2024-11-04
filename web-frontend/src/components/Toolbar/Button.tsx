@@ -8,7 +8,7 @@ export const ToolbarButtonWithTooltip = ({
   disabled,
 }: {
   content: string;
-  dataTest: string;
+  dataTest?: string;
   icon: JSX.Element;
   onClick: () => void;
   disabled?: boolean;

@@ -44,7 +44,6 @@ const useClasses = makeStyles({
   panel: {
     width: '100%',
     height: 'calc(100% - 32px)',
-    ...shorthands.overflow('hidden'),
   },
 });
 
@@ -58,6 +57,7 @@ const TabPanel = ({
   isActive: boolean;
 }) => {
   const styles = useClasses();
+
   return (
     <div
       className={styles.panel}

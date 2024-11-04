@@ -20,6 +20,7 @@ import { IntelligenceService } from './services/IntelligenceService';
 import { ImageService } from './services/ImageService';
 import { PDFService } from './services/PDFService';
 import { FileService } from './services/FileService';
+import { ChatService } from './services/ChatService';
 import { initDB } from './db';
 import { Context, Settings } from './types';
 import { registerRoutes } from './handlers';
@@ -177,6 +178,10 @@ async function initServices(
     app.context.fileService,
     app.context.imageService,
     proxy
+  );
+  app.context.chatService = new ChatService(
+    app.context.intelligenceService,
+    app.context.fileService
   );
   app.context.settingsService.onSettingsChanged(async (updates: Settings) => {
     if (updates.ocrService) {

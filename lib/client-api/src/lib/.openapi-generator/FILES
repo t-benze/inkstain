@@ -1,4 +1,5 @@
 apis/AuthApi.ts
+apis/ChatApi.ts
 apis/DocumentsApi.ts
 apis/IntelligenceApi.ts
 apis/SearchApi.ts
@@ -13,6 +14,10 @@ models/Annotation.ts
 models/AnnotationData.ts
 models/BaseResponse.ts
 models/BookmarkData.ts
+models/ChatMessage.ts
+models/ChatNewMessageRequest.ts
+models/ChatNewSession200Response.ts
+models/ChatNewSessionRequest.ts
 models/ConfirmForgotPasswordRequest.ts
 models/ConfirmSignUpRequest.ts
 models/CreateSpace201Response.ts
@@ -28,6 +33,7 @@ models/DocumentTag.ts
 models/DocumentTextDetectionData.ts
 models/DrawingData.ts
 models/ForgotPasswordRequest.ts
+models/GetChatSession200Response.ts
 models/GetSpaceOverview200Response.ts
 models/GetSpaceOverview200ResponseData.ts
 models/HighlightData.ts

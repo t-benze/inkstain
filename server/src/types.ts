@@ -6,6 +6,7 @@ import { AuthService } from './services/AuthService';
 import { FileService } from './services/FileService';
 import { IntelligenceService } from './services/IntelligenceService';
 import { SettingsService } from './services/SettingsService';
+import { ChatService } from './services/ChatService';
 import {
   Space,
   UserInfo,
@@ -44,6 +45,7 @@ export type Context = Router.RouterContext & {
   intelligenceService: IntelligenceService;
   fileService: FileService;
   settingsService: SettingsService;
+  chatService: ChatService;
 };
 
 export type DocLayoutIndex = {

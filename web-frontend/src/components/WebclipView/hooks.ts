@@ -60,13 +60,5 @@ export const useWebclipLayoutTask = () => {
     }
   }, [taskStatus?.status, queryClient, space.key, document.name]);
 
-  // React.useEffect(() => {
-  //   if (docLayoutStatus?.status === 'completed') {
-  //     queryClient.invalidateQueries({
-  //       queryKey: ['document-layout', space.key, document.name],
-  //     });
-  //   }
-  // }, [docLayoutStatus, queryClient, space.key, document.name]);
-
   return { docLayoutStatus, startLayoutTask, taskStatus };
 };

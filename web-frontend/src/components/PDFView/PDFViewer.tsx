@@ -16,6 +16,7 @@ import {
   useStylus,
 } from '~/web/components/DrawingAnnotationOverlay';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
+import { ChatView } from '~/web/components/DocumentChatView';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -30,6 +31,7 @@ export interface PDFViewerProps {
 }
 const useStyles = makeStyles({
   root: {
+    position: 'relative',
     width: '100%',
     height: '100%',
     display: 'flex',
@@ -42,6 +44,22 @@ const useStyles = makeStyles({
     display: 'flex',
     flexGrow: 1,
     overflow: 'scroll scroll',
+  },
+  chatOverlayMask: {
+    position: 'absolute',
+    top: `32px`,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  chatOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: `20%`,
+    backgroundColor: tokens.colorNeutralBackground1,
   },
 });
 
@@ -200,8 +218,11 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
       [handleZoomGesture, currentPageNumber]
     );
 
+    const [showChatOverlay, setShowChatOverlay] = React.useState(false);
+
     // for high resolution devices, we need to scale the pdf rendering
     const pdfScale = scale * window.devicePixelRatio;
+
     return (
       <PDFViewerContext.Provider
         value={{
@@ -242,6 +263,8 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
               onZoomIn={handleZoomIn}
               onZoomOut={handleZoomOut}
               onZoomFitWidth={handleZoomFitWidth}
+              showChatOverlay={showChatOverlay}
+              onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
             />
             {pdfDocument ? (
               enableScroll ? (
@@ -282,6 +305,20 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                 </div>
               )
             ) : null}
+
+            {showChatOverlay && (
+              <>
+                <div
+                  className={styles.chatOverlayMask}
+                  onClick={() => {
+                    setShowChatOverlay(false);
+                  }}
+                ></div>
+                <div className={styles.chatOverlay}>
+                  <ChatView spaceKey={spaceKey} documentPath={documentPath} />
+                </div>
+              </>
+            )}
           </div>
         </DrawingAnnotationOverlayContext.Provider>
       </PDFViewerContext.Provider>

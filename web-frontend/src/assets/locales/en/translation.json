@@ -7,6 +7,7 @@
   "confirm": "Confirm",
   "remove": "Remove",
   "update": "Update",
+  "continue": "Continue",
   "cancel": "Cancel",
   "edit": "Edit",
   "save": "Save",
@@ -69,6 +70,8 @@
   "username_is_required": "Username is required",
   "password_is_required": "Password is required",
   "intelligence": "Intelligence",
+  "chat_input_placeholder": "Type a message...",
+  "msg_require_doc_layout_for_chat": "The document analysis data is needed for the chat feature, proceed to run the document analysis?",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",
@@ -80,7 +83,9 @@
     "documentPath": "Document",
     "documentCount": "Documents",
     "tagCount": "Tags",
-    "attributeCount": "Attributes"
+    "attributeCount": "Attributes",
+    "user": "User",
+    "assistant": "Assistant"
   },
   "space": {
     "_": "Space",

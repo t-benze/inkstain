@@ -7,6 +7,7 @@ import {
   SearchApi,
   Configuration,
   AuthApi,
+  ChatApi,
 } from '@inkstain/client-api';
 
 export const API_PREFIX = '/api/v1';
@@ -21,3 +22,4 @@ export const taskApi = new TasksApi(config);
 export const intelligenceApi = new IntelligenceApi(config);
 export const searchApi = new SearchApi(config);
 export const authApi = new AuthApi(config);
+export const chatApi = new ChatApi(config);

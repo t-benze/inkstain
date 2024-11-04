@@ -41,24 +41,17 @@ export class IntelligenceService {
     pageNum: string
   ): Promise<DocumentTextDetectionData | null> {
     const space = await this.spaceService.getSpace(spaceKey);
+    const fileManager = await this.fileService.getFileManager(spaceKey);
     if (space) {
       try {
-        const cacheIndexFilePath = path.join(
-          space.path,
-          `${documentPath}.ink`,
-          `analyzed-layout-index.json`
+        const indexData = JSON.parse(
+          await fileManager.readFile(documentPath, 'analyzed-layout-index.json')
         );
-        const cacheDataFilePath = path.join(
-          space.path,
-          `${documentPath}.ink`,
+        const dataLine = indexData.indexMap[pageNum];
+        const fileStream = fileManager.createReadStream(
+          documentPath,
           `analyzed-layout.jsonl`
         );
-        await fs.access(cacheIndexFilePath);
-        const indexData = JSON.parse(
-          await fs.readFile(cacheIndexFilePath, 'utf-8')
-        ) as DocLayoutIndex;
-        const dataLine = indexData.indexMap[pageNum];
-        const fileStream = createReadStream(cacheDataFilePath);
         const rl = readline.createInterface({
           input: fileStream,
           crlfDelay: Infinity,
@@ -276,5 +269,40 @@ export class IntelligenceService {
     } catch (error) {
       return null;
     }
+  }
+
+  async extractDocTextContent({
+    spaceKey,
+    documentPath,
+  }: {
+    spaceKey: string;
+    documentPath: string;
+  }) {
+    const fileManager = await this.fileService.getFileManager(spaceKey);
+    const indexFile = await fileManager.readFile(
+      documentPath,
+      'analyzed-layout-index.json'
+    );
+    const indexData = JSON.parse(indexFile) as DocLayoutIndex;
+    if (indexData.status !== 'completed') {
+      throw new Error("Document layout analysis isn't completed yet");
+    }
+    const fileStream = fileManager.createReadStream(
+      documentPath,
+      'analyzed-layout.jsonl'
+    );
+    const rl = readline.createInterface({
+      input: fileStream,
+      crlfDelay: Infinity,
+    });
+    let textContent = '';
+    for await (const line of rl) {
+      const data = JSON.parse(line) as DocumentTextDetectionData;
+      const textBlocks = data.blocks
+        ? data.blocks.map((block) => block.text)
+        : [];
+      textContent += textBlocks.join('\n');
+    }
+    return textContent;
   }
 }
