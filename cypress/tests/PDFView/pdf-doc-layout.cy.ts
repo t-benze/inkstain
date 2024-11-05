@@ -68,7 +68,7 @@ describe('PDF Document Layout Analysis', () => {
     cy.getBySel('fileExplorer').contains('test nested folder').click();
     cy.getBySel('fileExplorer').contains('test-doc.pdf').click();
     cy.getBySel('toolbar-docLayoutReady').should('not.exist');
-    cy.getBySel('pdfViewer-analyzeDocBtn').click();
+    cy.getBySel('toolbar-analyzeDocBtn').click();
     cy.wait('@analyze');
     cy.wait('@analyzeStatus');
     cy.wait('@analyzeStatus');

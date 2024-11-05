@@ -6,7 +6,6 @@ import { tokens } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@fluentui/react-components';
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
-import { useUser } from '~/web/hooks/auth';
 import { useAppContext } from '~/web/app/hooks/useAppContext';
 import {
   IntelligenceDocLayoutStatus200Response,
@@ -34,7 +33,7 @@ export const DocLayoutAnalysisToolbar = ({
     <>
       <ToolbarButtonWithTooltip
         content={t('pdfview.analyzeDocBtnTooltip')}
-        dataTest="pdfViewer-analyzeDocBtn"
+        dataTest="toolbar-analyzeDocBtn"
         icon={<TextEffectsSparkleRegular />}
         disabled={hasRunningTask}
         onClick={() => {

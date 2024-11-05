@@ -2,20 +2,28 @@
 
 ## Overview
 
-InkStain is a comprehensive document management tool designed to serve and interact with documents directly from a user's local file system through a web browser interface. It enables users to view various document types such as PDFs, images, and Markdown files, and provides functionalities for creating metadata like annotations and highlights. The core features focus on accessibility, organization, interactivity, and enhanced user experience.
+InkStain is a comprehensive document management tool designed to serve and interact with documents directly from a user's local file system. It makes your documents retrievable and provides document
+intelligence features like layout analysis and chatting with the document.
 
 ## Key Features
 
-- **Local Document Serving**: Enable users to access documents from their system within a browser.
-- **Specialized Document Viewing**: Tailored components for different document types.
-  - PDFs: Text highlights and annotations
-  - Images: Markup drawing capabilities
-  - Markdown: Real-time view and edit modes
-- **Document Organization**: Tagging, custom metadata, and notes to improve file management.
-- **Search**: Look up documents by tags, custom data, and attached notes.
-- **Data I integrity**: Annotations, highlights, and custom data are stored in a way that does not alter the original documents.
-- **Document Management Directory**: `.ink` folders encapsulating documents and their metadata for easy management and potential cloud syncing.
-- **Scalability**: Designed to manage a growing number of documents and users.
+**Filter documents by tags and attributes**
+![filter-documents](https://www.inkstain.io/images/features/filter-documents.png)
+
+**Add Annotations to document**
+![add-annotation](https://www.inkstain.io/images/features/document-annotations.png)
+
+**Extract text with OCR**
+![document-ocr](https://www.inkstain.io/images/features/document-ocr.png)
+
+**Chat with Document**
+![chat-with-document](https://www.inkstain.io/images/features/chat-with-doc.png)
+
+**Download document using browser extension**
+![download-with-extension](https://www.inkstain.io/images/features/download-document.png)
+
+**Clip a webpage**
+![clip-web-page](https://www.inkstain.io/images/features/webclip.png)
 
 ## License
 
@@ -24,3 +32,4 @@ This project is licensed under the GPL-3.0-or-later license. See the [LICENSE](.
 ## Acknowledgments
 
 - [Surya OCR](https://github.com/ankane/surya) for the Local OCR solutions. Model weights by Vikas Paruchuri is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Available at: [HuggingFace](https://huggingface.co/vikp).
+- [Fluent UI](https://github.com/microsoft/fluentui), for the UI library used to bulid the frontend.

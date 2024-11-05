@@ -13,7 +13,7 @@
         "commands": [
           "poetry config virtualenvs.in-project true",
           "poetry install",
-          "pip install pyinstaller"
+          ".venv/bin/pip install pyinstaller"
         ]
       }
     },

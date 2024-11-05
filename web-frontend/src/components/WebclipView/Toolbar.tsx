@@ -98,9 +98,9 @@ export const WebclipToolbar = ({
 
       <ToolbarChatButton
         docLayoutStatus={docLayoutStatus?.status}
-        dataTest="webclip-toolbar-chat"
         showChat={showChatOverlay}
         onShowChatChange={onShowChatOverlayChange}
+        startLayoutTask={startLayoutTask}
       />
     </Toolbar>
   );
