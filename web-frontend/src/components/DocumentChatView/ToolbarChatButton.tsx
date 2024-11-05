@@ -14,17 +14,17 @@ import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
 import { useAppContext } from '~/web/app/hooks/useAppContext';
 
 interface ToolbarChatButtonProps {
-  dataTest?: string;
   showChat: boolean;
   onShowChatChange: (show: boolean) => void;
   docLayoutStatus: IntelligenceDocLayoutStatus200ResponseStatusEnum | undefined;
+  startLayoutTask: () => void;
 }
 
 export const ToolbarChatButton = ({
-  dataTest,
   showChat,
   docLayoutStatus,
   onShowChatChange,
+  startLayoutTask,
 }: ToolbarChatButtonProps) => {
   const { t } = useTranslation();
   const { showAuthDialog, userInfo } = useAppContext();
@@ -51,7 +51,7 @@ export const ToolbarChatButton = ({
     >
       <ToolbarButtonWithTooltip
         content={t('chat')}
-        dataTest={dataTest}
+        dataTest={'toolbar-chatBtn'}
         icon={<ChatBubblesQuestionRegular />}
         onClick={handleClick}
       />
@@ -59,8 +59,22 @@ export const ToolbarChatButton = ({
         <DialogBody>
           <DialogContent>{t('msg_require_doc_layout_for_chat')}</DialogContent>
           <DialogActions>
-            <Button appearance="primary">{t('confirm')}</Button>
-            <Button>{t('cancel')}</Button>
+            <Button
+              appearance="primary"
+              onClick={() => {
+                setOpen(false);
+                startLayoutTask();
+              }}
+            >
+              {t('confirm')}
+            </Button>
+            <Button
+              onClick={() => {
+                setOpen(false);
+              }}
+            >
+              {t('cancel')}
+            </Button>
           </DialogActions>
         </DialogBody>
       </DialogSurface>

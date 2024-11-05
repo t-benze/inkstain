@@ -183,7 +183,7 @@ export const PDFToolbar = ({
       />
       <ToolbarChatButton
         docLayoutStatus={docLayoutStatus?.status}
-        dataTest="webclip-toolbar-chat"
+        startLayoutTask={startLayoutTask}
         showChat={showChatOverlay}
         onShowChatChange={onShowChatOverlayChange}
       />
