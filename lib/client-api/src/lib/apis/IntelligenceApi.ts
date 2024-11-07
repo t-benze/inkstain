@@ -14,12 +14,15 @@
 
 import * as runtime from '../runtime';
 import type {
+  ErrorResponseData,
   IntelligenceAnalyzeDocument200Response,
   IntelligenceAnalyzeDocumentRequest,
   IntelligenceDocLayout200Response,
   IntelligenceDocLayoutStatus200Response,
 } from '../models/index';
 import {
+  ErrorResponseDataFromJSON,
+  ErrorResponseDataToJSON,
   IntelligenceAnalyzeDocument200ResponseFromJSON,
   IntelligenceAnalyzeDocument200ResponseToJSON,
   IntelligenceAnalyzeDocumentRequestFromJSON,

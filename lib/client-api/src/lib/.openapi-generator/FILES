@@ -1,3 +1,4 @@
+.openapi-generator-ignore
 apis/AuthApi.ts
 apis/ChatApi.ts
 apis/DocumentsApi.ts
@@ -12,7 +13,6 @@ models/AddDocumentTagsRequest.ts
 models/AddUpdateDocumentAttributesRequest.ts
 models/Annotation.ts
 models/AnnotationData.ts
-models/BaseResponse.ts
 models/BookmarkData.ts
 models/ChatMessage.ts
 models/ChatNewMessageRequest.ts
@@ -32,6 +32,7 @@ models/DocumentSearchResult.ts
 models/DocumentTag.ts
 models/DocumentTextDetectionData.ts
 models/DrawingData.ts
+models/ErrorResponseData.ts
 models/ForgotPasswordRequest.ts
 models/GetChatSession200Response.ts
 models/GetSpaceOverview200Response.ts

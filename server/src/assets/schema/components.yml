@@ -1,5 +1,14 @@
 components:
   schemas:
+    ErrorResponseData:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+      required:
+        - message
     Space:
       type: object
       required:
@@ -84,6 +93,10 @@ components:
           type: number
           minimum: 0
           maximum: 100
+        errorMessage:
+          type: string
+        errorCode:
+          type: string
       required:
         - status
         - progress

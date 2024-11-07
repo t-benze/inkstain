@@ -71,6 +71,7 @@
   "password_is_required": "Password is required",
   "intelligence": "Intelligence",
   "chat_input_placeholder": "Type a message...",
+  "chat_with_doc": "Chat with document",
   "msg_require_doc_layout_for_chat": "The document analysis data is needed for the chat feature, proceed to run the document analysis?",
   "system": {
     "@inkstain/space-management": "Spaces",
@@ -85,7 +86,9 @@
     "tagCount": "Tags",
     "attributeCount": "Attributes",
     "user": "User",
-    "assistant": "Assistant"
+    "assistant": "Assistant",
+    "unknownError": "Unknown error",
+    "InsufficientBalance": "Insufficient balance"
   },
   "space": {
     "_": "Space",

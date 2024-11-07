@@ -22,7 +22,12 @@ import {
   DocumentTextDetectionData,
 } from '~/server/types';
 import logger from '~/server/logger';
-import { AuthInterface, IntelligenceInterface, AuthError } from './types';
+import {
+  AuthInterface,
+  DocIntelligenceInterface,
+  AuthError,
+  DocIntelligenceError,
+} from './types';
 
 type Tokens = {
   idToken: string;
@@ -30,7 +35,7 @@ type Tokens = {
   expiration: number;
 };
 
-export class AWSProxy implements AuthInterface, IntelligenceInterface {
+export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
   private userPool: CognitoUserPool;
   private tokens: Tokens | null = null;
 
@@ -63,10 +68,11 @@ export class AWSProxy implements AuthInterface, IntelligenceInterface {
       // const newTokens = await this.refreshTokens(this.tokens.
       const { username } = this.decodeIDToken(this.tokens.idToken);
       try {
-        this.tokens = await this.refreshTokens(
+        const updateTokens = await this.refreshTokens(
           username,
           this.tokens.refreshToken
         );
+        await this.saveTokens(updateTokens);
       } catch (error) {
         await fs.unlink(tokensFile);
         return null;
@@ -243,11 +249,21 @@ export class AWSProxy implements AuthInterface, IntelligenceInterface {
       method: 'POST',
       body: image,
       headers: {
-        'Content-Type': 'plain/text',
+        'Content-Type': 'text/plain',
         Authorization: `Bearer ${tokenString}`,
       },
     });
+
     if (!response.ok) {
+      if (response.status === 403) {
+        const responseBody = await response.json();
+        if (responseBody && responseBody.code === 'INSUFFICIENT_BALANCE') {
+          throw new DocIntelligenceError(
+            'Insufficient balance',
+            DocIntelligenceError.CODE_INSUFFICIENT_BALANCE
+          );
+        }
+      }
       throw new Error(
         `Intelligence API error: ${response.statusText} ${response.headers.get(
           'x-amzn-ErrorType'

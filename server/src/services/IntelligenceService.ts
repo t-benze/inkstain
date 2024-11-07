@@ -1,14 +1,18 @@
 import path from 'path';
 import fs from 'fs/promises';
 import * as readline from 'readline';
-import { createReadStream, createWriteStream } from 'fs';
+import { createWriteStream } from 'fs';
 import { EOL } from 'os';
 import { DocumentTextDetectionData } from '~/server/types';
-import { IntelligenceInterface } from '~/server/proxy/types';
+import {
+  AuthError,
+  DocIntelligenceError,
+  DocIntelligenceInterface,
+} from '~/server/proxy/types';
 import { PDFService } from './PDFService';
 import { DocLayoutIndex, WebclipData } from '~/server/types';
 import { SpaceService } from './SpaceService';
-import { TaskService } from './TaskService';
+import { TaskService, TaskError } from './TaskService';
 import { ImageService } from './ImageService';
 import { FileService } from './FileService';
 // @ts-expect-error import type from p-limit
@@ -22,14 +26,14 @@ export class IntelligenceService {
     private readonly pdfService: PDFService,
     private readonly fileService: FileService,
     private readonly imageService: ImageService,
-    private intelligenceProxy: IntelligenceInterface
+    private intelligenceProxy: DocIntelligenceInterface
   ) {
     this.limit = import('p-limit').then((pLimit) => {
       return pLimit.default(1);
     });
   }
 
-  setProxy(proxy: IntelligenceInterface) {
+  setProxy(proxy: DocIntelligenceInterface) {
     this.intelligenceProxy = proxy;
   }
   // Read and write analyzed document cache to a jsonl file
@@ -134,51 +138,63 @@ export class IntelligenceService {
   }) {
     const fileManager = await this.fileService.getFileManager(spaceKey);
     const taskId = this.taskService.addTask(async (progressCallback) => {
-      const pdfPath = fileManager.getDocumentContentPath(documentPath);
-      const doc = await this.pdfService.loadPDFFile(pdfPath);
-      let indexData: DocLayoutIndex = {
-        status: 'partial',
-        indexMap: {},
-      };
       try {
-        const indexFile = await fileManager.readFile(
-          documentPath,
-          'analyzed-layout-index.json'
-        );
-        indexData = JSON.parse(indexFile) as DocLayoutIndex;
-      } catch (e) {
-        // do nothing
-      }
-      const pageCount = doc.numPages;
-      const tasks: Promise<void>[] = [];
-      const limit = await this.limit;
-      let taskCompletedCount = 0;
-      for (let i = 1; i <= pageCount; i++) {
-        if (indexData.indexMap[i.toString()]) {
-          continue;
+        const pdfPath = fileManager.getDocumentContentPath(documentPath);
+        const doc = await this.pdfService.loadPDFFile(pdfPath);
+        let indexData: DocLayoutIndex = {
+          status: 'partial',
+          indexMap: {},
+        };
+        try {
+          const indexFile = await fileManager.readFile(
+            documentPath,
+            'analyzed-layout-index.json'
+          );
+          indexData = JSON.parse(indexFile) as DocLayoutIndex;
+        } catch (e) {
+          // do nothing
         }
-        tasks.push(
-          limit(async () => {
-            const imageDataUrl = await this.pdfService.renderPdfPageToImage(
-              doc,
-              i
-            );
-            const processedResponse = await this.intelligenceProxy.analyzeImage(
-              imageDataUrl.split(',')[1]
-            );
-            await this.writeAnalyzedDocumentCache(
-              spaceKey,
-              documentPath,
-              pageCount,
-              i.toString(),
-              processedResponse
-            );
-            taskCompletedCount++;
-            progressCallback(taskCompletedCount / pageCount);
-          })
-        );
+        const pageCount = doc.numPages;
+        const tasks: Promise<void>[] = [];
+        const limit = await this.limit;
+        let taskCompletedCount = 0;
+        for (let i = 1; i <= pageCount; i++) {
+          if (indexData.indexMap[i.toString()]) {
+            continue;
+          }
+          tasks.push(
+            limit(async () => {
+              const imageDataUrl = await this.pdfService.renderPdfPageToImage(
+                doc,
+                i
+              );
+              const processedResponse =
+                await this.intelligenceProxy.analyzeImage(
+                  imageDataUrl.split(',')[1]
+                );
+              await this.writeAnalyzedDocumentCache(
+                spaceKey,
+                documentPath,
+                pageCount,
+                i.toString(),
+                processedResponse
+              );
+              taskCompletedCount++;
+              progressCallback(taskCompletedCount / pageCount);
+            })
+          );
+        }
+        await Promise.all(tasks);
+      } catch (e) {
+        if (e instanceof Error) {
+          if (e instanceof AuthError || e instanceof DocIntelligenceError) {
+            throw new TaskError(e.message, e.code);
+          }
+          throw new TaskError(e.message);
+        } else {
+          throw new TaskError('Unknown error');
+        }
       }
-      await Promise.all(tasks);
     });
     this.taskService.executeTask(taskId);
     return taskId;
@@ -194,59 +210,78 @@ export class IntelligenceService {
     const fileManager = await this.fileService.getFileManager(spaceKey);
     const maxPixelCounts = 1400 * 1400;
     const taskId = this.taskService.addTask(async (progressCallback) => {
-      const docContentPath = fileManager.getDocumentContentPath(documentPath);
-      const content = await fs.readFile(docContentPath, 'utf-8');
-      const webclipData = JSON.parse(content) as WebclipData;
-      const imageDataUrl = webclipData.imageData;
-      const dimension = webclipData.dimension;
-      const slices = await this.imageService.sliceImage(
-        imageDataUrl,
-        dimension,
-        maxPixelCounts
-      );
-      const layoutData = {
-        blocks: [],
-        lines: [],
-      } as DocumentTextDetectionData;
-      for (let i = 0; i < slices.length; i++) {
-        const slice = slices[i];
-        const processedResponse = await this.intelligenceProxy.analyzeImage(
-          slice.imageDataUrl.split(',')[1]
+      try {
+        const docContentPath = fileManager.getDocumentContentPath(documentPath);
+        const content = await fs.readFile(docContentPath, 'utf-8');
+        const webclipData = JSON.parse(content) as WebclipData;
+        const imageDataUrl = webclipData.imageData;
+        const dimension = webclipData.dimension;
+        const slices = await this.imageService.sliceImage(
+          imageDataUrl,
+          dimension,
+          maxPixelCounts
         );
-        const processedBlocks =
-          processedResponse.blocks?.map((block) => {
-            return {
-              ...block,
-              width: (block.boundingBox.width * slice.width) / dimension.width,
-              height:
-                (block.boundingBox.height * slice.height) / dimension.height,
-              left: (block.boundingBox.left * slice.width) / dimension.width,
-              top: (block.boundingBox.top * slice.height) / dimension.height,
-            };
-          }) || [];
-        const processedLines =
-          processedResponse.lines?.map((line) => {
-            return {
-              ...line,
-              width: (line.boundingBox.width * slice.width) / dimension.width,
-              height:
-                (line.boundingBox.height * slice.height) / dimension.height,
-              left: (line.boundingBox.left * slice.width) / dimension.width,
-              top: (line.boundingBox.top * slice.height) / dimension.height,
-            };
-          }) || [];
-        layoutData.blocks = [...(layoutData.blocks ?? []), ...processedBlocks];
-        layoutData.lines = [...(layoutData.lines ?? []), ...processedLines];
-        progressCallback(i / slices.length);
+        const layoutData = {
+          blocks: [],
+          lines: [],
+        } as DocumentTextDetectionData;
+        for (let i = 0; i < slices.length; i++) {
+          const slice = slices[i];
+          const processedResponse = await this.intelligenceProxy.analyzeImage(
+            slice.imageDataUrl.split(',')[1]
+          );
+          const processedBlocks =
+            processedResponse.blocks?.map((block) => {
+              return {
+                ...block,
+                width:
+                  (block.boundingBox.width * slice.width) / dimension.width,
+                height:
+                  (block.boundingBox.height * slice.height) / dimension.height,
+                left: (block.boundingBox.left * slice.width) / dimension.width,
+                top: (block.boundingBox.top * slice.height) / dimension.height,
+              };
+            }) || [];
+          const processedLines =
+            processedResponse.lines?.map((line) => {
+              return {
+                ...line,
+                width: (line.boundingBox.width * slice.width) / dimension.width,
+                height:
+                  (line.boundingBox.height * slice.height) / dimension.height,
+                left: (line.boundingBox.left * slice.width) / dimension.width,
+                top: (line.boundingBox.top * slice.height) / dimension.height,
+              };
+            }) || [];
+          layoutData.blocks = [
+            ...(layoutData.blocks ?? []),
+            ...processedBlocks,
+          ];
+          layoutData.lines = [...(layoutData.lines ?? []), ...processedLines];
+          progressCallback(i / slices.length);
+        }
+        await this.writeAnalyzedDocumentCache(
+          spaceKey,
+          documentPath,
+          1,
+          '1',
+          layoutData
+        );
+      } catch (error) {
+        if (error instanceof Error) {
+          if (
+            error instanceof AuthError ||
+            error instanceof DocIntelligenceError
+          ) {
+            throw new TaskError(error.message, error.code);
+          }
+          throw new TaskError(error.message);
+        } else {
+          throw new TaskError('Unknown error');
+        }
       }
-      await this.writeAnalyzedDocumentCache(
-        spaceKey,
-        documentPath,
-        1,
-        '1',
-        layoutData
-      );
     });
+
     this.taskService.executeTask(taskId);
     return taskId;
   }

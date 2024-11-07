@@ -20,6 +20,7 @@ import {
   DocumentMeta,
   DocumentTextDetectionData,
   Settings,
+  Task,
 } from '@inkstain/client-api';
 
 export {
@@ -35,6 +36,7 @@ export {
   DocumentTextDetectionData,
   Space,
   Settings,
+  Task,
 };
 
 export type Context = Router.RouterContext & {
@@ -59,3 +61,10 @@ export type WebclipData = {
   imageData: string;
   dimension: { width: number; height: number };
 };
+
+export class CommonHTTPErrorData {
+  errorCode: string;
+  constructor(errorCode: string) {
+    this.errorCode = errorCode;
+  }
+}
