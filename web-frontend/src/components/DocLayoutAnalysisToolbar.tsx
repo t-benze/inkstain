@@ -65,7 +65,7 @@ export const DocLayoutAnalysisToolbar = ({
           dataTest="toolbar-analyzeTaskError"
           onClick={() => {
             if (taskStatus.errorCode === 'InsufficientBalance') {
-              window.open('https://inkstain.io/pricing/', '_blank');
+              window.open('https://inkstain.io/pricing.html', '_blank');
             }
           }}
           icon={
