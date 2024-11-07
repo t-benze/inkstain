@@ -5,12 +5,9 @@
 import EventEmitter from 'events';
 import crypto from 'crypto';
 import logger from '~/server/logger';
+import { Task as TaskDataType } from '~/server/types';
 
-type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';
-
-interface Task {
-  status: TaskStatus;
-  progress: number;
+interface Task extends TaskDataType {
   taskFunction: (progressCallback: (progress: number) => void) => Promise<void>;
 }
 
@@ -20,6 +17,15 @@ interface TaskEvents {
   taskProgress: (taskId: string, progress: number) => void;
   taskCompleted: (taskId: string) => void;
   taskFailed: (taskId: string, error: unknown) => void;
+}
+
+export class TaskError extends Error {
+  public errorCode?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'TaskError';
+    this.errorCode = code;
+  }
 }
 
 export class TaskService extends EventEmitter {
@@ -77,9 +83,20 @@ export class TaskService extends EventEmitter {
     } catch (error) {
       task.status = 'failed';
       if (error instanceof Error) {
-        logger.error(`Task ${taskId} failed: ${error.message}: ${error.stack}`);
+        if (error instanceof TaskError) {
+          task.errorCode = error.errorCode;
+          task.errorMessage = error.message;
+          logger.error(
+            `Task ${taskId} failed, error code: ${error.errorCode}, error message: ${error.message}, stack: ${error.stack}`
+          );
+        } else {
+          task.errorMessage = error.message;
+          logger.error(
+            `Task ${taskId} failed: ${error.message}, stack: ${error.stack}`
+          );
+        }
       } else {
-        logger.error(`Task ${taskId} failed: ${error}`);
+        logger.error(`Task ${taskId} failed with unknown error: ${error}`);
       }
       this.emit('taskFailed', taskId, error);
     }

@@ -6,6 +6,7 @@ import {
   ForgotPasswordRequest,
   ConfirmForgotPasswordRequest,
   DocumentTextDetectionData,
+  CommonHTTPErrorData,
 } from '~/server/types';
 
 export interface AuthInterface {
@@ -22,8 +23,7 @@ export interface AuthInterface {
 }
 
 export class AuthError extends Error {
-  code: string;
-
+  public code: string;
   static readonly CODE_INVALID_TOKENS = 'InvalidTokens';
   static readonly CODE_USER_NOT_FOUND = 'UserNotFoundException';
   static readonly CODE_USER_NOT_CONFIRMED = 'UserNotConfirmedException';
@@ -41,11 +41,23 @@ export class AuthError extends Error {
   }
 }
 
-export interface IntelligenceInterface {
+export interface DocIntelligenceInterface {
   /**
    * Analyzes a document image and returns the layout data
    * @param image - The base64 encoded document image
    * @returns The layout data of the document
    */
   analyzeImage: (image: string) => Promise<DocumentTextDetectionData>;
+}
+
+export class DocIntelligenceError extends Error {
+  public code: string;
+  static readonly CODE_INSUFFICIENT_BALANCE = 'InsufficientBalance';
+  static readonly CODE_UNKNOWN = 'UnknownError';
+
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = 'DocIntelligenceError';
+    this.code = code;
+  }
 }

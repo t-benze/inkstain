@@ -1,8 +1,7 @@
 import Router from '@koa/router';
-import { Context } from '~/server/types';
-import { guardAuthenticated } from '~/server/middlewares/guardAuthenticated';
+import { Context, CommonHTTPErrorData } from '~/server/types';
 import { IntelligenceAnalyzeDocumentRequest } from '@inkstain/client-api';
-import { AuthError } from '../proxy/types';
+import { AuthError, DocIntelligenceError } from '~/server/proxy/types';
 
 /**
  * @swagger
@@ -44,8 +43,18 @@ import { AuthError } from '../proxy/types';
  *                   description: The task id
  *               required:
  *                 - taskId
- *       400:
+ *       401:
  *         description: Invalid parameters provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponseData'
+ *       403:
+ *         description: Invalid parameters provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponseData'
  *       500:
  *         description: Unable to analyze the document due to server error.
  */
@@ -62,7 +71,9 @@ export const analyzePDFDocument = async (ctx: Context) => {
     ctx.body = { taskId };
   } catch (e) {
     if (e instanceof AuthError) {
-      ctx.throw(401, e.message);
+      ctx.throw(401, e.message, new CommonHTTPErrorData(e.code));
+    } else if (e instanceof DocIntelligenceError) {
+      ctx.throw(403, e.message, new CommonHTTPErrorData(e.code));
     } else {
       throw e;
     }
@@ -109,8 +120,18 @@ export const analyzePDFDocument = async (ctx: Context) => {
  *                   description: The task id
  *               required:
  *                 - taskId
- *       400:
+ *       401:
  *         description: Invalid parameters provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponseData'
+ *       403:
+ *         description: Invalid parameters provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponseData'
  *       500:
  *         description: Unable to analyze the document due to server error.
  */
@@ -127,7 +148,9 @@ export const analyzeWebclipDocument = async (ctx: Context) => {
     ctx.body = { taskId };
   } catch (e) {
     if (e instanceof AuthError) {
-      ctx.throw(401, e.message);
+      ctx.throw(401, e.message, new CommonHTTPErrorData(e.code));
+    } else if (e instanceof DocIntelligenceError) {
+      ctx.throw(403, e.message, new CommonHTTPErrorData(e.code));
     } else {
       throw e;
     }

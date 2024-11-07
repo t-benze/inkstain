@@ -31,10 +31,7 @@ export const getTaskStatus = async (ctx: Context) => {
   const { id } = ctx.params;
   const task = await ctx.taskService.getTaskStatus(id);
   ctx.status = 200;
-  ctx.body = {
-    status: task.status,
-    progress: task.progress,
-  };
+  ctx.body = task;
 };
 
 export const registerTaskRoutes = (router: Router) => {

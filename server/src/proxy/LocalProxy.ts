@@ -3,14 +3,14 @@ import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
 import { DocumentTextDetectionData } from '~/server/types';
-import { IntelligenceInterface } from './types';
+import { DocIntelligenceInterface } from './types';
 import { directories, analyzeImagePath } from '~/server/settings';
 import logger from '~/server/logger';
 
 const inputPath = path.join(directories.stateDir, 'task-input.data');
 const outputPath = path.join(directories.stateDir, 'task-output.json');
 
-export class LocalProxy implements IntelligenceInterface {
+export class LocalProxy implements DocIntelligenceInterface {
   private pythonProcess = this.startDocAnalysisProcess();
   private eventEmitter: EventEmitter;
 

@@ -1,8 +1,9 @@
 import {
   TextEffectsSparkleRegular,
   CheckmarkCircleFilled,
+  ErrorCircleRegular,
 } from '@fluentui/react-icons';
-import { tokens } from '@fluentui/react-components';
+import { tokens, Tooltip } from '@fluentui/react-components';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@fluentui/react-components';
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
@@ -52,6 +53,27 @@ export const DocLayoutAnalysisToolbar = ({
         <CheckmarkCircleFilled
           data-test="toolbar-docLayoutReady"
           primaryFill={tokens.colorBrandBackground}
+        />
+      )}
+      {taskStatus?.status === 'failed' && taskStatus.errorCode && (
+        <ToolbarButtonWithTooltip
+          content={
+            taskStatus.errorCode
+              ? t(`system.${taskStatus.errorCode}`)
+              : t('system.unknownError')
+          }
+          dataTest="toolbar-analyzeTaskError"
+          onClick={() => {
+            if (taskStatus.errorCode === 'InsufficientBalance') {
+              window.open('https://inkstain.io/pricing/', '_blank');
+            }
+          }}
+          icon={
+            <ErrorCircleRegular
+              data-test="toolbar-analyzeTaskError"
+              primaryFill={tokens.colorPaletteRedForeground1}
+            />
+          }
         />
       )}
       {hasRunningTask && (

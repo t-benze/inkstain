@@ -50,7 +50,7 @@ export const ToolbarChatButton = ({
       }}
     >
       <ToolbarButtonWithTooltip
-        content={t('chat')}
+        content={t('chat_with_doc')}
         dataTest={'toolbar-chatBtn'}
         icon={<ChatBubblesQuestionRegular />}
         onClick={handleClick}

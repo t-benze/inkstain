@@ -42,10 +42,10 @@ export const tokensFile = path.join(
   env == 'production' ? 'tokens.json' : `tokens.${env}.json`
 );
 
-export const cognitoUserPoolId = process.env.AWS_COGNITO_USER_POOL_ID ?? '';
-export const cognitoUserPoolClientId =
-  process.env.AWS_COGNITO_USER_POOL_CLIENT_ID ?? '';
-export const intelligenceAPIBase = process.env.AWS_INTELLIGENCE_ENDPOINT ?? '';
+export const cognitoUserPoolId = 'ap-southeast-1_6VKSJ8wtn';
+export const cognitoUserPoolClientId = 'sn3gt148lvl5q3rshs424kdkk';
+export const intelligenceAPIBase =
+  'https://cc1snaciy0.execute-api.ap-southeast-1.amazonaws.com/prod';
 
 export const analyzeImagePath = path.resolve(
   __dirname,

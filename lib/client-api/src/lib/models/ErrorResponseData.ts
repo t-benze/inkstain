@@ -16,50 +16,51 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface IntelligenceChatSessionRequest
+ * @interface ErrorResponseData
  */
-export interface IntelligenceChatSessionRequest {
+export interface ErrorResponseData {
   /**
-   * The user message
+   *
    * @type {string}
-   * @memberof IntelligenceChatSessionRequest
+   * @memberof ErrorResponseData
    */
   message: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ErrorResponseData
+   */
+  error?: string;
 }
 
 /**
- * Check if a given object implements the IntelligenceChatSessionRequest interface.
+ * Check if a given object implements the ErrorResponseData interface.
  */
-export function instanceOfIntelligenceChatSessionRequest(
-  value: object
-): boolean {
+export function instanceOfErrorResponseData(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'message' in value;
 
   return isInstance;
 }
 
-export function IntelligenceChatSessionRequestFromJSON(
-  json: any
-): IntelligenceChatSessionRequest {
-  return IntelligenceChatSessionRequestFromJSONTyped(json, false);
+export function ErrorResponseDataFromJSON(json: any): ErrorResponseData {
+  return ErrorResponseDataFromJSONTyped(json, false);
 }
 
-export function IntelligenceChatSessionRequestFromJSONTyped(
+export function ErrorResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): IntelligenceChatSessionRequest {
+): ErrorResponseData {
   if (json === undefined || json === null) {
     return json;
   }
   return {
     message: json['message'],
+    error: !exists(json, 'error') ? undefined : json['error'],
   };
 }
 
-export function IntelligenceChatSessionRequestToJSON(
-  value?: IntelligenceChatSessionRequest | null
-): any {
+export function ErrorResponseDataToJSON(value?: ErrorResponseData | null): any {
   if (value === undefined) {
     return undefined;
   }
@@ -68,5 +69,6 @@ export function IntelligenceChatSessionRequestToJSON(
   }
   return {
     message: value.message,
+    error: value.error,
   };
 }

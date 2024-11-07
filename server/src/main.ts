@@ -105,10 +105,11 @@ app.use(async (ctx, next) => {
   } catch (err) {
     if (err instanceof Error) {
       if (err instanceof HttpError) {
+        // for HTTPError, return the custom code and message in response body
         ctx.status = err.statusCode || err.status || 500;
         ctx.body = {
           message: err.message || 'Internal server error',
-          error: err.code,
+          error: err.errorCode, // defined in CommonHTTPErrorData
         };
       } else {
         ctx.status = 500;

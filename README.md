@@ -5,6 +5,18 @@
 InkStain is a comprehensive document management tool designed to serve and interact with documents directly from a user's local file system. It makes your documents retrievable and provides document
 intelligence features like layout analysis and chatting with the document.
 
+## Get Started
+
+```bash
+git clone https://github.com/t-benze/inkstain.git
+cd inkstain
+npm install
+npm run build
+cp .env.example .env
+# fill in your own OPENAI_API_KEY if you'd like to use the chat with document feature
+npm run start
+```
+
 ## Key Features
 
 **Filter documents by tags and attributes**

@@ -31,6 +31,18 @@ export interface Task {
    * @memberof Task
    */
   progress: number;
+  /**
+   *
+   * @type {string}
+   * @memberof Task
+   */
+  errorMessage?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Task
+   */
+  errorCode?: string;
 }
 
 /**
@@ -70,6 +82,10 @@ export function TaskFromJSONTyped(
   return {
     status: json['status'],
     progress: json['progress'],
+    errorMessage: !exists(json, 'errorMessage')
+      ? undefined
+      : json['errorMessage'],
+    errorCode: !exists(json, 'errorCode') ? undefined : json['errorCode'],
   };
 }
 
@@ -83,5 +99,7 @@ export function TaskToJSON(value?: Task | null): any {
   return {
     status: value.status,
     progress: value.progress,
+    errorMessage: value.errorMessage,
+    errorCode: value.errorCode,
   };
 }
