@@ -11,6 +11,8 @@
   },
   "private": true,
   "dependencies": {
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fluentui/react-components": "^9.44.5",
     "@fluentui/react-hooks": "^8.6.36",
     "@fluentui/react-icons": "^2.0.225",

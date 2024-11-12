@@ -26,7 +26,7 @@ export type ContextType = {
   userInfo: UserInfo | null;
   renameDocumentPath: (params: {
     target: string;
-    newName: string;
+    newPath: string;
     isFolder: boolean;
   }) => void;
   settings: Settings;

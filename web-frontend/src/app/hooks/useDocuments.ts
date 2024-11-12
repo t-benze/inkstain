@@ -74,20 +74,20 @@ export const useDocuments = (platform: PlatformData | undefined) => {
   const renameDocumentPath = React.useCallback(
     ({
       target,
-      newName,
+      newPath,
       isFolder,
     }: {
       target: string;
-      newName: string;
+      newPath: string;
       isFolder: boolean;
     }) => {
       if (!platform) throw new Error('Platform data not loaded');
-      const pathSep = platform.pathSep;
-      const newPath = target
-        .split(pathSep)
-        .slice(0, -1)
-        .concat([newName])
-        .join(pathSep);
+      // const pathSep = platform.pathSep;
+      // const newPath = target
+      //   .split(pathSep)
+      //   .slice(0, -1)
+      //   .concat([newName])
+      //   .join(pathSep);
       setDocumentsAlive((documentsAlive) => {
         return documentsAlive.map((document) => {
           if (document.name.startsWith(target)) {

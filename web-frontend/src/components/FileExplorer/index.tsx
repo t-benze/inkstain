@@ -6,16 +6,10 @@ import {
   TreeItemValue,
   Tooltip,
   tokens,
-  Toast,
-  ToastTitle,
-  ToastBody,
-  useToastController,
-  useId,
-  ProgressBar,
   Menu,
-  MenuItem,
-  MenuList,
-  MenuPopover,
+  Text,
+  MenuProps,
+  PositioningImperativeRef,
 } from '@fluentui/react-components';
 import {
   DocumentAddRegular,
@@ -25,138 +19,100 @@ import {
   SearchRegular,
 } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
+import {
+  DndContext,
+  DragOverlay,
+  useDndContext,
+  MouseSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+} from '@dnd-kit/core';
 import { Space } from '~/web/types';
-import { documentsApi } from '~/web/apiClient';
 import { AppContext } from '~/web/app/context';
-import { OnTreeItemClicked, FolderTree, OnOpenChange } from './FolderTree';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { FolderTree } from './FolderTree';
+import { useQueryClient } from '@tanstack/react-query';
 import { SidebarAccordionItem } from '~/web/components/SidebarAccordionItem';
+import { FolderTreeContext } from './context';
+import { ContextMenu } from './ContextMenu';
+import { OnOpenChange, OnTreeItemClicked } from './types';
+import { useSelection } from './hooks/useSelection';
+import { useUploadFile } from './hooks/useUploadFile';
+import { getFolderPath } from './utils';
+import { useRename } from './hooks/useRename';
+import { useNewFolder } from './hooks/useNewFolder';
+import { useExport } from './hooks/useExportFile';
+import { useDelete } from './hooks/useDelete';
+import { useMove } from './hooks/useMove';
 
 interface FileExplorerProps {
   space: Space;
 }
 
-const useStyles = makeStyles({
+const useClasses = makeStyles({
   root: {
     ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalS),
+    height: '100%',
+    overflowY: 'scroll',
+    scrollbarWidth: 'none',
   },
 });
 
-const getFolderPath = (
-  {
-    value,
-    itemType,
-  }: {
-    value: string;
-    itemType: string;
-  },
-  pathSep: string
-) => {
-  if (itemType === 'branch') {
-    return value;
-  }
-  const path = value;
-  if (path.lastIndexOf(pathSep) !== -1) {
-    return path.slice(0, path.lastIndexOf(pathSep));
-  }
-  return '';
+const DragOverlayItem = () => {
+  const { active } = useDndContext();
+  console.log('over item', active);
+  if (!active) return null;
+  return <Text>{active.data.current?.name}</Text>;
 };
 
-const useSelection = () => {
-  const [lastSelect, setLastSelect] = React.useState<{
-    value: string;
-    itemType: string;
-  } | null>(null);
-  const [selection, setSelection] = React.useState<
-    Array<{
-      value: string;
-      itemType: string;
-    }>
-  >([]);
-
-  // TODO: support multi-select properly
-  const handleSelected = React.useCallback<OnTreeItemClicked>(
-    (data) => {
-      const value = data.value.toString();
-      if (data.event.shiftKey) {
-        // Shift is held: Select the range from the last selected item to the clicked item
-        // setSelection(new Set([...selection, ...range]));
-      } else if (data.event.ctrlKey || data.event.metaKey) {
-        // Use metaKey to support Command key on macOS
-        // Ctrl or Command is held: Toggle selection of the clicked item
-        if (selection.some((item) => item.value === value)) {
-          setSelection(selection.filter((item) => item.value !== value));
-        } else {
-          setSelection([...selection, { value, itemType: data.itemType }]);
-        }
-      } else {
-        // No modifier keys: Select only the clicked item (and deselect others)
-        setSelection([{ value, itemType: data.itemType }]);
-      }
-      setLastSelect({
-        value,
-        itemType: data.itemType,
-      });
-    },
-    [selection, setSelection, setLastSelect]
+const PanelWrapper = ({
+  spaceKey,
+  children,
+}: {
+  spaceKey: string;
+  children: React.ReactNode;
+}) => {
+  const classes = useClasses();
+  const { isOver, setNodeRef } = useDroppable({
+    id: `droppable-root`,
+    data: { type: 'folder', path: '', name: '' },
+  });
+  const style = {
+    backgroundColor: isOver ? tokens.colorBrandBackground2Hover : undefined,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      data-test="fileExplorer"
+      data-space-key={spaceKey}
+      className={classes.root}
+      style={style}
+    >
+      {children}
+    </div>
   );
+};
+
+const useContextMenu = () => {
+  const [isContextMenuOpen, setOpen] = React.useState(false);
+  const onContextMenuOpenChange: MenuProps['onOpenChange'] = (e, data) => {
+    setOpen(data.open);
+  };
+  const positioningRef = React.useRef<PositioningImperativeRef>(null);
+  const openContextMenu = React.useCallback((targetElement: HTMLElement) => {
+    positioningRef.current?.setTarget(targetElement);
+    setOpen(true);
+  }, []);
 
   return {
-    lastSelect,
-    selection,
-    handleSelected,
-  } as const;
+    isContextMenuOpen,
+    onContextMenuOpenChange,
+    positioningRef,
+    openContextMenu,
+  };
 };
 
-const ContextMenu = ({
-  lastSelect,
-  deleteFiles,
-  exportFile,
-  rename,
-}: {
-  lastSelect: {
-    value: string;
-    itemType: string;
-  } | null;
-  deleteFiles: () => void;
-  exportFile: (withData: boolean) => void;
-  rename: () => void;
-}) => {
-  const { t } = useTranslation();
-  const enableExport = lastSelect && lastSelect?.itemType === 'leaf';
-  return (
-    <MenuPopover>
-      <MenuList>
-        <MenuItem data-test="fileExplorer-contextDelete" onClick={deleteFiles}>
-          {t('delete')}
-        </MenuItem>
-        <MenuItem data-test="fileExplorer-contextRename" onClick={rename}>
-          {t('rename')}
-        </MenuItem>
-        <MenuItem
-          data-test="fileExplorer-exportDocument"
-          onClick={() => {
-            exportFile(false);
-          }}
-          disabled={!enableExport}
-        >
-          {t('file_explorer.export_raw')}
-        </MenuItem>
-        <MenuItem
-          data-test="fileExplorer-exportDocumentWithData"
-          onClick={() => {
-            exportFile(true);
-          }}
-          disabled={!enableExport}
-        >
-          {t('file_explorer.export_with_data')}
-        </MenuItem>
-      </MenuList>
-    </MenuPopover>
-  );
-};
 export const FileExplorer = ({ space }: FileExplorerProps) => {
-  const styles = useStyles();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const appContext = React.useContext(AppContext);
@@ -164,10 +120,17 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
   const [openItems, setOpenItems] = React.useState<Set<TreeItemValue>>(
     new Set()
   );
-  const { lastSelect, selection, handleSelected } = useSelection();
-  const [addNewFolderTarget, setAddNewFolderTarget] = React.useState<
-    string | null
-  >(null);
+  const { lastSelect, clearSelection, selection, handleSelected } =
+    useSelection();
+  const { handleFileInputChange } = useUploadFile(space.key, lastSelect);
+  const { addNewFolderTarget, handleAddFolder, handleAddNewFolder } =
+    useNewFolder(space.key, lastSelect);
+  const {
+    isContextMenuOpen,
+    onContextMenuOpenChange,
+    positioningRef,
+    openContextMenu,
+  } = useContextMenu();
 
   const handleTreeItemClicked = React.useCallback<OnTreeItemClicked>(
     (e) => {
@@ -178,11 +141,12 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     },
     [handleSelected, appContext]
   );
-  const handleTreeItemDoubleClicked = React.useCallback<OnTreeItemClicked>(
+  const handleTreeItemContextMenu = React.useCallback<OnTreeItemClicked>(
     (e) => {
       handleSelected(e);
+      openContextMenu(e.event.currentTarget as HTMLElement);
     },
-    [handleSelected]
+    [handleSelected, openContextMenu]
   );
   const handleOpenChange = React.useCallback<OnOpenChange>(
     (_, data) => {
@@ -190,296 +154,39 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
     },
     [setOpenItems]
   );
-
-  const toastId = useId('toast');
-  const { dispatchToast, updateToast } = useToastController(
-    appContext.toasterId
-  );
-  const handleFileInputChange = React.useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) throw new Error('No file selected');
-      const formData = new FormData();
-      formData.append('document', file);
-      const folder = lastSelect
-        ? getFolderPath(lastSelect, appContext.platform.pathSep)
-        : '';
-      const path =
-        folder === ''
-          ? file.name
-          : `${folder}${appContext.platform.pathSep}${file.name}`;
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `/api/v1/documents/${space.key}/add?path=${path}`, true);
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          updateToast({
-            toastId,
-            content: (
-              <Toast>
-                <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
-                <ToastBody>
-                  <ProgressBar max={100} value={percentComplete} />
-                </ToastBody>
-              </Toast>
-            ),
-          });
-        }
-      };
-      xhr.onload = () => {
-        if (xhr.status === 201) {
-          updateToast({
-            toastId,
-            content: (
-              <Toast>
-                <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
-                <ToastBody>
-                  {t('file_explorer.adding_document_succeeded')}
-                </ToastBody>
-              </Toast>
-            ),
-            timeout: 500,
-            intent: 'success',
-          });
-          queryClient.invalidateQueries({
-            queryKey: ['documents', space.key, folder],
-          });
-          queryClient.invalidateQueries({
-            queryKey: ['searchDocuments', space.key, '', '', 0],
-          });
-        } else {
-          console.error('Adding document failed at uploading');
-          updateToast({
-            toastId,
-            intent: 'error',
-            content: (
-              <Toast>
-                <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
-                <ToastBody>
-                  {t('file_explorer.adding_document_failed')}
-                </ToastBody>
-              </Toast>
-            ),
-            timeout: 500,
-          });
-        }
-      };
-      xhr.onerror = (e) => {
-        console.error('Adding document failed', e);
-        updateToast({
-          toastId,
-          intent: 'error',
-          content: (
-            <Toast>
-              <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
-              <ToastBody>{t('file_explorer.adding_document_failed')}</ToastBody>
-            </Toast>
-          ),
-          timeout: 500,
-        });
-      };
-      xhr.send(formData);
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{t('file_explorer.adding_document')}</ToastTitle>
-          <ToastBody>
-            <ProgressBar max={100} value={0} />
-          </ToastBody>
-        </Toast>,
-        {
-          intent: 'info',
-          position: 'top',
-          timeout: -1,
-          toastId,
-        }
-      );
+  const openItem = React.useCallback(
+    (item: string) => {
+      setOpenItems((prev) => new Set([...prev, item]));
     },
-    [
-      space.key,
-      updateToast,
-      lastSelect,
-      appContext.platform.pathSep,
-      dispatchToast,
-      toastId,
-      t,
-      queryClient,
-    ]
+    [setOpenItems]
   );
 
-  const handleAddFolder = React.useCallback(() => {
-    // const folder
-    const targetFolder = lastSelect
-      ? getFolderPath(lastSelect, appContext.platform.pathSep)
-      : '';
-    setAddNewFolderTarget(targetFolder);
-  }, [setAddNewFolderTarget, lastSelect, appContext.platform.pathSep]);
-
-  const { mutate: handleAddNewFolder } = useMutation({
-    mutationFn: async ({
-      targetFolder,
-      name,
-    }: {
-      targetFolder: string;
-      name: string;
-    }) => {
-      return await documentsApi.addFolder({
-        spaceKey: space.key,
-        path: targetFolder
-          ? targetFolder + appContext.platform.pathSep + name
-          : name,
-      });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['documents', space.key, addNewFolderTarget || ''],
-      });
-      setAddNewFolderTarget(null);
-    },
-  });
-
-  const handleSyncFolder = React.useCallback(() => {
-    if (lastSelect) {
-      const folder = getFolderPath(lastSelect, appContext.platform.pathSep);
-      queryClient.invalidateQueries({
-        queryKey: ['documents', space.key, folder],
-      });
-    } else {
-      queryClient.invalidateQueries({
-        queryKey: ['documents', space.key, ''],
-      });
-    }
-  }, [lastSelect, appContext.platform.pathSep, space.key, queryClient]);
-
-  const deleteFiles = React.useCallback(async () => {
-    const filesToDelete = selection;
-    const foldersToRefresh = new Set<string>();
-    for (const file of filesToDelete) {
-      if (file.itemType === 'branch') {
-        await documentsApi.deleteFolder({
-          spaceKey: space.key,
-          path: file.value,
-        });
-      } else {
-        await documentsApi.deleteDocument({
-          spaceKey: space.key,
-          path: file.value,
-        });
-      }
-      foldersToRefresh.add(
-        file.value
-          .split(appContext.platform.pathSep)
-          .slice(0, file.value.endsWith(appContext.platform.pathSep) ? -2 : -1)
-          .join(appContext.platform.pathSep)
-      );
-    }
-    foldersToRefresh.forEach((folder) => {
-      queryClient.invalidateQueries({
-        queryKey: ['documents', space.key, folder],
-      });
-    });
-    queryClient.invalidateQueries({
-      queryKey: ['searchDocuments', space.key, '', '', 0],
-    });
-  }, [selection, appContext.platform.pathSep, space.key, queryClient]);
-
-  const exportFile = React.useCallback(
-    async (withData: boolean) => {
-      if (lastSelect) {
-        try {
-          console.log('export file', lastSelect.value);
-          const response = await documentsApi.exportDocumentRaw({
-            spaceKey: space.key,
-            path: lastSelect.value,
-            withData: withData ? '1' : '0',
-          });
-
-          if (!response.raw.ok) {
-            throw new Error('Export failed');
-          }
-          // Get the filename from the Content-Disposition header
-          const contentDisposition = response.raw.headers.get(
-            'Content-Disposition'
-          );
-          const filenameMatch =
-            contentDisposition &&
-            contentDisposition.match(/filename="?(.+)"?/i);
-          const filename = filenameMatch
-            ? filenameMatch[1]
-            : 'exported-document';
-
-          // Create a Blob from the response
-          const blob = await response.raw.blob();
-
-          // Create a temporary URL for the Blob
-          const url = window.URL.createObjectURL(blob);
-
-          // Create a temporary anchor element and trigger the download
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-
-          // Clean up
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        } catch (error) {
-          console.error('Error exporting document:', error);
-          // Handle the error (e.g., show an error message to the user)
-        }
-      }
-    },
-    [lastSelect, space.key]
-  );
-
-  // support rename document or folder
   const [renameTarget, setRenameTarget] = React.useState<string | null>(null);
   const handleRenameAction = React.useCallback(() => {
     if (lastSelect) {
       setRenameTarget(lastSelect.value);
     }
   }, [lastSelect]);
-
-  const handleRename = React.useCallback(
-    async (params: { target: string; newName: string; isFolder: boolean }) => {
-      if (params.target === params.newName) {
-        return;
-      }
-      const parent = params.target
-        .split(appContext.platform.pathSep)
-        .slice(0, -1)
-        .join(appContext.platform.pathSep);
-      try {
-        if (params.isFolder) {
-          await documentsApi.renameFolder({
-            spaceKey: space.key,
-            path: params.target,
-            newName: params.newName,
-          });
-        } else {
-          await documentsApi.renameDocument({
-            spaceKey: space.key,
-            path: params.target,
-            newName: params.newName,
-          });
-        }
-        appContext.renameDocumentPath({
-          target: params.target,
-          newName: params.newName,
-          isFolder: params.isFolder,
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['documents', space.key, parent],
-        });
+  const { handleRename, handleMove } = useRename(space.key);
+  const { exportFile } = useExport(space.key, lastSelect);
+  const { deleteFiles } = useDelete(space.key, selection);
+  const { handleDragEnd, handleDragOver } = useMove(openItem, handleMove);
+  const handleRenameItem = React.useCallback(
+    (params: { target: string; newName: string; isFolder: boolean }) => {
+      if (renameTarget) {
+        handleRename(params);
         setRenameTarget(null);
-      } catch (error) {
-        console.error('Error renaming document or folder:', error);
       }
     },
-    [space.key, queryClient, appContext]
+    [renameTarget, handleRename]
   );
-
+  const mouseSensor = useSensor(MouseSensor, {
+    // Require the mouse to move by 5 pixels before activating
+    activationConstraint: {
+      distance: 5,
+    },
+  });
+  const dndSensors = useSensors(mouseSensor);
   const headerButtons = (
     <>
       <Tooltip
@@ -542,7 +249,19 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
           icon={<FolderSyncRegular />}
           onClick={(e) => {
             e.stopPropagation();
-            handleSyncFolder();
+            if (lastSelect) {
+              const folder = getFolderPath(
+                lastSelect,
+                appContext.platform.pathSep
+              );
+              queryClient.invalidateQueries({
+                queryKey: ['documents', space.key, folder],
+              });
+            } else {
+              queryClient.invalidateQueries({
+                queryKey: ['documents', space.key, ''],
+              });
+            }
           }}
         />
       </Tooltip>
@@ -564,41 +283,57 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
       </Tooltip>
     </>
   );
+
   const panel = (
-    <div
-      data-test="fileExplorer"
-      data-space-key={space.key}
-      className={styles.root}
+    <DndContext
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragStart={() => {
+        clearSelection();
+      }}
+      sensors={dndSensors}
     >
-      <input
-        data-test="fileExplorer-fileInput"
-        ref={fileInputRef}
-        type="file"
-        style={{ display: 'none' }}
-        onChange={handleFileInputChange}
-      />
-      <Menu openOnContext positioning="below-end">
-        <FolderTree
-          spaceKey={space.key}
-          path=""
-          selection={selection}
-          openItems={openItems}
-          onOpenChange={handleOpenChange}
-          onTreeItemClicked={handleTreeItemClicked}
-          onTreeItemDoubleClicked={handleTreeItemDoubleClicked}
-          addNewFolderTarget={addNewFolderTarget}
-          onAddNewFolder={handleAddNewFolder}
-          renameTarget={renameTarget}
-          onRename={handleRename}
+      <PanelWrapper spaceKey={space.key}>
+        <input
+          data-test="fileExplorer-fileInput"
+          ref={fileInputRef}
+          type="file"
+          style={{ display: 'none' }}
+          onChange={handleFileInputChange}
         />
-        <ContextMenu
-          lastSelect={lastSelect}
-          deleteFiles={deleteFiles}
-          exportFile={exportFile}
-          rename={handleRenameAction}
-        />
-      </Menu>
-    </div>
+        <Menu
+          open={isContextMenuOpen}
+          onOpenChange={onContextMenuOpenChange}
+          positioning={{ positioningRef: positioningRef, position: 'below' }}
+        >
+          <FolderTreeContext.Provider
+            value={{
+              spaceKey: space.key,
+              openItems,
+              selection,
+              onOpenChange: handleOpenChange,
+              handleTreeItemClicked: handleTreeItemClicked,
+              handleTreeItemContextMenu: handleTreeItemContextMenu,
+              addNewFolderTarget,
+              onAddNewFolder: handleAddNewFolder,
+              onRename: handleRenameItem,
+              renameTarget: renameTarget,
+            }}
+          >
+            <FolderTree path="" level={0} />
+          </FolderTreeContext.Provider>
+          <ContextMenu
+            lastSelect={lastSelect}
+            deleteFiles={deleteFiles}
+            exportFile={exportFile}
+            rename={handleRenameAction}
+          />
+        </Menu>
+        <DragOverlay>
+          <DragOverlayItem />
+        </DragOverlay>
+      </PanelWrapper>
+    </DndContext>
   );
   return (
     <SidebarAccordionItem

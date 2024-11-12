@@ -4,7 +4,7 @@ import { tokens, makeStyles, Body2 } from '@fluentui/react-components';
 import { FolderRegular, DocumentRegular } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { documentsApi } from '~/chrome-extension/utils/apiClient';
-import { ListDocuments200ResponseInner as Document } from '@inkstain/client-api';
+import { DocumentListItem as Document } from '@inkstain/client-api';
 import { PopupContext } from '~/chrome-extension/components/SpacePopup/context';
 
 interface FolderTreeProps {

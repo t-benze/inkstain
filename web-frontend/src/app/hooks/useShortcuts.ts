@@ -22,7 +22,7 @@ export const useShortcuts = () => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in input elements
-      if (isEditableElement()) return;
+      if (!event.key || isEditableElement()) return;
 
       // Add key to pressed keys set
       setPressedKeys((prev) => new Set([...prev, event.key.toLowerCase()]));
@@ -46,6 +46,7 @@ export const useShortcuts = () => {
 
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     // Remove released key from pressed keys set
+    if (!event.key || isEditableElement()) return;
     setPressedKeys((prev) => {
       const next = new Set(prev);
       next.delete(event.key.toLowerCase());
