@@ -16,25 +16,25 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface ListDocuments200ResponseInner
+ * @interface DocumentListItem
  */
-export interface ListDocuments200ResponseInner {
+export interface DocumentListItem {
   /**
    * The name of the file or folder.
    * @type {string}
-   * @memberof ListDocuments200ResponseInner
+   * @memberof DocumentListItem
    */
   name: string;
   /**
    * The type of the item (file or folder).
    * @type {string}
-   * @memberof ListDocuments200ResponseInner
+   * @memberof DocumentListItem
    */
-  type: ListDocuments200ResponseInnerTypeEnum;
+  type: DocumentListItemTypeEnum;
   /**
    * The full path of the file or folder.
    * @type {string}
-   * @memberof ListDocuments200ResponseInner
+   * @memberof DocumentListItem
    */
   path: string;
 }
@@ -42,19 +42,17 @@ export interface ListDocuments200ResponseInner {
 /**
  * @export
  */
-export const ListDocuments200ResponseInnerTypeEnum = {
+export const DocumentListItemTypeEnum = {
   File: 'file',
   Folder: 'folder',
 } as const;
-export type ListDocuments200ResponseInnerTypeEnum =
-  (typeof ListDocuments200ResponseInnerTypeEnum)[keyof typeof ListDocuments200ResponseInnerTypeEnum];
+export type DocumentListItemTypeEnum =
+  (typeof DocumentListItemTypeEnum)[keyof typeof DocumentListItemTypeEnum];
 
 /**
- * Check if a given object implements the ListDocuments200ResponseInner interface.
+ * Check if a given object implements the DocumentListItem interface.
  */
-export function instanceOfListDocuments200ResponseInner(
-  value: object
-): boolean {
+export function instanceOfDocumentListItem(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'name' in value;
   isInstance = isInstance && 'type' in value;
@@ -63,16 +61,14 @@ export function instanceOfListDocuments200ResponseInner(
   return isInstance;
 }
 
-export function ListDocuments200ResponseInnerFromJSON(
-  json: any
-): ListDocuments200ResponseInner {
-  return ListDocuments200ResponseInnerFromJSONTyped(json, false);
+export function DocumentListItemFromJSON(json: any): DocumentListItem {
+  return DocumentListItemFromJSONTyped(json, false);
 }
 
-export function ListDocuments200ResponseInnerFromJSONTyped(
+export function DocumentListItemFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): ListDocuments200ResponseInner {
+): DocumentListItem {
   if (json === undefined || json === null) {
     return json;
   }
@@ -83,9 +79,7 @@ export function ListDocuments200ResponseInnerFromJSONTyped(
   };
 }
 
-export function ListDocuments200ResponseInnerToJSON(
-  value?: ListDocuments200ResponseInner | null
-): any {
+export function DocumentListItemToJSON(value?: DocumentListItem | null): any {
   if (value === undefined) {
     return undefined;
   }

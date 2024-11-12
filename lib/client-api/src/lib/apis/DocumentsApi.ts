@@ -17,8 +17,8 @@ import type {
   AddDocumentTagsRequest,
   AddUpdateDocumentAttributesRequest,
   Annotation,
+  DocumentListItem,
   ImportDocumentRequest,
-  ListDocuments200ResponseInner,
   RemoveDocumentTagsRequest,
 } from '../models/index';
 import {
@@ -28,10 +28,10 @@ import {
   AddUpdateDocumentAttributesRequestToJSON,
   AnnotationFromJSON,
   AnnotationToJSON,
+  DocumentListItemFromJSON,
+  DocumentListItemToJSON,
   ImportDocumentRequestFromJSON,
   ImportDocumentRequestToJSON,
-  ListDocuments200ResponseInnerFromJSON,
-  ListDocuments200ResponseInnerToJSON,
   RemoveDocumentTagsRequestFromJSON,
   RemoveDocumentTagsRequestToJSON,
 } from '../models/index';
@@ -138,13 +138,13 @@ export interface RemoveDocumentTagsOperationRequest {
 export interface RenameDocumentRequest {
   spaceKey: string;
   path: string;
-  newName: string;
+  newPath: string;
 }
 
 export interface RenameFolderRequest {
   spaceKey: string;
   path: string;
-  newName: string;
+  newPath: string;
 }
 
 export interface UpdateDocumentAnnotationRequest {
@@ -1211,7 +1211,7 @@ export class DocumentsApi extends runtime.BaseAPI {
   async listDocumentsRaw(
     requestParameters: ListDocumentsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<Array<ListDocuments200ResponseInner>>> {
+  ): Promise<runtime.ApiResponse<Array<DocumentListItem>>> {
     if (
       requestParameters.spaceKey === null ||
       requestParameters.spaceKey === undefined
@@ -1258,7 +1258,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(ListDocuments200ResponseInnerFromJSON)
+      jsonValue.map(DocumentListItemFromJSON)
     );
   }
 
@@ -1268,7 +1268,7 @@ export class DocumentsApi extends runtime.BaseAPI {
   async listDocuments(
     requestParameters: ListDocumentsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<Array<ListDocuments200ResponseInner>> {
+  ): Promise<Array<DocumentListItem>> {
     const response = await this.listDocumentsRaw(
       requestParameters,
       initOverrides
@@ -1441,12 +1441,12 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     if (
-      requestParameters.newName === null ||
-      requestParameters.newName === undefined
+      requestParameters.newPath === null ||
+      requestParameters.newPath === undefined
     ) {
       throw new runtime.RequiredError(
-        'newName',
-        'Required parameter requestParameters.newName was null or undefined when calling renameDocument.'
+        'newPath',
+        'Required parameter requestParameters.newPath was null or undefined when calling renameDocument.'
       );
     }
 
@@ -1456,8 +1456,8 @@ export class DocumentsApi extends runtime.BaseAPI {
       queryParameters['path'] = requestParameters.path;
     }
 
-    if (requestParameters.newName !== undefined) {
-      queryParameters['newName'] = requestParameters.newName;
+    if (requestParameters.newPath !== undefined) {
+      queryParameters['newPath'] = requestParameters.newPath;
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -1516,12 +1516,12 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     if (
-      requestParameters.newName === null ||
-      requestParameters.newName === undefined
+      requestParameters.newPath === null ||
+      requestParameters.newPath === undefined
     ) {
       throw new runtime.RequiredError(
-        'newName',
-        'Required parameter requestParameters.newName was null or undefined when calling renameFolder.'
+        'newPath',
+        'Required parameter requestParameters.newPath was null or undefined when calling renameFolder.'
       );
     }
 
@@ -1531,8 +1531,8 @@ export class DocumentsApi extends runtime.BaseAPI {
       queryParameters['path'] = requestParameters.path;
     }
 
-    if (requestParameters.newName !== undefined) {
-      queryParameters['newName'] = requestParameters.newName;
+    if (requestParameters.newPath !== undefined) {
+      queryParameters['newPath'] = requestParameters.newPath;
     }
 
     const headerParameters: runtime.HTTPHeaders = {};

@@ -25,6 +25,25 @@ components:
         key:
           type: string
           description: Key of the space.
+    DocumentListItem:
+      type: object
+      required:
+        - path
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          description: The name of the file or folder.
+        type:
+          type: string
+          enum:
+            - file
+            - folder
+          description: The type of the item (file or folder).
+        path:
+          type: string
+          description: The full path of the file or folder.
     CreateSpaceOperationType:
       type: string
       enum:

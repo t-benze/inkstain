@@ -26,6 +26,7 @@ models/CreateSpaceRequest.ts
 models/DocumentLayoutTextBlock.ts
 models/DocumentLayoutTextLine.ts
 models/DocumentLayoutTextLineBoundingBox.ts
+models/DocumentListItem.ts
 models/DocumentMeta.ts
 models/DocumentMetaAttributesValue.ts
 models/DocumentSearchResult.ts
@@ -45,7 +46,6 @@ models/IntelligenceAnalyzeDocumentRequest.ts
 models/IntelligenceDocLayout200Response.ts
 models/IntelligenceDocLayoutStatus200Response.ts
 models/ListDirectories200ResponseInner.ts
-models/ListDocuments200ResponseInner.ts
 models/PlatformInfo200Response.ts
 models/PlatformInfo200ResponseAttributes.ts
 models/ProxyRequestOperationEnum.ts

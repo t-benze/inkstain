@@ -68,22 +68,7 @@ const upload = multer({
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                     description: The name of the file or folder.
- *                   type:
- *                     type: string
- *                     enum: [file, folder]
- *                     description: The type of the item (file or folder).
- *                   path:
- *                     type: string
- *                     description: The full path of the file or folder.
- *                 required:
- *                   - name
- *                   - type
- *                   - path
+ *                 $ref: '#/components/schemas/DocumentListItem'
  *       400:
  *         description: Invalid parameters provided.
  *       404:
@@ -475,7 +460,7 @@ export const exportDocument = async (ctx: Context) => {
  *           type: string
  *         description: The relative path to the document within the space
  *       - in: query
- *         name: newName
+ *         name: newPath
  *         required: true
  *         schema:
  *           type: string
@@ -493,8 +478,7 @@ export const exportDocument = async (ctx: Context) => {
 const renameDocument = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const oldPath = ctx.query.path as string;
-  const newName = ctx.query.newName as string;
-  const newPath = path.join(path.dirname(oldPath), newName);
+  const newPath = ctx.query.newPath as string;
   const fileManager = await ctx.fileService.getFileManager(spaceKey);
   await ctx.documentService.updateDocumentPath(spaceKey, oldPath, newPath);
   await fileManager.renameDocument(oldPath, newPath);
@@ -524,7 +508,7 @@ const renameDocument = async (ctx: Context) => {
  *           type: string
  *         description: The relative path to the folder within the space
  *       - in: query
- *         name: newName
+ *         name: newPath
  *         required: true
  *         schema:
  *           type: string
@@ -542,8 +526,7 @@ const renameDocument = async (ctx: Context) => {
 const renameFolder = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
   const oldPath = ctx.query.path as string;
-  const newName = ctx.query.newName as string;
-  const newPath = path.join(path.dirname(oldPath), newName);
+  const newPath = ctx.query.newPath as string;
   const fileManager = await ctx.fileService.getFileManager(spaceKey);
   const documentsToUpdate = await fileManager.findDocumentsUnderFolder(oldPath);
   const space = await ctx.spaceService.getSpace(spaceKey);
