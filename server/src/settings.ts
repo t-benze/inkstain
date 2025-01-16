@@ -9,16 +9,20 @@ export const env =
 export const host = process.env.HOST ?? 'localhost';
 export const port = process.env.PORT ? Number(process.env.PORT) : 6060;
 
-const runtimePath =
-  os.platform() == 'win32'
-    ? (process.env.LOCALAPPDATA as string)
-    : path.join(os.homedir(), '.local');
+const inkstainHomePath =
+  process.env['INKSTAIN_RUNTIME_PATH'] ||
+  path.join(
+    os.platform() == 'win32'
+      ? (process.env.LOCALAPPDATA as string)
+      : path.join(os.homedir(), '.local'),
+    'inkstain'
+  );
 
 export const directories = {
-  configDir: path.join(runtimePath, 'inkstain', 'config'),
-  dataDir: path.join(runtimePath, 'inkstain', 'data'),
-  cacheDir: path.join(runtimePath, 'inkstain', 'cache'),
-  stateDir: path.join(runtimePath, 'inkstain', 'state'),
+  configDir: path.join(inkstainHomePath, 'config'),
+  dataDir: path.join(inkstainHomePath, 'data'),
+  cacheDir: path.join(inkstainHomePath, 'cache'),
+  stateDir: path.join(inkstainHomePath, 'state'),
 };
 
 // Create directories if they don't exist

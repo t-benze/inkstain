@@ -197,7 +197,7 @@ class FileManager {
     const fullPath = path.join(this.space.path, folderPath);
     const files = await fs.readdir(fullPath);
     const results = files
-      .filter((file) => file !== '.inkstain' && file !== '.DS_Store')
+      .filter((file) => file !== 'ink-space.json' && file !== '.DS_Store')
       .map(async (file) => {
         const isFile = file.endsWith('.ink');
         file = isFile ? file.slice(0, file.length - 4) : file;

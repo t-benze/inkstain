@@ -63,9 +63,8 @@ export class SpaceService {
     // Create the directory on the filesystem
     await fs.mkdir(spacePath, { recursive: true });
     // make an inkstain directory to store data managed by inkstain
-    await fs.mkdir(path.join(spacePath, '.inkstain'));
     await fs.writeFile(
-      path.join(spacePath, '.inkstain', 'space.json'),
+      path.join(spacePath, 'ink-space.json'),
       JSON.stringify({
         name,
       }),
@@ -76,7 +75,7 @@ export class SpaceService {
   }
 
   public async importExistingInkStainSpace(spacePath: string) {
-    const inkstainFile = path.join(spacePath, '.inkstain', 'space.json');
+    const inkstainFile = path.join(spacePath, 'ink-space.json');
     try {
       await fs.access(inkstainFile);
     } catch (err) {

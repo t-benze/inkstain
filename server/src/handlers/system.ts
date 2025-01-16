@@ -57,7 +57,6 @@ const router = new Router();
  *                 - attributes
  */
 const platformInfo = async (ctx: Context) => {
-  // const drives = await drivelist.list();
   let drives = null;
   const exec = util.promisify(child_process.exec);
   if (os.platform() == 'win32') {
