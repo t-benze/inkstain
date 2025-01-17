@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/AuthApi.ts
 apis/ChatApi.ts
 apis/DocumentsApi.ts
@@ -52,6 +51,7 @@ models/ProxyRequestOperationEnum.ts
 models/ReindexSpace200Response.ts
 models/RemoveDocumentTagsRequest.ts
 models/SearchDocuments200Response.ts
+models/SetSecretRequest.ts
 models/Settings.ts
 models/SignInRequest.ts
 models/SignUpRequest.ts

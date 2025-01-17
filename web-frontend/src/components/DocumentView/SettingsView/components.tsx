@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   makeStyles,
-  shorthands,
   tokens,
   Subtitle1,
   Subtitle2,
@@ -15,7 +14,7 @@ interface SectionProps {
 
 const useClasses = makeStyles({
   section: {
-    ...shorthands.padding(tokens.spacingVerticalS),
+    padding: tokens.spacingVerticalS,
   },
   sectionHeader: {
     display: 'flex',
@@ -56,7 +55,7 @@ export const Setting = ({
   children,
 }: {
   name: string;
-  description: string;
+  description: React.ReactNode;
   children: React.ReactNode;
 }) => {
   const classes = useClasses();

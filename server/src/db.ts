@@ -109,6 +109,21 @@ export class Document extends Model<
   >;
 }
 
+interface SecretAttributes {
+  id: number;
+  secretKey: string;
+  encryptedValue: string;
+  iv: string;
+}
+
+type SecretCreationAttributes = Optional<SecretAttributes, 'id'>;
+export class Secret extends Model<SecretAttributes, SecretCreationAttributes> {
+  public declare id: number;
+  public declare secretKey: string;
+  public declare encryptedValue: string;
+  public declare iv: string;
+}
+
 export async function initDB(sequelize: Sequelize) {
   Document.init(
     {
@@ -200,6 +215,32 @@ export async function initDB(sequelize: Sequelize) {
       ],
     }
   );
+  Secret.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      secretKey: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      encryptedValue: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      iv: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+    },
+    {
+      sequelize: sequelize,
+      modelName: 'Secret',
+    }
+  );
   Document.belongsToMany(Tag, {
     through: 'DocumentTags',
   });
@@ -208,6 +249,7 @@ export async function initDB(sequelize: Sequelize) {
   });
   Document.hasMany(DocAttribute);
   DocAttribute.belongsTo(Document);
+
   await sequelize.sync();
   return sequelize;
 }

@@ -5,37 +5,63 @@ import logger from '~/server/logger';
 import { FileService } from './FileService';
 import { ChatMessage } from '@inkstain/client-api';
 
-// type ChatSession = {
-//   messages: {
-//     role: string;
-//     content: string;
-//   }[];
-//   documentPath: string;
-//   //   documentContentPrompt: OpenAI.Chat.ChatCompletionMessageParam;
-//   spaceKey: string;
-//   sessionId: string;
-// };
+export class ChatError extends Error {
+  public code: string;
+  static readonly CODE_NOT_INITIALIZED = 'NotInitialized';
+  static readonly CODE_INVALID_KEY = 'InvalidAPIKey';
+  static readonly CODE_UNKNOWN = 'UnknownError';
 
-// const tools: OpenAI.Chat.ChatCompletionTool[] = [
-//   {
-//     type: 'function',
-//     function: {
-//       name: 'retrieve_document',
-//       description:
-//         'Retrieve the document content for answering user questions.',
-//       parameters: {},
-//     },
-//   },
-// ];
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = 'ChatError';
+    this.code = code;
+  }
+}
 
 export class ChatService {
-  openai: OpenAI;
+  openai: OpenAI | undefined;
 
   constructor(
     private readonly intelligenceService: IntelligenceService,
-    private readonly fileService: FileService
+    private readonly fileService: FileService,
+    apiKey: string | null
   ) {
-    this.openai = new OpenAI();
+    if (apiKey) {
+      this.openai = new OpenAI({
+        apiKey,
+      });
+    }
+  }
+
+  async setOpenAIAPIKey(apiKey: string) {
+    this.openai = new OpenAI({
+      apiKey,
+    });
+    // Make the API call, passing the registered function for potential use
+    const testMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      {
+        role: 'system',
+        content: 'Hello',
+      },
+      {
+        role: 'user',
+        content: 'Reply Ok to this message',
+      },
+    ];
+
+    try {
+      await this.openai.chat.completions.create(
+        {
+          model: 'gpt-4o',
+          messages: testMessages,
+        },
+        {
+          stream: false,
+        }
+      );
+    } catch (error) {
+      throw new ChatError('Invalid OpenAI API Key', ChatError.CODE_INVALID_KEY);
+    }
   }
 
   async loadChatSession(
@@ -135,6 +161,12 @@ export class ChatService {
   async summarizeHistory(
     messageHistory: OpenAI.Chat.ChatCompletionMessageParam[]
   ) {
+    if (!this.openai) {
+      throw new ChatError(
+        'OpenAI API is not initialized',
+        ChatError.CODE_NOT_INITIALIZED
+      );
+    }
     const summaryResponse = await this.openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -156,6 +188,12 @@ export class ChatService {
     query: string,
     messageHistory?: ChatMessage[]
   ): Promise<ChatMessage> {
+    if (!this.openai) {
+      throw new ChatError(
+        'OpenAI API is not initialized',
+        ChatError.CODE_NOT_INITIALIZED
+      );
+    }
     let sessionMessages = messageHistory;
     if (!sessionMessages) {
       sessionMessages = await this.loadChatSession(

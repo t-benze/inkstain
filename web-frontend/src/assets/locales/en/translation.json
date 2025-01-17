@@ -73,6 +73,9 @@
   "chat_input_placeholder": "Type a message...",
   "chat_with_doc": "Chat with document",
   "msg_require_doc_layout_for_chat": "The document analysis data is needed for the chat feature, proceed to run the document analysis?",
+  "chat_service_not_initialized": "Chat service is not initialized",
+  "chat_service_need_api_key": "Please provide your API Key in the settings.",
+  "unknown_error": "Unknown error",
   "system": {
     "@inkstain/space-management": "Spaces",
     "@inkstain/search-document": "Documents",
@@ -139,8 +142,11 @@
   },
   "setting": {
     "ocr_service": "OCR Service",
-    "ocr_service_description": "Choose to use local OCR service or cloud OCR service",
+    "ocr_service_description": "Choose to use local OCR service or cloud OCR service.",
     "remote": "Remote",
-    "local": "Local"
+    "local": "Local",
+    "openai_api_key": "OpenAI API Key",
+    "openai_api_key_description": "Please input your <1>OpenAI API Key</1> to enable the chat feature.",
+    "openai_api_key_invalid": "The API key provided is invalid."
   }
 }
