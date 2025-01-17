@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   ListDirectories200ResponseInner,
   PlatformInfo200Response,
+  SetSecretRequest,
   Settings,
 } from '../models/index';
 import {
@@ -23,12 +24,22 @@ import {
   ListDirectories200ResponseInnerToJSON,
   PlatformInfo200ResponseFromJSON,
   PlatformInfo200ResponseToJSON,
+  SetSecretRequestFromJSON,
+  SetSecretRequestToJSON,
   SettingsFromJSON,
   SettingsToJSON,
 } from '../models/index';
 
+export interface GetSecretsRequest {
+  secretKey: Array<string>;
+}
+
 export interface ListDirectoriesRequest {
   path: string;
+}
+
+export interface SetSecretOperationRequest {
+  setSecretRequest: SetSecretRequest;
 }
 
 export interface UpdateSettingsRequest {
@@ -39,6 +50,57 @@ export interface UpdateSettingsRequest {
  *
  */
 export class SystemApi extends runtime.BaseAPI {
+  /**
+   * Fetches the current secrets.
+   * Get secrets
+   */
+  async getSecretsRaw(
+    requestParameters: GetSecretsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<object>> {
+    if (
+      requestParameters.secretKey === null ||
+      requestParameters.secretKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'secretKey',
+        'Required parameter requestParameters.secretKey was null or undefined when calling getSecrets.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.secretKey) {
+      queryParameters['secretKey'] = requestParameters.secretKey;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/system/secrets`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse<any>(response);
+  }
+
+  /**
+   * Fetches the current secrets.
+   * Get secrets
+   */
+  async getSecrets(
+    requestParameters: GetSecretsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<object> {
+    const response = await this.getSecretsRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
   /**
    * Fetches the current system settings.
    * Retrieve system settings
@@ -167,6 +229,55 @@ export class SystemApi extends runtime.BaseAPI {
   ): Promise<PlatformInfo200Response> {
     const response = await this.platformInfoRaw(initOverrides);
     return await response.value();
+  }
+
+  /**
+   * Store a secret with the provided key and value.
+   * Set a secret
+   */
+  async setSecretRaw(
+    requestParameters: SetSecretOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.setSecretRequest === null ||
+      requestParameters.setSecretRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'setSecretRequest',
+        'Required parameter requestParameters.setSecretRequest was null or undefined when calling setSecret.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/system/secrets`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: SetSecretRequestToJSON(requestParameters.setSecretRequest),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Store a secret with the provided key and value.
+   * Set a secret
+   */
+  async setSecret(
+    requestParameters: SetSecretOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.setSecretRaw(requestParameters, initOverrides);
   }
 
   /**

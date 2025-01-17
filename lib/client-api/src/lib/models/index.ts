@@ -43,6 +43,7 @@ export * from './ProxyRequestOperationEnum';
 export * from './ReindexSpace200Response';
 export * from './RemoveDocumentTagsRequest';
 export * from './SearchDocuments200Response';
+export * from './SetSecretRequest';
 export * from './Settings';
 export * from './SignInRequest';
 export * from './SignUpRequest';

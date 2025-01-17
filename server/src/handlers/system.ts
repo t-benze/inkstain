@@ -4,7 +4,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import child_process from 'child_process';
 import util from 'util';
-import { Context, Settings } from '~/server/types';
+import { CommonHTTPErrorData, Context, Settings } from '~/server/types';
+import { ChatError } from '../services/ChatService';
 const router = new Router();
 
 /**
@@ -186,11 +187,111 @@ const updateSettings = async (ctx: Context) => {
   ctx.body = updatedSettings;
 };
 
+/**
+ * @swagger
+ * /system/secrets:
+ *  get:
+ *    operationId: getSecrets
+ *    summary: Get secrets
+ *    description: Fetches the current secrets.
+ *    tags:
+ *      - System
+ *    parameters:
+ *      - in: query
+ *        name: secretKey
+ *        required: true
+ *        schema:
+ *          type: array
+ *          items:
+ *            type: string
+ *    responses:
+ *      200:
+ *        description: A JSON object containing the secrets.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              description: A key-value dictionary containing the requested secrets.
+ */
+const getSecrets = async (ctx: Context) => {
+  const secretKeys = ctx.query.secretKey
+    ? Array.isArray(ctx.query.secretKey)
+      ? ctx.query.secretKey
+      : [ctx.query.secretKey as string]
+    : [];
+
+  const result: Record<string, string> = {};
+  for (const key of secretKeys) {
+    const secret = await ctx.secretService.getSecret(key);
+    if (secret) {
+      result[key] = secret.slice(0, 10).padEnd(secret.length, '*');
+    }
+  }
+  ctx.status = 200;
+  ctx.body = result;
+};
+
+/**
+ * @swagger
+ * /system/secrets:
+ *   post:
+ *     operationId: setSecret
+ *     summary: Set a secret
+ *     description: Store a secret with the provided key and value.
+ *     tags:
+ *       - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               secretKey:
+ *                 type: string
+ *                 description: The key of the secret.
+ *               secretValue:
+ *                 type: string
+ *                 description: The value of the secret.
+ *             required:
+ *               - secretKey
+ *               - secretValue
+ *     responses:
+ *       200:
+ *         description: Secret successfully stored
+ *       400:
+ *         description: Invalid secret provided
+ */
+const setSecret = async (ctx: Context) => {
+  const { secretKey, secretValue } = ctx.request.body as {
+    secretKey: string;
+    secretValue: string;
+  };
+  if (secretKey === 'openai') {
+    try {
+      await ctx.chatService.setOpenAIAPIKey(secretValue);
+    } catch (err) {
+      if (err instanceof ChatError) {
+        ctx.throw(400, err.message, new CommonHTTPErrorData(err.code));
+      } else {
+        throw err;
+      }
+    }
+  }
+  await ctx.secretService.storeSecret({
+    secretKey,
+    secretValue,
+  });
+  ctx.status = 200;
+};
+
 export const registerSystemRoutes = (router: Router) => {
   router.get('/system/platform', platformInfo);
   router.get('/system/directories', listDirectories);
   router.get('/system/settings', settings);
   router.put('/system/settings', updateSettings);
+  router.get('/system/secrets', getSecrets);
+  router.post('/system/secrets', setSecret);
 };
 
 export default router;

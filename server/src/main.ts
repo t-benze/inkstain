@@ -27,6 +27,7 @@ import { registerRoutes } from './handlers';
 import { AWSProxy } from './proxy/AWSProxy';
 import { LocalProxy } from './proxy/LocalProxy';
 import { SettingsService } from './services/SettingsService';
+import { SecretService } from './services/SecretService';
 const app = new Koa<Koa.DefaultState, Context>();
 
 app.use(async (ctx, next) => {
@@ -180,9 +181,13 @@ async function initServices(
     app.context.imageService,
     proxy
   );
+  const masterKey = await SecretService.loadMasterKey();
+  app.context.secretService = new SecretService(masterKey);
+  const openaiAPIKey = await app.context.secretService.getSecret('openai');
   app.context.chatService = new ChatService(
     app.context.intelligenceService,
-    app.context.fileService
+    app.context.fileService,
+    openaiAPIKey
   );
   app.context.settingsService.onSettingsChanged(async (updates: Settings) => {
     if (updates.ocrService) {

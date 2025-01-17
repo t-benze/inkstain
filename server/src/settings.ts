@@ -45,6 +45,10 @@ export const tokensFile = path.join(
   directories.stateDir,
   env == 'production' ? 'tokens.json' : `tokens.${env}.json`
 );
+export const secretMasterKeyFile = path.join(
+  directories.dataDir,
+  'secret_master.txt'
+);
 
 export const cognitoUserPoolId = 'ap-southeast-1_6VKSJ8wtn';
 export const cognitoUserPoolClientId = 'sn3gt148lvl5q3rshs424kdkk';

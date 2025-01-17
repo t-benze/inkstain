@@ -2,6 +2,9 @@ import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   makeStyles,
+  Toast,
+  ToastBody,
+  ToastTitle,
   Button,
   tokens,
   Popover,
@@ -10,6 +13,7 @@ import {
   MenuList,
   MenuItem,
   Textarea,
+  useToastController,
 } from '@fluentui/react-components';
 import {
   Send24Regular,
@@ -18,8 +22,9 @@ import {
 } from '@fluentui/react-icons';
 import { MessageList } from './MessageList';
 import { chatApi } from '~/web/apiClient';
-import { ChatMessage } from '@inkstain/client-api';
+import { ChatMessage, ResponseError } from '@inkstain/client-api';
 import { useTranslation } from 'react-i18next';
+import { useAppContext } from '~/web/app/hooks/useAppContext';
 
 const useClasses = makeStyles({
   chatInterface: {
@@ -94,6 +99,8 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
   const [message, setMessage] = React.useState('');
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setMessage(e.target.value);
+  const { toasterId } = useAppContext();
+  const { dispatchToast } = useToastController(toasterId);
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = React.useState<string | null>(null);
   const { data: sessionList } = useQuery({
@@ -106,6 +113,22 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
       return data;
     },
   });
+  const showErrorToast = React.useCallback(
+    (title: string, message: string) => {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{title}</ToastTitle>
+          <ToastBody>{message}</ToastBody>
+        </Toast>,
+        {
+          position: 'top',
+          intent: 'error',
+          timeout: 2000,
+        }
+      );
+    },
+    [dispatchToast]
+  );
 
   React.useEffect(() => {
     if (sessionList && sessionList.length > 0) {
@@ -162,6 +185,19 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
         [...currentMessages, data.data]
       );
     },
+    onError: async (error) => {
+      if (error instanceof ResponseError) {
+        const errorData = await error.response.json();
+        if (errorData.error === 'NotInitialized') {
+          showErrorToast(
+            t('chat_service_not_initialized'),
+            t('chat_service_need_api_key')
+          );
+          return;
+        }
+      }
+      showErrorToast(t('unknown_error'), '');
+    },
   });
 
   const messageMutation = useMutation({
@@ -205,6 +241,19 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
         ['chatSession', spaceKey, documentPath, params.sessionId],
         [...currentMessages, data]
       );
+    },
+    onError: async (error) => {
+      if (error instanceof ResponseError) {
+        const errorData = await error.response.json();
+        if (errorData.error === 'NotInitialized') {
+          showErrorToast(
+            t('chat_service_not_initialized'),
+            t('chat_service_need_api_key')
+          );
+          return;
+        }
+      }
+      showErrorToast(t('unknown_error'), '');
     },
   });
 

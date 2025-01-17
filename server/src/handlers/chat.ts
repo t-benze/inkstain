@@ -1,5 +1,6 @@
 import Router from '@koa/router';
-import { Context } from '~/server/types';
+import { ChatError } from '~/server/services/ChatService';
+import { Context, CommonHTTPErrorData } from '~/server/types';
 
 /**
  * @swagger
@@ -63,16 +64,24 @@ const newChatSession = async (ctx: Context) => {
     message: string;
   };
 
-  const { sessionId, response } = await ctx.chatService.createSession(
-    spaceKey,
-    documentPath,
-    message
-  );
-  ctx.status = 200;
-  ctx.body = {
-    sessionId,
-    data: response,
-  };
+  try {
+    const { sessionId, response } = await ctx.chatService.createSession(
+      spaceKey,
+      documentPath,
+      message
+    );
+    ctx.status = 200;
+    ctx.body = {
+      sessionId,
+      data: response,
+    };
+  } catch (error) {
+    if (error instanceof ChatError) {
+      ctx.throw(400, error.message, new CommonHTTPErrorData(error.code));
+    } else {
+      throw error;
+    }
+  }
 };
 
 /**
@@ -237,14 +246,22 @@ const newChatMessage = async (ctx: Context) => {
     sessionId: string;
   };
 
-  const responseMessage = await ctx.chatService.handleUserQuery(
-    spaceKey,
-    documentPath,
-    sessionId,
-    message
-  );
-  ctx.status = 200;
-  ctx.body = responseMessage;
+  try {
+    const responseMessage = await ctx.chatService.handleUserQuery(
+      spaceKey,
+      documentPath,
+      sessionId,
+      message
+    );
+    ctx.status = 200;
+    ctx.body = responseMessage;
+  } catch (error) {
+    if (error instanceof ChatError) {
+      ctx.throw(400, error.message, new CommonHTTPErrorData(error.code));
+    } else {
+      throw error;
+    }
+  }
 };
 
 export const registerChatRoutes = (router: Router) => {
