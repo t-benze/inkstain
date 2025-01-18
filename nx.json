@@ -68,6 +68,15 @@
       }
     }
   },
+  "release": {
+    "changelog": {
+      "workspaceChangelog": {
+        "renderOptions": {
+          "author": false
+        }
+      }
+    }
+  },
   "useInferencePlugins": false,
   "useLegacyCache": true
 }

@@ -4,12 +4,10 @@ description: 'Sets up Node.js environment and installs dependencies'
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '22.x'
+        node-version: '20.x'
     - name: Cache node modules
       uses: actions/cache@v3
       env:
@@ -21,5 +19,12 @@ runs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
-    - name: Install dependencies
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: npm ci
+
+    - name: Install dependencies (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
       run: npm ci

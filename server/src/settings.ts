@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import 'dotenv/config';
 
 export const env =
   (process.env.NODE_ENV as 'development' | 'production' | 'test') ??
