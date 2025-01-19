@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,29 +20,19 @@ jobs:
       # Zip the build output
       - name: Zip build output
         run: |
-          cd dist  # Change this to your build output directory
-          zip -r ../build.zip .
+          cd dist  
+          rm -rf lib
+          zip -r ../dist.zip .
           cd ..
 
       # Create the release
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      # Upload build.zip as an asset
-      - name: Upload Release Asset (ZIP)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build.zip
-          asset_name: build.zip
-          asset_content_type: application/zip
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${TAG#v}" \
+              -F CHANGELOG.md \
+              dist.zip
