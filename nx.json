@@ -72,7 +72,12 @@
     "changelog": {
       "workspaceChangelog": {
         "renderOptions": {
-          "author": false
+          "authors": false
+        }
+      },
+      "projectChangelogs": {
+        "renderOptions": {
+          "authors": false
         }
       }
     }
