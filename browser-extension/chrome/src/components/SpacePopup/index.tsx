@@ -57,31 +57,30 @@ const Main = ({ data, onSave, behavior }: SpacePopupProps) => {
       return response;
     },
   });
-
-  return loadingPlatform ? (
-    <div className={classes.loading}>
-      <Spinner />
-    </div>
-  ) : errorPlatform ? (
-    <div className={classes.error}>
-      <Body1>{t('not_able_to_connect_inkstain')}</Body1>
-      <Button
-        onClick={() => {
-          setShowSettings(true);
-        }}
-      >
-        {t('settings')}
-      </Button>
-    </div>
-  ) : platformInfo ? (
-    <PopupContext.Provider value={{ platformInfo, data, behavior }}>
-      {showSettings ? (
-        <Settings setShowSettings={setShowSettings} />
-      ) : (
+  if (showSettings) {
+    return <Settings setShowSettings={setShowSettings} />;
+  } else {
+    return loadingPlatform ? (
+      <div className={classes.loading}>
+        <Spinner />
+      </div>
+    ) : errorPlatform ? (
+      <div className={classes.error}>
+        <Body1>{t('not_able_to_connect_inkstain')}</Body1>
+        <Button
+          onClick={() => {
+            setShowSettings(true);
+          }}
+        >
+          {t('settings')}
+        </Button>
+      </div>
+    ) : platformInfo ? (
+      <PopupContext.Provider value={{ platformInfo, data, behavior }}>
         <Home setShowSettings={setShowSettings} onSave={onSave} />
-      )}
-    </PopupContext.Provider>
-  ) : null;
+      </PopupContext.Provider>
+    ) : null;
+  }
 };
 
 export function SpacePopup({ data, onSave, behavior }: SpacePopupProps) {

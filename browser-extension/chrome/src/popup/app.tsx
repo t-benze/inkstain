@@ -34,26 +34,28 @@ export const App = () => {
           }}
           behavior="download"
           onSave={(spaceKey, documentPath) => {
-            chrome.tabs.query(
-              { active: true, lastFocusedWindow: true },
-              (tabs) => {
-                if (tabs.length > 0 && tabs[0]?.id) {
-                  const url = tabs[0].url || '';
-                  chrome.runtime.sendMessage(
-                    {
-                      action: 'download',
-                      targetPath: documentPath,
-                      spaceKey: spaceKey,
-                      url: url,
-                    },
-                    undefined,
-                    () => {
+            chrome.tabs.query({ active: true }, (tabs) => {
+              if (tabs.length > 0 && tabs[0]?.id) {
+                const url = tabs[0].url || '';
+                chrome.runtime.sendMessage(
+                  {
+                    action: 'download',
+                    targetPath: documentPath,
+                    spaceKey: spaceKey,
+                    url: url,
+                    title: title,
+                  },
+                  undefined,
+                  (result) => {
+                    if (result.error) {
+                      alert(result.message);
+                    } else {
                       window.close();
                     }
-                  );
-                }
+                  }
+                );
               }
-            );
+            });
           }}
         />
       </FluentProvider>
