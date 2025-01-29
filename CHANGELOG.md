@@ -1,3 +1,9 @@
+## 0.1.1 (2025-01-29)
+
+### 🩹 Fixes
+
+- fixed chrome exntesion and included it into the release ([170ed83](https://github.com/t-benze/inkstain/commit/170ed83))
+
 ## 0.1.0 (2025-01-19)
 
 ### 🚀 Features
