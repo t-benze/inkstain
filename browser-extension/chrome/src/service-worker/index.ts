@@ -174,12 +174,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
           );
         })
-        .then(() => {
-          sendResponse();
+        .then((response) => {
+          // @ts-expect-error sendResponse is not typed correctly
+          sendResponse(response);
         })
         .catch((error) => {
-          console.error('Error while downloading:', error);
-          sendResponse();
+          // @ts-expect-error sendResponse is not typed correctly
+          sendResponse({
+            error: 'unknown',
+            message: error.message,
+          });
         });
     });
     return true;
@@ -200,8 +204,10 @@ chrome.action.onClicked.addListener(async (tab) => {
         } else {
           // chrome.action.openPopup();
           chrome.action.setPopup({
+            tabId: tab.id,
             popup: 'popup/index.html',
           });
+          chrome.action.openPopup();
         }
       } catch (error) {
         console.error('Error:', error);

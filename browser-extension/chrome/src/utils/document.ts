@@ -58,14 +58,16 @@ export async function addDocument(
       await updateAttributes(settings, spaceKey, path, attributes);
       return { error: null };
     } else if (response.status === 400) {
-      return { error: 'Invalid parameters or unable to process the file.' };
-    } else if (response.status === 500) {
-      return { error: 'Internal server error while adding the document.' };
+      const responseBody = await response.json();
+      return { error: responseBody.error, message: responseBody.message };
     } else {
-      return { error: 'Unexpected response status:' + response.status };
+      return {
+        error: 'unknown',
+        message: 'Unexpected response status: ' + response.status,
+      };
     }
   } catch (error) {
-    return { error: 'Error while adding the document:' + error };
+    return { error: 'unknown' };
   }
 }
 

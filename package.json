@@ -4,7 +4,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "prepare": "husky install || true",
-    "build": "nx run-many -t build -p server web-frontend && node scripts/generateReleasePackageJson.js",
+    "build": "nx run-many -t build --exclude doc-intelligence && node scripts/generateReleasePackageJson.js",
     "start": "node dist/server",
     "e2e": "nx run cypress:e2e"
   },
