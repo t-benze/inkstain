@@ -18,7 +18,7 @@ import {
 } from './annotation';
 
 import { getDocumentTags, addDocumentTags, removeDocumentTags } from './tags';
-import { Context, MetaData } from '~/server/types';
+import { Context, MetaData, CommonHTTPErrorData } from '~/server/types';
 import { ImportDocumentRequest } from '@inkstain/client-api';
 
 const isValidFileName = (filePath: string): boolean => {
@@ -234,7 +234,11 @@ const addDocument = async (ctx: Context) => {
   }
   const fileName = path.basename(targetPath);
   if (!isValidFileName(fileName)) {
-    ctx.throw(400, 'Invalid file name');
+    ctx.throw(
+      400,
+      'The file name contains illegal characters. The following characters are not allowed: /, \0, <, >, :, ", \\, |, ?, *.',
+      new CommonHTTPErrorData('InvalidFileName')
+    );
   }
   const fileManager = await ctx.fileService.getFileManager(spaceKey);
   await fileManager.addDocument(targetPath, file);
