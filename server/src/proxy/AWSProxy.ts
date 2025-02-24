@@ -310,6 +310,7 @@ export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
       data ? data.filter((block) => block.BlockType?.startsWith('LAYOUT')) : []
     ).map((block) => {
       let text = '';
+      let childrenIds: string[] = [];
       const children = block.Relationships?.find((r) => r.Type === 'CHILD');
       if (children) {
         text = children.Ids
@@ -320,6 +321,7 @@ export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
               .join('\n')
               .trim()
           : '';
+        childrenIds = children.Ids ?? [];
       }
       return {
         boundingBox: {
@@ -328,6 +330,7 @@ export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
           left: block.Geometry.BoundingBox.Left,
           top: block.Geometry.BoundingBox.Top,
         },
+        childrenIds,
         text,
         id: block.Id,
       };

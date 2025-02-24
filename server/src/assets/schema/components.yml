@@ -223,11 +223,16 @@ components:
         - id
         - text
         - boundingBox
+        - childrenIds
       properties:
         id:
           type: string
         text:
           type: string
+        childrenIds:
+          type: array
+          items:
+            type: string
         boundingBox:
           type: object
           properties:

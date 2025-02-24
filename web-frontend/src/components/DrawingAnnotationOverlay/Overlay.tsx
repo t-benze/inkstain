@@ -102,6 +102,7 @@ export const Overlay = ({
     dimension,
     svgcanvasRef,
     textLines,
+    textBlocks,
     onAddAnnotation
   );
   const { blockDetectionMove, activeTextBlock, setActiveTextBlock } =

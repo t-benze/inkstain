@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { DrawingAnnotationOverlayContext } from '../context';
 import { extractSVGShapeAttributes } from '../utils';
-import { DocumentLayoutTextLine } from '@inkstain/client-api';
+import {
+  DocumentLayoutTextLine,
+  DocumentLayoutTextBlock,
+} from '@inkstain/client-api';
 
 interface TextLineBoundingBox {
   height: number;
@@ -15,6 +18,7 @@ export const useHighlight = (
   canvasDimension: { width: number; height: number },
   svgcanvasRef: React.RefObject<SVGSVGElement>,
   textLines: Array<DocumentLayoutTextLine> | undefined,
+  blocks: Array<DocumentLayoutTextBlock> | undefined,
   onAddAnnotation: (data: object, comment?: string) => void
 ) => {
   const drawingContext = React.useContext(DrawingAnnotationOverlayContext);
@@ -34,6 +38,18 @@ export const useHighlight = (
       };
     });
   }, [textLines, canvasDimension]);
+  const blockBoudingBox = React.useMemo(() => {
+    return blocks?.map((block) => {
+      return {
+        id: block.id,
+        childrenIds: block.childrenIds,
+        height: block.boundingBox.height * canvasDimension.height,
+        width: block.boundingBox.width * canvasDimension.width,
+        left: block.boundingBox.left * canvasDimension.width,
+        top: block.boundingBox.top * canvasDimension.height,
+      };
+    });
+  }, [blocks, canvasDimension]);
 
   const startHighlight = (svgPoint: DOMPoint) => {
     const strokeColor = drawingContext.strokeColor;
@@ -59,15 +75,34 @@ export const useHighlight = (
       width: Math.abs(dX),
       height: Math.abs(dY),
     };
-    const overlappingRects: Array<{ id: string; bbox: TextLineBoundingBox }> =
-      [];
+    const overlappingBlocks =
+      blockBoudingBox?.filter((block) => {
+        return !(
+          block.left + block.width < rect.left ||
+          block.left > rect.left + rect.width ||
+          block.top + block.height < rect.top ||
+          block.top > rect.top + rect.height
+        );
+      }) ?? [];
+
+    const overlappingLineRects: Array<{
+      id: string;
+      bbox: TextLineBoundingBox;
+    }> = [];
+
     textLineBoudingBox?.forEach((bbox) => {
+      let isInBlock = false;
+      overlappingBlocks.forEach((block) => {
+        if (block.childrenIds.some((id) => id === bbox.id)) {
+          isInBlock = true;
+        }
+      });
+      // as long as the text line is in the intersected blocks, only need to
+      // check if the text line is in the vertical range of the highlight
       if (
+        isInBlock &&
         !(
-          bbox.left + bbox.width < rect.left ||
-          bbox.left > rect.left + rect.width ||
-          bbox.top + bbox.height < rect.top ||
-          bbox.top > rect.top + rect.height
+          bbox.top + bbox.height < rect.top || bbox.top > rect.top + rect.height
         )
       ) {
         const left = bbox.top < rect.top ? rect.left : bbox.left;
@@ -75,7 +110,7 @@ export const useHighlight = (
           bbox.top + bbox.height > rect.top + rect.height
             ? rect.left + rect.width
             : bbox.left + bbox.width;
-        overlappingRects.push({
+        overlappingLineRects.push({
           id: bbox.id,
           bbox: {
             height: bbox.height,
@@ -86,13 +121,13 @@ export const useHighlight = (
         });
       }
     });
-    const newRects = overlappingRects.filter((bbox) => {
+    const newRects = overlappingLineRects.filter((bbox) => {
       return !existingHighlightsRef.current.some(
         (existing) => existing.id === bbox.id
       );
     });
     const removedRects = existingHighlightsRef.current.filter((bbox) => {
-      return !overlappingRects.some((existing) => existing.id === bbox.id);
+      return !overlappingLineRects.some((existing) => existing.id === bbox.id);
     });
     newRects.forEach(({ id, bbox }) => {
       const rectElement = document.createElementNS(
@@ -114,7 +149,7 @@ export const useHighlight = (
         currentHighlightRef.current?.removeChild(rectElement);
       }
     });
-    overlappingRects.forEach(({ id, bbox }) => {
+    overlappingLineRects.forEach(({ id, bbox }) => {
       if (newRects.some((newRect) => newRect.id === id)) {
         return;
       }
@@ -128,7 +163,7 @@ export const useHighlight = (
         rectElement.setAttribute('height', bbox.height.toString());
       }
     });
-    existingHighlightsRef.current = overlappingRects;
+    existingHighlightsRef.current = overlappingLineRects;
   };
 
   const highlightEnd = () => {
