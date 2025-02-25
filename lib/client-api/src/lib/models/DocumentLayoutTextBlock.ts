@@ -40,6 +40,12 @@ export interface DocumentLayoutTextBlock {
   text: string;
   /**
    *
+   * @type {Array<string>}
+   * @memberof DocumentLayoutTextBlock
+   */
+  childrenIds: Array<string>;
+  /**
+   *
    * @type {DocumentLayoutTextLineBoundingBox}
    * @memberof DocumentLayoutTextBlock
    */
@@ -53,6 +59,7 @@ export function instanceOfDocumentLayoutTextBlock(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'id' in value;
   isInstance = isInstance && 'text' in value;
+  isInstance = isInstance && 'childrenIds' in value;
   isInstance = isInstance && 'boundingBox' in value;
 
   return isInstance;
@@ -74,6 +81,7 @@ export function DocumentLayoutTextBlockFromJSONTyped(
   return {
     id: json['id'],
     text: json['text'],
+    childrenIds: json['childrenIds'],
     boundingBox: DocumentLayoutTextLineBoundingBoxFromJSON(json['boundingBox']),
   };
 }
@@ -90,6 +98,7 @@ export function DocumentLayoutTextBlockToJSON(
   return {
     id: value.id,
     text: value.text,
+    childrenIds: value.childrenIds,
     boundingBox: DocumentLayoutTextLineBoundingBoxToJSON(value.boundingBox),
   };
 }

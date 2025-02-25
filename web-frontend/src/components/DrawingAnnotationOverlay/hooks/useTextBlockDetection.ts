@@ -20,6 +20,7 @@ export const useTextBlockDetection = (
           return {
             id: block.id,
             text: block.text,
+            childrenIds: block.childrenIds,
             height: block.boundingBox.height * canvasDimension.height,
             width: block.boundingBox.width * canvasDimension.width,
             left: block.boundingBox.left * canvasDimension.width,
@@ -59,6 +60,7 @@ export const useTextBlockDetection = (
             setActiveTextBlock({
               id: block.id,
               text: block.text,
+              childrenIds: block.childrenIds,
               boundingBox: {
                 height: block.height,
                 width: block.width,
