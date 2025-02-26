@@ -240,7 +240,8 @@ export class ChatService {
     );
 
     logger.info(
-      `LLM API Call, model: ${this.model}, prompt_tokens: ${response.usage?.prompt_tokens}, cached_tokens: ${response.usage?.prompt_tokens_details?.cached_tokens}, total_tokens: ${response.usage?.total_tokens}`
+      `LLM API Call, model: ${this.model}, prompt_tokens: ${response.usage?.prompt_tokens}, cached_tokens: ${response.usage?.prompt_tokens_details?.cached_tokens},
+       total_tokens: ${response.usage?.total_tokens}`
     );
     // Check if the assistant calls the function to retrieve the document
     const choice = response.choices[0];
