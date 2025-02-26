@@ -287,7 +287,6 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
         <Button
           icon={<AddSquareRegular />}
           onClick={() => {
-            console.log('Add new session');
             queryClient.setQueryData(
               ['chatSession', spaceKey, documentPath, null],
               []
@@ -341,7 +340,7 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
         />
         <div className={classes.sendButton}>
           <Button
-            disabled={newSessionMutation.isPending}
+            disabled={newSessionMutation.isPending || messageMutation.isPending}
             icon={<Send24Regular />}
             onClick={() => handleSend()}
           />

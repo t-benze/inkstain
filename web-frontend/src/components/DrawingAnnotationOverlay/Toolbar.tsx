@@ -108,6 +108,7 @@ const StylusPickerPopover = ({
         <div className={classes.stylusPickerPanel}>
           {options.map((option) => (
             <Tooltip
+              key={option}
               relationship="description"
               positioning={'after'}
               content={t(`stylus_${option}`)}
@@ -195,9 +196,10 @@ const StrokeColorPickerPopover = ({
       <PopoverSurface>
         <div className={classes.colorPickerPanel}>
           {colorRow.map((row) => (
-            <div>
+            <div key={row.join('-')}>
               {row.map((c) => (
                 <div
+                  key="c"
                   className={classes.colorPickerItem}
                   style={{ backgroundColor: c }}
                   onClick={() => {

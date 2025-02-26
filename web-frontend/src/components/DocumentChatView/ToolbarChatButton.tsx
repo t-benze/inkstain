@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChatBubblesQuestionRegular } from '@fluentui/react-icons';
+import { BotSparkleRegular } from '@fluentui/react-icons';
 import {
   Dialog,
   DialogSurface,
@@ -52,7 +52,7 @@ export const ToolbarChatButton = ({
       <ToolbarButtonWithTooltip
         content={t('chat_with_doc')}
         dataTest={'toolbar-chatBtn'}
-        icon={<ChatBubblesQuestionRegular />}
+        icon={<BotSparkleRegular />}
         onClick={handleClick}
       />
       <DialogSurface>

@@ -53,12 +53,13 @@ export const FolderTree = ({ path, level }: FolderTreeProps) => {
       {data?.map((document) => {
         return document.type === 'folder' ? (
           <FolderTreeItem
+            key={document.path}
             document={document}
             level={level + 1}
             FolderTree={FolderTree}
           />
         ) : (
-          <FileTreeItem document={document} />
+          <FileTreeItem document={document} key={document.path} />
         );
       })}
     </Tree>
