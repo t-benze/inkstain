@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 import child_process from 'child_process';
+import crypto from 'crypto';
 import util from 'util';
 import { CommonHTTPErrorData, Context, Settings } from '~/server/types';
 import { ChatError } from '../services/ChatService';
@@ -189,6 +190,85 @@ const updateSettings = async (ctx: Context) => {
 
 /**
  * @swagger
+ * /system/verify-chat-api-settings:
+ *   post:
+ *     operationId: verifyChatAPISettings
+ *     description: Verifies the chat API settings
+ *     tags:
+ *       - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               baseUrl:
+ *                 type: string
+ *                 description: The key of the secret.
+ *               model:
+ *                 type: string
+ *                 description: The value of the secret.
+ *               apiKey:
+ *                 type: string
+ *                 description: API key
+ *             required:
+ *               - apiKey
+ *     responses:
+ *       200:
+ *         description: Chat API settings verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 apiKeySecretKey:
+ *                   type: string
+ *                 model:
+ *                   type: string
+ *                 baseUrl:
+ *                   type: string
+ *               required:
+ *                 - apiKeySecretKey
+ *
+ *       400:
+ *         description: Invalid secret provided
+ */
+const verifyChatAPISettings = async (ctx: Context) => {
+  const { apiKey, baseUrl, model } = ctx.request.body as {
+    apiKey: string;
+    baseUrl?: string;
+    model?: string;
+  };
+  try {
+    await ctx.chatService.configureChatAPI({
+      apiKey: apiKey,
+      baseURL: baseUrl,
+      model: model,
+    });
+    // store the actual api key in the secret service
+    const hash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    await ctx.secretService.storeSecret({
+      secretKey: hash,
+      secretValue: apiKey,
+    });
+    ctx.status = 200;
+    ctx.body = {
+      apiKeySecretKey: hash,
+      model,
+      baseUrl,
+    };
+  } catch (err) {
+    if (err instanceof ChatError) {
+      ctx.throw(400, err.message, new CommonHTTPErrorData(err.code));
+    } else {
+      throw err;
+    }
+  }
+};
+
+/**
+ * @swagger
  * /system/secrets:
  *  get:
  *    operationId: getSecrets
@@ -224,65 +304,11 @@ const getSecrets = async (ctx: Context) => {
   for (const key of secretKeys) {
     const secret = await ctx.secretService.getSecret(key);
     if (secret) {
-      result[key] = secret.slice(0, 10).padEnd(secret.length, '*');
+      result[key] = secret;
     }
   }
   ctx.status = 200;
   ctx.body = result;
-};
-
-/**
- * @swagger
- * /system/secrets:
- *   post:
- *     operationId: setSecret
- *     summary: Set a secret
- *     description: Store a secret with the provided key and value.
- *     tags:
- *       - System
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               secretKey:
- *                 type: string
- *                 description: The key of the secret.
- *               secretValue:
- *                 type: string
- *                 description: The value of the secret.
- *             required:
- *               - secretKey
- *               - secretValue
- *     responses:
- *       200:
- *         description: Secret successfully stored
- *       400:
- *         description: Invalid secret provided
- */
-const setSecret = async (ctx: Context) => {
-  const { secretKey, secretValue } = ctx.request.body as {
-    secretKey: string;
-    secretValue: string;
-  };
-  if (secretKey === 'openai') {
-    try {
-      await ctx.chatService.setOpenAIAPIKey(secretValue);
-    } catch (err) {
-      if (err instanceof ChatError) {
-        ctx.throw(400, err.message, new CommonHTTPErrorData(err.code));
-      } else {
-        throw err;
-      }
-    }
-  }
-  await ctx.secretService.storeSecret({
-    secretKey,
-    secretValue,
-  });
-  ctx.status = 200;
 };
 
 export const registerSystemRoutes = (router: Router) => {
@@ -290,8 +316,8 @@ export const registerSystemRoutes = (router: Router) => {
   router.get('/system/directories', listDirectories);
   router.get('/system/settings', settings);
   router.put('/system/settings', updateSettings);
+  router.post('/system/verify-chat-api-settings', verifyChatAPISettings);
   router.get('/system/secrets', getSecrets);
-  router.post('/system/secrets', setSecret);
 };
 
 export default router;

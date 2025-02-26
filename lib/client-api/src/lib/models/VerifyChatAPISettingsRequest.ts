@@ -16,47 +16,49 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface SetSecretRequest
+ * @interface VerifyChatAPISettingsRequest
  */
-export interface SetSecretRequest {
+export interface VerifyChatAPISettingsRequest {
   /**
    * The key of the secret.
    * @type {string}
-   * @memberof SetSecretRequest
+   * @memberof VerifyChatAPISettingsRequest
    */
   baseUrl?: string;
   /**
    * The value of the secret.
    * @type {string}
-   * @memberof SetSecretRequest
+   * @memberof VerifyChatAPISettingsRequest
    */
   model?: string;
   /**
    * API key
    * @type {string}
-   * @memberof SetSecretRequest
+   * @memberof VerifyChatAPISettingsRequest
    */
   apiKey: string;
 }
 
 /**
- * Check if a given object implements the SetSecretRequest interface.
+ * Check if a given object implements the VerifyChatAPISettingsRequest interface.
  */
-export function instanceOfSetSecretRequest(value: object): boolean {
+export function instanceOfVerifyChatAPISettingsRequest(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'apiKey' in value;
 
   return isInstance;
 }
 
-export function SetSecretRequestFromJSON(json: any): SetSecretRequest {
-  return SetSecretRequestFromJSONTyped(json, false);
+export function VerifyChatAPISettingsRequestFromJSON(
+  json: any
+): VerifyChatAPISettingsRequest {
+  return VerifyChatAPISettingsRequestFromJSONTyped(json, false);
 }
 
-export function SetSecretRequestFromJSONTyped(
+export function VerifyChatAPISettingsRequestFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): SetSecretRequest {
+): VerifyChatAPISettingsRequest {
   if (json === undefined || json === null) {
     return json;
   }
@@ -67,7 +69,9 @@ export function SetSecretRequestFromJSONTyped(
   };
 }
 
-export function SetSecretRequestToJSON(value?: SetSecretRequest | null): any {
+export function VerifyChatAPISettingsRequestToJSON(
+  value?: VerifyChatAPISettingsRequest | null
+): any {
   if (value === undefined) {
     return undefined;
   }

@@ -1,10 +1,21 @@
 components:
   schemas:
+    ChatSettings:
+      type: object
+      properties:
+        baseUrl:
+          type: string
+        model:
+          type: string
+        apiKeySecretKey:
+          type: string
+      required:
+        - apiKeySecretKey
     Settings:
       type: object
       properties:
         ocrService:
           type: string
           enum: ['local', 'remote']
-      required:
-        - ocrService
+        chatService:
+          $ref: '#/components/schemas/ChatSettings'

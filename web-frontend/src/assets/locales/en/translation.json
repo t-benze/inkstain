@@ -145,8 +145,15 @@
     "ocr_service_description": "Choose to use local OCR service or cloud OCR service.",
     "remote": "Remote",
     "local": "Local",
-    "openai_api_key": "OpenAI API Key",
-    "openai_api_key_description": "Please input your <1>OpenAI API Key</1> to enable the chat feature.",
-    "openai_api_key_invalid": "The API key provided is invalid."
+    "chat_assistant_setting": "Chat Assistant Settings",
+    "chat_assistant_setting_description": "Please complete the API settings for the chat assistant service.",
+    "chat_api_base_url": "Base URL",
+    "chat_api_base_url_placeholder": "Default to OpenAI",
+    "chat_model": "Model",
+    "chat_model_placeholder": "Default to GPT-4o",
+    "chat_api_key": "API Key",
+    "chat_api_key_invalid": "The API Key is invalid",
+    "chat_api_key_required": "API Key is required",
+    "save_chat_settings": "Save chat assistant settings"
   }
 }
