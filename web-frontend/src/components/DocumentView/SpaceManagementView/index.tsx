@@ -20,6 +20,7 @@ import {
   Body2,
   tokens,
   shorthands,
+  Tooltip,
 } from '@fluentui/react-components';
 import { DialogOpenChangeEventHandler } from '@fluentui/react-dialog';
 import { FormNewRegular, FolderOpenRegular } from '@fluentui/react-icons';
@@ -64,6 +65,7 @@ const useClasses = makeStyles({
       overflowX: 'hidden',
       textOverflow: 'ellipsis',
       marginRight: tokens.spacingHorizontalM,
+      flexShrink: 0,
     },
     '& .fui-Text': {
       color: tokens.colorNeutralForeground4,
@@ -335,7 +337,9 @@ export const SpaceManagementView = () => {
               >
                 {space.name}
               </Button>
-              <Body2>{space.path}</Body2>
+              <Tooltip relationship="description" content={space.path}>
+                <Body2>{space.path}</Body2>
+              </Tooltip>
             </div>
           );
         })

@@ -183,13 +183,22 @@ async function initServices(
   );
   const masterKey = await SecretService.loadMasterKey();
   app.context.secretService = new SecretService(masterKey);
-  const openaiAPIKey = await app.context.secretService.getSecret('openai');
+  const chatAssistantAPIKey = await app.context.secretService.getSecret(
+    'chat-assistant'
+  );
+  const chatServiceOptions = chatAssistantAPIKey
+    ? {
+        baseUrl: settings.chatService?.baseUrl,
+        model: settings.chatService?.model,
+        apiKey: chatAssistantAPIKey,
+      }
+    : undefined;
   app.context.chatService = new ChatService(
     app.context.intelligenceService,
     app.context.fileService,
-    openaiAPIKey
+    chatServiceOptions
   );
-  app.context.settingsService.onSettingsChanged(async (updates: Settings) => {
+  app.context.settingsService.onSettingsChanged(async (updates) => {
     if (updates.ocrService) {
       const proxy = updates.ocrService === 'remote' ? awsProxy : localProxy;
       app.context.intelligenceService.setProxy(proxy);

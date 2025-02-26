@@ -30,7 +30,7 @@ export type ContextType = {
     isFolder: boolean;
   }) => void;
   settings: Settings;
-  updateSettings: (settings: Settings) => void;
+  updateSettings: (settings: Partial<Settings>) => void;
 };
 
 export const AppContext = React.createContext<ContextType>({} as ContextType);

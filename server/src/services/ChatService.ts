@@ -19,24 +19,41 @@ export class ChatError extends Error {
 }
 
 export class ChatService {
-  openai: OpenAI | undefined;
+  private openai: OpenAI | undefined;
+  private model = 'gpt-4o';
 
   constructor(
     private readonly intelligenceService: IntelligenceService,
     private readonly fileService: FileService,
-    apiKey: string | null
+    options?: {
+      apiKey: string;
+      baseUrl?: string;
+      model?: string;
+    }
   ) {
-    if (apiKey) {
+    if (options) {
       this.openai = new OpenAI({
-        apiKey,
+        apiKey: options.apiKey,
+        baseURL: options.baseUrl,
       });
+      this.model = options.model ? options.model : 'gpt-4o';
     }
   }
 
-  async setOpenAIAPIKey(apiKey: string) {
+  async configureChatAPI({
+    apiKey,
+    baseURL,
+    model,
+  }: {
+    apiKey: string;
+    baseURL?: string;
+    model?: string;
+  }) {
     this.openai = new OpenAI({
       apiKey,
+      baseURL: baseURL ? baseURL : undefined,
     });
+    this.model = model ? model : 'gpt-4o';
     // Make the API call, passing the registered function for potential use
     const testMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
@@ -52,7 +69,7 @@ export class ChatService {
     try {
       await this.openai.chat.completions.create(
         {
-          model: 'gpt-4o',
+          model: this.model,
           messages: testMessages,
         },
         {
@@ -168,7 +185,7 @@ export class ChatService {
       );
     }
     const summaryResponse = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: this.model,
       messages: [
         {
           role: 'system',
@@ -213,7 +230,7 @@ export class ChatService {
     // Make the API call, passing the registered function for potential use
     const response = await this.openai.chat.completions.create(
       {
-        model: 'gpt-4o',
+        model: this.model,
         messages: sessionMessages as OpenAI.Chat.ChatCompletionMessageParam[],
         //   tools: tools,
       },
@@ -223,7 +240,7 @@ export class ChatService {
     );
 
     logger.info(
-      `LLM API Call, model: gpt-4o, prompt_tokens: ${response.usage?.prompt_tokens}, cached_tokens: ${response.usage?.prompt_tokens_details?.cached_tokens}, total_tokens: ${response.usage?.total_tokens}`
+      `LLM API Call, model: ${this.model}, prompt_tokens: ${response.usage?.prompt_tokens}, cached_tokens: ${response.usage?.prompt_tokens_details?.cached_tokens}, total_tokens: ${response.usage?.total_tokens}`
     );
     // Check if the assistant calls the function to retrieve the document
     const choice = response.choices[0];

@@ -16,58 +16,58 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface SetSecretRequest
+ * @interface ChatSettings
  */
-export interface SetSecretRequest {
+export interface ChatSettings {
   /**
-   * The key of the secret.
+   *
    * @type {string}
-   * @memberof SetSecretRequest
+   * @memberof ChatSettings
    */
   baseUrl?: string;
   /**
-   * The value of the secret.
+   *
    * @type {string}
-   * @memberof SetSecretRequest
+   * @memberof ChatSettings
    */
   model?: string;
   /**
-   * API key
+   *
    * @type {string}
-   * @memberof SetSecretRequest
+   * @memberof ChatSettings
    */
-  apiKey: string;
+  apiKeySecretKey: string;
 }
 
 /**
- * Check if a given object implements the SetSecretRequest interface.
+ * Check if a given object implements the ChatSettings interface.
  */
-export function instanceOfSetSecretRequest(value: object): boolean {
+export function instanceOfChatSettings(value: object): boolean {
   let isInstance = true;
-  isInstance = isInstance && 'apiKey' in value;
+  isInstance = isInstance && 'apiKeySecretKey' in value;
 
   return isInstance;
 }
 
-export function SetSecretRequestFromJSON(json: any): SetSecretRequest {
-  return SetSecretRequestFromJSONTyped(json, false);
+export function ChatSettingsFromJSON(json: any): ChatSettings {
+  return ChatSettingsFromJSONTyped(json, false);
 }
 
-export function SetSecretRequestFromJSONTyped(
+export function ChatSettingsFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean
-): SetSecretRequest {
+): ChatSettings {
   if (json === undefined || json === null) {
     return json;
   }
   return {
     baseUrl: !exists(json, 'baseUrl') ? undefined : json['baseUrl'],
     model: !exists(json, 'model') ? undefined : json['model'],
-    apiKey: json['apiKey'],
+    apiKeySecretKey: json['apiKeySecretKey'],
   };
 }
 
-export function SetSecretRequestToJSON(value?: SetSecretRequest | null): any {
+export function ChatSettingsToJSON(value?: ChatSettings | null): any {
   if (value === undefined) {
     return undefined;
   }
@@ -77,6 +77,6 @@ export function SetSecretRequestToJSON(value?: SetSecretRequest | null): any {
   return {
     baseUrl: value.baseUrl,
     model: value.model,
-    apiKey: value.apiKey,
+    apiKeySecretKey: value.apiKeySecretKey,
   };
 }

@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ChatSettings } from './ChatSettings';
+import {
+  ChatSettingsFromJSON,
+  ChatSettingsFromJSONTyped,
+  ChatSettingsToJSON,
+} from './ChatSettings';
+
 /**
  *
  * @export
@@ -24,7 +31,13 @@ export interface Settings {
    * @type {string}
    * @memberof Settings
    */
-  ocrService: SettingsOcrServiceEnum;
+  ocrService?: SettingsOcrServiceEnum;
+  /**
+   *
+   * @type {ChatSettings}
+   * @memberof Settings
+   */
+  chatService?: ChatSettings;
 }
 
 /**
@@ -42,7 +55,6 @@ export type SettingsOcrServiceEnum =
  */
 export function instanceOfSettings(value: object): boolean {
   let isInstance = true;
-  isInstance = isInstance && 'ocrService' in value;
 
   return isInstance;
 }
@@ -59,7 +71,10 @@ export function SettingsFromJSONTyped(
     return json;
   }
   return {
-    ocrService: json['ocrService'],
+    ocrService: !exists(json, 'ocrService') ? undefined : json['ocrService'],
+    chatService: !exists(json, 'chatService')
+      ? undefined
+      : ChatSettingsFromJSON(json['chatService']),
   };
 }
 
@@ -72,5 +87,6 @@ export function SettingsToJSON(value?: Settings | null): any {
   }
   return {
     ocrService: value.ocrService,
+    chatService: ChatSettingsToJSON(value.chatService),
   };
 }

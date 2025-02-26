@@ -16,18 +16,21 @@ import * as runtime from '../runtime';
 import type {
   ListDirectories200ResponseInner,
   PlatformInfo200Response,
-  SetSecretRequest,
   Settings,
+  VerifyChatAPISettings200Response,
+  VerifyChatAPISettingsRequest,
 } from '../models/index';
 import {
   ListDirectories200ResponseInnerFromJSON,
   ListDirectories200ResponseInnerToJSON,
   PlatformInfo200ResponseFromJSON,
   PlatformInfo200ResponseToJSON,
-  SetSecretRequestFromJSON,
-  SetSecretRequestToJSON,
   SettingsFromJSON,
   SettingsToJSON,
+  VerifyChatAPISettings200ResponseFromJSON,
+  VerifyChatAPISettings200ResponseToJSON,
+  VerifyChatAPISettingsRequestFromJSON,
+  VerifyChatAPISettingsRequestToJSON,
 } from '../models/index';
 
 export interface GetSecretsRequest {
@@ -38,12 +41,12 @@ export interface ListDirectoriesRequest {
   path: string;
 }
 
-export interface SetSecretOperationRequest {
-  setSecretRequest: SetSecretRequest;
-}
-
 export interface UpdateSettingsRequest {
   settings: Settings;
+}
+
+export interface VerifyChatAPISettingsOperationRequest {
+  verifyChatAPISettingsRequest: VerifyChatAPISettingsRequest;
 }
 
 /**
@@ -93,6 +96,7 @@ export class SystemApi extends runtime.BaseAPI {
    * Fetches the current secrets.
    * Get secrets
    */
+
   async getSecrets(
     requestParameters: GetSecretsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
@@ -232,55 +236,6 @@ export class SystemApi extends runtime.BaseAPI {
   }
 
   /**
-   * Store a secret with the provided key and value.
-   * Set a secret
-   */
-  async setSecretRaw(
-    requestParameters: SetSecretOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<runtime.ApiResponse<void>> {
-    if (
-      requestParameters.setSecretRequest === null ||
-      requestParameters.setSecretRequest === undefined
-    ) {
-      throw new runtime.RequiredError(
-        'setSecretRequest',
-        'Required parameter requestParameters.setSecretRequest was null or undefined when calling setSecret.'
-      );
-    }
-
-    const queryParameters: any = {};
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters['Content-Type'] = 'application/json';
-
-    const response = await this.request(
-      {
-        path: `/system/secrets`,
-        method: 'POST',
-        headers: headerParameters,
-        query: queryParameters,
-        body: SetSecretRequestToJSON(requestParameters.setSecretRequest),
-      },
-      initOverrides
-    );
-
-    return new runtime.VoidApiResponse(response);
-  }
-
-  /**
-   * Store a secret with the provided key and value.
-   * Set a secret
-   */
-  async setSecret(
-    requestParameters: SetSecretOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction
-  ): Promise<void> {
-    await this.setSecretRaw(requestParameters, initOverrides);
-  }
-
-  /**
    * Updates the system settings with the provided values.
    * Update system settings
    */
@@ -329,6 +284,61 @@ export class SystemApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Settings> {
     const response = await this.updateSettingsRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * Verifies the chat API settings
+   */
+  async verifyChatAPISettingsRaw(
+    requestParameters: VerifyChatAPISettingsOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<VerifyChatAPISettings200Response>> {
+    if (
+      requestParameters.verifyChatAPISettingsRequest === null ||
+      requestParameters.verifyChatAPISettingsRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'verifyChatAPISettingsRequest',
+        'Required parameter requestParameters.verifyChatAPISettingsRequest was null or undefined when calling verifyChatAPISettings.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/system/verify-chat-api-settings`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: VerifyChatAPISettingsRequestToJSON(
+          requestParameters.verifyChatAPISettingsRequest
+        ),
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      VerifyChatAPISettings200ResponseFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Verifies the chat API settings
+   */
+  async verifyChatAPISettings(
+    requestParameters: VerifyChatAPISettingsOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<VerifyChatAPISettings200Response> {
+    const response = await this.verifyChatAPISettingsRaw(
       requestParameters,
       initOverrides
     );

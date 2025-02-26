@@ -11,7 +11,7 @@ export const useSettings = () => {
     },
   });
   const { mutate: updateSettings } = useMutation({
-    mutationFn: async (settings: Settings) => {
+    mutationFn: async (settings: Partial<Settings>) => {
       return await systemApi.updateSettings({ settings });
     },
     onMutate: async (newSettings) => {
