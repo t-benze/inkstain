@@ -17,6 +17,7 @@ import {
 } from '~/web/components/DrawingAnnotationOverlay';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
 import { ChatView } from '~/web/components/DocumentChatView';
+import { DocumentTextView } from '~/web/components/DocumentTextView';
 
 export interface PDFViewHandle {
   goToPage: (pageNum: number) => void;
@@ -59,6 +60,22 @@ const useStyles = makeStyles({
     left: 0,
     right: 0,
     top: `20%`,
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  textOverlayMask: {
+    position: 'absolute',
+    top: `32px`,
+    left: 0,
+    width: '20%',
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  textOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: '20%',
+    right: 0,
+    top: '32px',
     backgroundColor: tokens.colorNeutralBackground1,
   },
 });
@@ -223,6 +240,13 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     // for high resolution devices, we need to scale the pdf rendering
     const pdfScale = scale * window.devicePixelRatio;
 
+    const [showTextOverlay, setShowTextOverlay] = React.useState(false);
+    const [initBlockId, setInitBlockId] = React.useState<string>();
+    const openTextOverlay = (blockId?: string) => {
+      blockId && setInitBlockId(blockId);
+      setShowTextOverlay(true);
+    };
+
     return (
       <PDFViewerContext.Provider
         value={{
@@ -231,6 +255,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
           addAnnotation: addAnnotation,
           updateAnnotation: updateAnnotation,
           deleteAnnotations: deleteAnnotations,
+          openTextView: openTextOverlay,
           isThumbnail: false,
         }}
       >
@@ -265,6 +290,8 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
               onZoomFitWidth={handleZoomFitWidth}
               showChatOverlay={showChatOverlay}
               onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
+              showTextView={showTextOverlay}
+              onShowTextView={(show) => setShowTextOverlay(show)}
             />
             {pdfDocument ? (
               enableScroll ? (
@@ -316,6 +343,24 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                 ></div>
                 <div className={styles.chatOverlay}>
                   <ChatView spaceKey={spaceKey} documentPath={documentPath} />
+                </div>
+              </>
+            )}
+
+            {showTextOverlay && (
+              <>
+                <div
+                  className={styles.textOverlayMask}
+                  onClick={() => {
+                    setShowTextOverlay(false);
+                  }}
+                ></div>
+                <div className={styles.textOverlay}>
+                  <DocumentTextView
+                    initBlockId={initBlockId}
+                    spaceKey={spaceKey}
+                    documentPath={documentPath}
+                  />
                 </div>
               </>
             )}

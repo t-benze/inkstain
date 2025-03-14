@@ -34,6 +34,12 @@ export interface Settings {
   ocrService?: SettingsOcrServiceEnum;
   /**
    *
+   * @type {string}
+   * @memberof Settings
+   */
+  alibabaAccessKeyId?: string;
+  /**
+   *
    * @type {ChatSettings}
    * @memberof Settings
    */
@@ -44,8 +50,8 @@ export interface Settings {
  * @export
  */
 export const SettingsOcrServiceEnum = {
-  Local: 'local',
-  Remote: 'remote',
+  Alibaba: 'alibaba',
+  Default: 'default',
 } as const;
 export type SettingsOcrServiceEnum =
   (typeof SettingsOcrServiceEnum)[keyof typeof SettingsOcrServiceEnum];
@@ -72,6 +78,9 @@ export function SettingsFromJSONTyped(
   }
   return {
     ocrService: !exists(json, 'ocrService') ? undefined : json['ocrService'],
+    alibabaAccessKeyId: !exists(json, 'alibabaAccessKeyId')
+      ? undefined
+      : json['alibabaAccessKeyId'],
     chatService: !exists(json, 'chatService')
       ? undefined
       : ChatSettingsFromJSON(json['chatService']),
@@ -87,6 +96,7 @@ export function SettingsToJSON(value?: Settings | null): any {
   }
   return {
     ocrService: value.ocrService,
+    alibabaAccessKeyId: value.alibabaAccessKeyId,
     chatService: ChatSettingsToJSON(value.chatService),
   };
 }

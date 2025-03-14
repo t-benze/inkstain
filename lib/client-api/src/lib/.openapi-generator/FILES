@@ -24,6 +24,7 @@ models/CreateSpace201Response.ts
 models/CreateSpaceOperationType.ts
 models/CreateSpaceRequest.ts
 models/DocumentLayoutTextBlock.ts
+models/DocumentLayoutTextBlockBoundingBox.ts
 models/DocumentLayoutTextLine.ts
 models/DocumentLayoutTextLineBoundingBox.ts
 models/DocumentListItem.ts
@@ -31,6 +32,7 @@ models/DocumentMeta.ts
 models/DocumentMetaAttributesValue.ts
 models/DocumentSearchResult.ts
 models/DocumentTag.ts
+models/DocumentTextContent.ts
 models/DocumentTextDetectionData.ts
 models/DrawingData.ts
 models/ErrorResponseData.ts
@@ -51,6 +53,7 @@ models/PlatformInfo200ResponseAttributes.ts
 models/ProxyRequestOperationEnum.ts
 models/ReindexSpace200Response.ts
 models/RemoveDocumentTagsRequest.ts
+models/SaveSecretRequest.ts
 models/SearchDocuments200Response.ts
 models/Settings.ts
 models/SignInRequest.ts

@@ -209,7 +209,7 @@ const getDocumentLayout = async (ctx: Context) => {
     ctx.throw(400, 'Missing required parameters');
   }
 
-  const result = await ctx.intelligenceService.readAnalyzedDocumentCache(
+  const result = await ctx.intelligenceService.readAnalyzedDocumentLayout(
     spaceKey,
     documentPath,
     pageNum
@@ -270,9 +270,55 @@ const docLayoutStatus = async (ctx: Context) => {
   ctx.body = { status };
 };
 
+/**
+ * @swagger
+ * /intelligence/{spaceKey}/text-content:
+ *   get:
+ *     summary: Get the text content of a document
+ *     tags: [Intelligence]
+ *     operationId: intelligenceDocTextContent
+ *     parameters:
+ *       - in: path
+ *         name: spaceKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the space
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The relative path to the document within the space
+ *     responses:
+ *       200:
+ *         description: The text content of the document
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DocumentTextContent'
+ *       400:
+ *         description: Invalid parameters provided.
+ *       500:
+ *         description: Unable to retrieve the text content due to server error.
+ */
+const getDocumentTextContent = async (ctx: Context) => {
+  const { spaceKey } = ctx.params;
+  const { path: documentPath } = ctx.query as {
+    path: string;
+  };
+  const result = await ctx.intelligenceService.getDocTextContent({
+    spaceKey,
+    documentPath,
+  });
+  ctx.status = 200;
+  ctx.body = result;
+};
+
 export const registerIntelligenceRoutes = (router: Router) => {
   router.post('/intelligence/:spaceKey/analyze', analyzePDFDocument);
   router.post('/intelligence/:spaceKey/webclip', analyzeWebclipDocument);
   router.get('/intelligence/:spaceKey/layout-status', docLayoutStatus);
   router.get('/intelligence/:spaceKey/layout', getDocumentLayout);
+  router.get('/intelligence/:spaceKey/text-content', getDocumentTextContent);
 };

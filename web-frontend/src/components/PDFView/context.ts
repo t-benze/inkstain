@@ -6,18 +6,25 @@ type ContextType = {
   addAnnotation: (params: Annotation) => void;
   updateAnnotation: (params: Annotation) => void;
   deleteAnnotations: (id: Array<string>) => void;
+  openTextView: (blockId?: string) => void;
   documentPath: string;
   isThumbnail: boolean;
 };
 
 export const defaultContextValue: ContextType = {
   annotations: {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  addAnnotation: () => {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  updateAnnotation: () => {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  deleteAnnotations: () => {},
+  addAnnotation: () => {
+    return;
+  },
+  updateAnnotation: () => {
+    return;
+  },
+  deleteAnnotations: () => {
+    return;
+  },
+  openTextView: () => {
+    return;
+  },
   documentPath: '',
   isThumbnail: false,
 };

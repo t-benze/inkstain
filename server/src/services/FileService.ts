@@ -38,6 +38,12 @@ const zipFolder = (folderPath: string): Promise<Buffer> => {
 class FileManager {
   constructor(public readonly space: Space) {}
 
+  async fileExists(documentPath: string, file: string) {
+    const documentDirectory = documentPath + '.ink';
+    const filePath = path.join(this.space.path, documentDirectory, file);
+    return existsSync(filePath);
+  }
+
   async readFile(
     documentPath: string,
     file: string,

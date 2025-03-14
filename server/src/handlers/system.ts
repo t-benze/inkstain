@@ -311,6 +311,49 @@ const getSecrets = async (ctx: Context) => {
   ctx.body = result;
 };
 
+/**
+ * @swagger
+ * /system/secrets:
+ *   post:
+ *     operationId: saveSecret
+ *     summary: Save a secret
+ *     description: Stores a secret key-value pair.
+ *     tags:
+ *       - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               secretKey:
+ *                 type: string
+ *                 description: The key of the secret.
+ *               secretValue:
+ *                 type: string
+ *                 description: The value of the secret.
+ *             required:
+ *               - secretKey
+ *               - secretValue
+ *     responses:
+ *       200:
+ *         description: Secret successfully saved
+ *       400:
+ *         description: Invalid input
+ */
+const saveSecret = async (ctx: Context) => {
+  const { secretKey, secretValue } = ctx.request.body as {
+    secretKey: string;
+    secretValue: string;
+  };
+  await ctx.secretService.storeSecret({
+    secretKey,
+    secretValue,
+  });
+  ctx.status = 200;
+};
+
 export const registerSystemRoutes = (router: Router) => {
   router.get('/system/platform', platformInfo);
   router.get('/system/directories', listDirectories);
@@ -318,6 +361,7 @@ export const registerSystemRoutes = (router: Router) => {
   router.put('/system/settings', updateSettings);
   router.post('/system/verify-chat-api-settings', verifyChatAPISettings);
   router.get('/system/secrets', getSecrets);
+  router.post('/system/secrets', saveSecret);
 };
 
 export default router;

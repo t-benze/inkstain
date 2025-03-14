@@ -225,6 +225,8 @@ components:
         - boundingBox
         - childrenIds
       properties:
+        type:
+          type: string
         id:
           type: string
         text:
@@ -238,12 +240,16 @@ components:
           properties:
             width:
               type: number
+              description: Ratio to the page width
             height:
               type: number
+              description: Ratio to the page height
             left:
               type: number
+              description: Ratio to the page width
             top:
               type: number
+              description: Ratio to the page height
           required:
             - width
             - height
@@ -260,6 +266,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentLayoutTextLine'
+      required:
+        - blocks
+        - lines
+    DocumentTextContent:
+      type: object
+      properties:
+        textContent:
+          type: array
+          items:
+            type: string
+        textBlockToOffset:
+          type: object
+          additionalProperties:
+            type: number
+      required:
+        - textContent
+        - textBlockToOffset
     ChatMessage:
       type: object
       properties:

@@ -24,6 +24,7 @@ import {
 import { DocLayoutAnalysisToolbar } from '~/web/components/DocLayoutAnalysisToolbar';
 import { usePDFLayoutTask } from '~/web/components/PDFView/hooks';
 import { ToolbarChatButton } from '~/web/components/DocumentChatView';
+import { ToolbarTextViewButton } from '~/web/components/DocumentTextView';
 
 interface PDFToolbarProps extends ZoomToolbarProps {
   numOfPages: number;
@@ -33,12 +34,16 @@ interface PDFToolbarProps extends ZoomToolbarProps {
   onEnableScrollChange: (enableScroll: boolean) => void;
   showChatOverlay: boolean;
   onShowChatOverlayChange: (show: boolean) => void;
+  showTextView: boolean;
+  onShowTextView: (show: boolean) => void;
 }
 
 const useClasses = makeStyles({
   root: {
     backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderBottom('1px', 'solid', tokens.colorNeutralStroke1),
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    height: '32px',
+    boxSizing: 'border-box',
   },
   pageNumInput: {
     width: '32px',
@@ -91,6 +96,8 @@ export const PDFToolbar = ({
   onZoomOut,
   showChatOverlay,
   onShowChatOverlayChange,
+  showTextView,
+  onShowTextView,
 }: PDFToolbarProps) => {
   const styles = useClasses();
   const { t } = useTranslation();
@@ -183,9 +190,13 @@ export const PDFToolbar = ({
       />
       <ToolbarChatButton
         docLayoutStatus={docLayoutStatus?.status}
-        startLayoutTask={startLayoutTask}
         showChat={showChatOverlay}
         onShowChatChange={onShowChatOverlayChange}
+      />
+      <ToolbarTextViewButton
+        docLayoutStatus={docLayoutStatus?.status}
+        showTextView={showTextView}
+        onShowTextView={onShowTextView}
       />
     </Toolbar>
   );

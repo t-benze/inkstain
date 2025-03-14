@@ -14,7 +14,6 @@ import {
 import { useAppContext } from '~/web/app/hooks/useAppContext';
 import { DrawingAnnotationOverlayContext } from './context';
 import { Selection, DrawingSelectionPopover } from './Selection';
-import { ActiveTextBlock, ActiveTextBlockPopover } from './ActiveTextBlock';
 import { InteractionMode } from './types';
 import { useDrawing } from './hooks/useDrawing';
 import { useSelection } from './hooks/useSelection';
@@ -56,6 +55,7 @@ interface DrawingAnnotationOverlayProps {
   onUpdateAnnotation: (id: string, data: object, comment?: string) => void;
   onAddAnnotation: (data: object, comment?: string) => void;
   onRemoveAnnotation: (id: string) => void;
+  onTextBlockSelected?: (id: string) => void;
 }
 
 export const Overlay = ({
@@ -68,6 +68,7 @@ export const Overlay = ({
   onUpdateAnnotation,
   textLines,
   textBlocks,
+  onTextBlockSelected,
 }: DrawingAnnotationOverlayProps) => {
   const classes = useClasses();
   const svgcanvasRef = React.useRef<SVGSVGElement | null>(null);
@@ -105,8 +106,12 @@ export const Overlay = ({
     textBlocks,
     onAddAnnotation
   );
-  const { blockDetectionMove, activeTextBlock, setActiveTextBlock } =
-    useTextBlockDetection(dimension, svgcanvasRef, textBlocks);
+  const { blockDetectionMove } = useTextBlockDetection(
+    dimension,
+    svgcanvasRef,
+    textBlocks,
+    onTextBlockSelected
+  );
 
   const isDrawing =
     overlayContext.selectedStylus === 'line' ||
@@ -164,9 +169,6 @@ export const Overlay = ({
         if (selection) {
           setSelection(null);
         }
-        if (activeTextBlock) {
-          setActiveTextBlock(null);
-        }
       }
     } else if (isDrawing) {
       setInteractionMode('drawing');
@@ -177,9 +179,6 @@ export const Overlay = ({
     } else {
       const target = e.target as SVGGraphicsElement;
       startSelection(startPoint, target);
-      if (activeTextBlock) {
-        setActiveTextBlock(null);
-      }
     }
   };
 
@@ -266,13 +265,6 @@ export const Overlay = ({
     }
   }, [selection, interactionMode]);
 
-  React.useEffect(() => {
-    if (activeTextBlock) {
-      setOpenDrawingPopover(true);
-    } else {
-      setOpenDrawingPopover(false);
-    }
-  }, [activeTextBlock]);
   if (!dimension) return null;
 
   return (
@@ -312,12 +304,6 @@ export const Overlay = ({
             positionRef={popoverPositioningRef}
           />
         )}
-        {activeTextBlock && (
-          <ActiveTextBlock
-            textBlock={activeTextBlock}
-            positionRef={popoverPositioningRef}
-          />
-        )}
       </svg>
       <PopoverSurface>
         {selection && (
@@ -326,9 +312,6 @@ export const Overlay = ({
             onRemoveAnnotation={onRemoveAnnotation}
             onUpdateAnnotation={onUpdateAnnotation}
           />
-        )}
-        {activeTextBlock && (
-          <ActiveTextBlockPopover text={activeTextBlock.text} />
         )}
       </PopoverSurface>
     </Popover>

@@ -93,6 +93,7 @@ export const useHighlight = (
     textLineBoudingBox?.forEach((bbox) => {
       let isInBlock = false;
       overlappingBlocks.forEach((block) => {
+        // check if the text line is in the block
         if (block.childrenIds.some((id) => id === bbox.id)) {
           isInBlock = true;
         }

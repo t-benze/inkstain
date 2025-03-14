@@ -6,11 +6,10 @@ import { useAppContext } from '~/web/app/hooks/useAppContext';
 export const useTextBlockDetection = (
   canvasDimension: { width: number; height: number },
   svgcanvasRef: React.RefObject<SVGSVGElement>,
-  textBlocks: Array<DocumentLayoutTextBlock> | undefined
+  textBlocks: Array<DocumentLayoutTextBlock> | undefined,
+  onTextBlockSelected?: (blockId: string) => void
 ) => {
   const blockRef = React.useRef<SVGRectElement | null>(null);
-  const [activeTextBlock, setActiveTextBlock] =
-    React.useState<DocumentLayoutTextBlock | null>(null);
   const { pressedKeys } = useAppContext();
   const isShiftKeyPressed = pressedKeys.has('shift');
 
@@ -55,22 +54,11 @@ export const useTextBlockDetection = (
           const blockId = (e.target as SVGGElement).getAttribute(
             'data-block-id'
           );
-          const block = blockBoundingBox?.find((block) => block.id === blockId);
-          if (block) {
-            setActiveTextBlock({
-              id: block.id,
-              text: block.text,
-              childrenIds: block.childrenIds,
-              boundingBox: {
-                height: block.height,
-                width: block.width,
-                left: block.left,
-                top: block.top,
-              },
-            });
-            svgcanvasRef.current?.removeChild(e.target as SVGGElement);
-            blockRef.current = null;
+          if (onTextBlockSelected && blockId) {
+            onTextBlockSelected(blockId);
           }
+          svgcanvasRef.current?.removeChild(e.target as SVGGElement);
+          blockRef.current = null;
         });
       }
       blockRef.current.setAttribute('data-block-id', layoutBlock.id);
@@ -98,9 +86,6 @@ export const useTextBlockDetection = (
   }, [isShiftKeyPressed, blockRef, svgcanvasRef]);
 
   return {
-    activeTextBlock,
     blockDetectionMove,
-    isShiftKeyPressed,
-    setActiveTextBlock,
   };
 };

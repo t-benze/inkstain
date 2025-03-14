@@ -331,6 +331,7 @@ export const PDFPage = ({
           onAddAnnotation={handleAddAnnotation}
           onUpdateAnnotation={handleUpdateAnnotation}
           onRemoveAnnotation={handleDeleteAnnotation}
+          onTextBlockSelected={pdfViewerContext.openTextView}
         />
       ) : null}
       {renderingStatus === 'completed' && !pdfViewerContext.isThumbnail ? (

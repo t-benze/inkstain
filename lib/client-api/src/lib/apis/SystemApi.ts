@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   ListDirectories200ResponseInner,
   PlatformInfo200Response,
+  SaveSecretRequest,
   Settings,
   VerifyChatAPISettings200Response,
   VerifyChatAPISettingsRequest,
@@ -25,6 +26,8 @@ import {
   ListDirectories200ResponseInnerToJSON,
   PlatformInfo200ResponseFromJSON,
   PlatformInfo200ResponseToJSON,
+  SaveSecretRequestFromJSON,
+  SaveSecretRequestToJSON,
   SettingsFromJSON,
   SettingsToJSON,
   VerifyChatAPISettings200ResponseFromJSON,
@@ -39,6 +42,10 @@ export interface GetSecretsRequest {
 
 export interface ListDirectoriesRequest {
   path: string;
+}
+
+export interface SaveSecretOperationRequest {
+  saveSecretRequest: SaveSecretRequest;
 }
 
 export interface UpdateSettingsRequest {
@@ -96,7 +103,6 @@ export class SystemApi extends runtime.BaseAPI {
    * Fetches the current secrets.
    * Get secrets
    */
-
   async getSecrets(
     requestParameters: GetSecretsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction
@@ -233,6 +239,55 @@ export class SystemApi extends runtime.BaseAPI {
   ): Promise<PlatformInfo200Response> {
     const response = await this.platformInfoRaw(initOverrides);
     return await response.value();
+  }
+
+  /**
+   * Stores a secret key-value pair.
+   * Save a secret
+   */
+  async saveSecretRaw(
+    requestParameters: SaveSecretOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<void>> {
+    if (
+      requestParameters.saveSecretRequest === null ||
+      requestParameters.saveSecretRequest === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'saveSecretRequest',
+        'Required parameter requestParameters.saveSecretRequest was null or undefined when calling saveSecret.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/system/secrets`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: SaveSecretRequestToJSON(requestParameters.saveSecretRequest),
+      },
+      initOverrides
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Stores a secret key-value pair.
+   * Save a secret
+   */
+  async saveSecret(
+    requestParameters: SaveSecretOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<void> {
+    await this.saveSecretRaw(requestParameters, initOverrides);
   }
 
   /**

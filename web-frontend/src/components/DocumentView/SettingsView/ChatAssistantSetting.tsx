@@ -46,7 +46,6 @@ export const ChatAssistantSetting = () => {
 
   const showErrorToast = React.useCallback(
     (message: string) => {
-      console.log('showErrorToast', message);
       dispatchToast(
         <Toast>
           <ToastTitle>{message}</ToastTitle>
