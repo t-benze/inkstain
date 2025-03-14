@@ -7,6 +7,10 @@ let pageCaptureData: {
   url: string;
   title?: string;
   screenshotData: string[];
+  screenDimension: {
+    width: number;
+    height: number;
+  };
   targetRects: {
     width: number;
     height: number;
@@ -92,6 +96,10 @@ function capturePage(
         }
         pageCaptureData = {
           screenshotData: images,
+          screenDimension: {
+            width: params.windowWidth,
+            height: params.windowHeight,
+          },
           url: url,
           title: title,
           targetRects: targetRects,
@@ -152,8 +160,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   } else if (message.action === 'getPageCaptureData') {
-    // @ts-expect-error sendResponse is not typed correctly
-    sendResponse(pageCaptureData);
+    setTimeout(() => {
+      console.log('send response', pageCaptureData);
+      // @ts-expect-error sendResponse is not typed correctly
+      sendResponse(pageCaptureData);
+    }, 0);
+    return true;
   } else if (message.action === 'download') {
     const { targetPath, url, spaceKey, title } = message;
     fetch(url).then((response) => {

@@ -25,7 +25,7 @@ import { initDB } from './db';
 import { Context, Settings } from './types';
 import { registerRoutes } from './handlers';
 import { AWSProxy } from './proxy/AWSProxy';
-import { LocalProxy } from './proxy/LocalProxy';
+import { AlibabaProxy } from './proxy/AlibabaProxy';
 import { SettingsService } from './services/SettingsService';
 import { SecretService } from './services/SecretService';
 const app = new Koa<Koa.DefaultState, Context>();
@@ -159,9 +159,6 @@ async function initServices(
   app.context.settingsService = new SettingsService();
   app.context.spaceService = new SpaceService();
   app.context.taskService = new TaskService();
-  const awsProxy = new AWSProxy();
-  const localProxy = new LocalProxy();
-  app.context.authService = new AuthService(awsProxy);
   app.context.pdfService = new PDFService();
   app.context.imageService = new ImageService();
   app.context.fileService = new FileService(app.context.spaceService);
@@ -171,18 +168,26 @@ async function initServices(
     app.context.fileService
   );
 
+  const masterKey = await SecretService.loadMasterKey();
+  app.context.secretService = new SecretService(masterKey);
   const settings = await app.context.settingsService.getSettings();
-  const proxy = settings.ocrService === 'remote' ? awsProxy : localProxy;
+  const awsProxy = new AWSProxy();
+  const alibabaProxy = new AlibabaProxy(
+    app.context.fileService,
+    app.context.secretService
+  );
+  if (settings.alibabaAccessKeyId) {
+    await alibabaProxy.initClient(settings.alibabaAccessKeyId);
+  }
+  app.context.authService = new AuthService(awsProxy);
+  const proxy = settings.ocrService === 'default' ? awsProxy : alibabaProxy;
   app.context.intelligenceService = new IntelligenceService(
     app.context.spaceService,
     app.context.taskService,
-    app.context.pdfService,
     app.context.fileService,
     app.context.imageService,
     proxy
   );
-  const masterKey = await SecretService.loadMasterKey();
-  app.context.secretService = new SecretService(masterKey);
   const chatAssistantAPIKey = await app.context.secretService.getSecret(
     'chat-assistant'
   );
@@ -200,8 +205,11 @@ async function initServices(
   );
   app.context.settingsService.onSettingsChanged(async (updates) => {
     if (updates.ocrService) {
-      const proxy = updates.ocrService === 'remote' ? awsProxy : localProxy;
+      const proxy = updates.ocrService === 'default' ? awsProxy : alibabaProxy;
       app.context.intelligenceService.setProxy(proxy);
+    }
+    if (updates.alibabaAccessKeyId) {
+      await alibabaProxy.initClient(updates.alibabaAccessKeyId);
     }
   });
 }

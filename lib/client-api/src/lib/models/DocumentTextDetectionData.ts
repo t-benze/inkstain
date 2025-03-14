@@ -37,13 +37,13 @@ export interface DocumentTextDetectionData {
    * @type {Array<DocumentLayoutTextBlock>}
    * @memberof DocumentTextDetectionData
    */
-  blocks?: Array<DocumentLayoutTextBlock>;
+  blocks: Array<DocumentLayoutTextBlock>;
   /**
    *
    * @type {Array<DocumentLayoutTextLine>}
    * @memberof DocumentTextDetectionData
    */
-  lines?: Array<DocumentLayoutTextLine>;
+  lines: Array<DocumentLayoutTextLine>;
 }
 
 /**
@@ -51,6 +51,8 @@ export interface DocumentTextDetectionData {
  */
 export function instanceOfDocumentTextDetectionData(value: object): boolean {
   let isInstance = true;
+  isInstance = isInstance && 'blocks' in value;
+  isInstance = isInstance && 'lines' in value;
 
   return isInstance;
 }
@@ -69,12 +71,8 @@ export function DocumentTextDetectionDataFromJSONTyped(
     return json;
   }
   return {
-    blocks: !exists(json, 'blocks')
-      ? undefined
-      : (json['blocks'] as Array<any>).map(DocumentLayoutTextBlockFromJSON),
-    lines: !exists(json, 'lines')
-      ? undefined
-      : (json['lines'] as Array<any>).map(DocumentLayoutTextLineFromJSON),
+    blocks: (json['blocks'] as Array<any>).map(DocumentLayoutTextBlockFromJSON),
+    lines: (json['lines'] as Array<any>).map(DocumentLayoutTextLineFromJSON),
   };
 }
 
@@ -88,13 +86,7 @@ export function DocumentTextDetectionDataToJSON(
     return null;
   }
   return {
-    blocks:
-      value.blocks === undefined
-        ? undefined
-        : (value.blocks as Array<any>).map(DocumentLayoutTextBlockToJSON),
-    lines:
-      value.lines === undefined
-        ? undefined
-        : (value.lines as Array<any>).map(DocumentLayoutTextLineToJSON),
+    blocks: (value.blocks as Array<any>).map(DocumentLayoutTextBlockToJSON),
+    lines: (value.lines as Array<any>).map(DocumentLayoutTextLineToJSON),
   };
 }

@@ -22,6 +22,7 @@ import {
   DocumentTextDetectionData,
 } from '~/server/types';
 import logger from '~/server/logger';
+import { PDFRenderer } from '~/server/utils/PDFRenderer';
 import {
   AuthInterface,
   DocIntelligenceInterface,
@@ -236,7 +237,7 @@ export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
     });
   }
 
-  async analyzeImage(image: string): Promise<DocumentTextDetectionData> {
+  async analyzeImage(imageData: string): Promise<DocumentTextDetectionData> {
     const tokens = await this.getTokens();
     if (!tokens) {
       throw new AuthError(
@@ -247,7 +248,7 @@ export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
     const { idToken: tokenString } = tokens;
     const response = await fetch(`${intelligenceAPIBase}/analyze-document`, {
       method: 'POST',
-      body: image,
+      body: imageData,
       headers: {
         'Content-Type': 'text/plain',
         Authorization: `Bearer ${tokenString}`,
@@ -339,5 +340,19 @@ export class AWSProxy implements AuthInterface, DocIntelligenceInterface {
       lines: lineBlocks,
       blocks: layoutBlocks,
     };
+  }
+
+  async analyzePDF(pdfPath: string) {
+    const doc = await PDFRenderer.loadPDFFile(pdfPath);
+    const pageCount = doc.numPages;
+    const layoutData: Array<DocumentTextDetectionData> = [];
+    for (let i = 1; i <= pageCount; i++) {
+      const imageDataUrl = await PDFRenderer.renderPdfPageToImage(doc, i);
+      const processedResponse = await this.analyzeImage(
+        imageDataUrl.split(',')[1]
+      );
+      layoutData.push(processedResponse);
+    }
+    return layoutData;
   }
 }

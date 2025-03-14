@@ -73,8 +73,10 @@
   "chat_input_placeholder": "Type a message...",
   "chat_with_doc": "Chat with document",
   "msg_require_doc_layout_for_chat": "The document analysis data is needed for the chat feature, proceed to run the document analysis?",
+  "msg_require_doc_layout_for_text": "The document analysis data is needed for showing text content, proceed to run the document analysis?",
   "chat_service_not_initialized": "Chat service is not initialized",
   "chat_service_need_api_key": "Please provide your API Key in the settings.",
+  "text_content": "Text content",
   "unknown_error": "Unknown error",
   "system": {
     "@inkstain/space-management": "Spaces",
@@ -141,10 +143,10 @@
     "no_outline_available": "No outline available"
   },
   "setting": {
-    "ocr_service": "OCR Service",
-    "ocr_service_description": "Choose to use local OCR service or cloud OCR service.",
-    "remote": "Remote",
-    "local": "Local",
+    "ocr_service": "OCR Service Settings",
+    "ocr_service_description": "Choose to use default OCR service (requires login) or alternative OCR service.",
+    "default": "Default",
+    "alibaba": "Alibaba Cloud",
     "chat_assistant_setting": "Chat Assistant Settings",
     "chat_assistant_setting_description": "Please complete the API settings for the chat assistant service.",
     "chat_api_base_url": "Base URL",
@@ -154,6 +156,7 @@
     "chat_api_key": "API Key",
     "chat_api_key_invalid": "The API Key is invalid",
     "chat_api_key_required": "API Key is required",
-    "save_chat_settings": "Save chat assistant settings"
+    "save_chat_settings": "Save chat assistant settings",
+    "save_alibaba_keys": "Save Alibaba Access keys"
   }
 }

@@ -4,7 +4,7 @@ import { Settings } from '~/server/types';
 import { directories } from '../settings';
 
 const DEFAULT_SETTINGS: Settings = {
-  ocrService: 'remote',
+  ocrService: 'default',
 };
 type SettingsCallback = (settings: Partial<Settings>) => Promise<void>;
 

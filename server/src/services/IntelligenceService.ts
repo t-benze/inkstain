@@ -3,35 +3,26 @@ import fs from 'fs/promises';
 import * as readline from 'readline';
 import { createWriteStream } from 'fs';
 import { EOL } from 'os';
+import { DocumentTextContent } from '@inkstain/client-api';
+import { extractWebclipData } from '@inkstain/webclip';
 import { DocumentTextDetectionData } from '~/server/types';
 import {
-  AuthError,
   DocIntelligenceError,
   DocIntelligenceInterface,
 } from '~/server/proxy/types';
-import { PDFService } from './PDFService';
-import { DocLayoutIndex, WebclipData } from '~/server/types';
 import { SpaceService } from './SpaceService';
 import { TaskService, TaskError } from './TaskService';
 import { ImageService } from './ImageService';
 import { FileService } from './FileService';
-// @ts-expect-error import type from p-limit
-import type { LimitFunction } from 'p-limit';
 
 export class IntelligenceService {
-  private limit: Promise<LimitFunction>;
   constructor(
     private readonly spaceService: SpaceService,
     private readonly taskService: TaskService,
-    private readonly pdfService: PDFService,
     private readonly fileService: FileService,
     private readonly imageService: ImageService,
     private intelligenceProxy: DocIntelligenceInterface
-  ) {
-    this.limit = import('p-limit').then((pLimit) => {
-      return pLimit.default(1);
-    });
-  }
+  ) {}
 
   setProxy(proxy: DocIntelligenceInterface) {
     this.intelligenceProxy = proxy;
@@ -39,7 +30,7 @@ export class IntelligenceService {
   // Read and write analyzed document cache to a jsonl file
   // The first line of the jsonl file is the index to map the page number to the line number
   // The rest of the lines are the analyzed layout data for each page
-  public async readAnalyzedDocumentCache(
+  public async readAnalyzedDocumentLayout(
     spaceKey: string,
     documentPath: string,
     pageNum: string
@@ -48,10 +39,6 @@ export class IntelligenceService {
     const fileManager = await this.fileService.getFileManager(spaceKey);
     if (space) {
       try {
-        const indexData = JSON.parse(
-          await fileManager.readFile(documentPath, 'analyzed-layout-index.json')
-        );
-        const dataLine = indexData.indexMap[pageNum];
         const fileStream = fileManager.createReadStream(
           documentPath,
           `analyzed-layout.jsonl`
@@ -60,10 +47,11 @@ export class IntelligenceService {
           input: fileStream,
           crlfDelay: Infinity,
         });
+        const targetLine = parseInt(pageNum, 10) - 1;
 
         let lineNumber = 0;
         for await (const line of rl) {
-          if (lineNumber === dataLine) {
+          if (lineNumber === targetLine) {
             return JSON.parse(line) as DocumentTextDetectionData;
           }
           lineNumber++;
@@ -75,58 +63,67 @@ export class IntelligenceService {
     return null;
   }
 
-  public async writeAnalyzedDocumentCache(
+  async writeTextContentData(
     spaceKey: string,
     documentPath: string,
-    totalPageNum: number,
-    pageNum: string,
-    data: object
+    textContentData: {
+      textContent: string[];
+      textBlockToOffset: Record<string, number>;
+    }
   ) {
     const space = await this.spaceService.getSpace(spaceKey);
     if (space) {
-      const cacheIndexFilePath = path.join(
+      const filePath = path.join(
         space.path,
         `${documentPath}.ink`,
-        `analyzed-layout-index.json`
+        `text-content.json`
       );
+      await fs.writeFile(filePath, JSON.stringify(textContentData));
+    }
+  }
+
+  public async writeAnalyzedDocumentLayout(
+    spaceKey: string,
+    documentPath: string,
+    layoutData: Array<DocumentTextDetectionData>
+  ) {
+    const space = await this.spaceService.getSpace(spaceKey);
+    if (space) {
       const cacheDataFilePath = path.join(
         space.path,
         `${documentPath}.ink`,
         `analyzed-layout.jsonl`
       );
-      let cacheIndex;
-      try {
-        await fs.access(cacheIndexFilePath);
-        cacheIndex = JSON.parse(
-          await fs.readFile(cacheIndexFilePath, 'utf-8')
-        ) as DocLayoutIndex;
-      } catch (e) {
-        cacheIndex = {
-          status: 'partial',
-          indexMap: {},
-        } as DocLayoutIndex;
-      }
-      if (cacheIndex.indexMap[pageNum]) {
-        return;
-      }
-      cacheIndex.indexMap[pageNum] = Object.keys(cacheIndex.indexMap).length;
-      if (Object.keys(cacheIndex.indexMap).length === totalPageNum) {
-        cacheIndex.status = 'completed';
-      }
-      await fs.writeFile(cacheIndexFilePath, JSON.stringify(cacheIndex));
-      const writeStream = createWriteStream(cacheDataFilePath, { flags: 'a' });
-      await new Promise<void>((resolve, reject) => {
-        writeStream.write(JSON.stringify(data) + EOL, (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            writeStream.end(() => {
+      const writeStream = createWriteStream(cacheDataFilePath, { flags: 'w' });
+      for (const data of layoutData) {
+        await new Promise<void>((resolve, reject) => {
+          writeStream.write(JSON.stringify(data) + EOL, (error) => {
+            if (!error) {
               resolve();
-            });
-          }
+            } else {
+              reject(error);
+            }
+          });
         });
-      });
+      }
     }
+  }
+
+  private extractTextContentFromLayoutData(
+    layoutData: Array<DocumentTextDetectionData>
+  ) {
+    const textContent = [] as string[];
+    const textBlockToOffset = {} as Record<string, number>;
+    for (const data of layoutData) {
+      for (const textBlock of data.blocks) {
+        textBlockToOffset[textBlock.id] = textContent.length;
+        textContent.push(textBlock.text);
+      }
+    }
+    return {
+      textContent,
+      textBlockToOffset,
+    };
   }
 
   async analyzePDFDocument({
@@ -140,57 +137,28 @@ export class IntelligenceService {
     const taskId = this.taskService.addTask(async (progressCallback) => {
       try {
         const pdfPath = fileManager.getDocumentContentPath(documentPath);
-        const doc = await this.pdfService.loadPDFFile(pdfPath);
-        let indexData: DocLayoutIndex = {
-          status: 'partial',
-          indexMap: {},
-        };
-        try {
-          const indexFile = await fileManager.readFile(
-            documentPath,
-            'analyzed-layout-index.json'
-          );
-          indexData = JSON.parse(indexFile) as DocLayoutIndex;
-        } catch (e) {
-          // do nothing
-        }
-        const pageCount = doc.numPages;
-        const tasks: Promise<void>[] = [];
-        const limit = await this.limit;
-        let taskCompletedCount = 0;
-        for (let i = 1; i <= pageCount; i++) {
-          if (indexData.indexMap[i.toString()]) {
-            continue;
-          }
-          tasks.push(
-            limit(async () => {
-              const imageDataUrl = await this.pdfService.renderPdfPageToImage(
-                doc,
-                i
-              );
-              const processedResponse =
-                await this.intelligenceProxy.analyzeImage(
-                  imageDataUrl.split(',')[1]
-                );
-              await this.writeAnalyzedDocumentCache(
-                spaceKey,
-                documentPath,
-                pageCount,
-                i.toString(),
-                processedResponse
-              );
-              taskCompletedCount++;
-              progressCallback(taskCompletedCount / pageCount);
-            })
-          );
-        }
-        await Promise.all(tasks);
+        const layoutData = await this.intelligenceProxy.analyzePDF(
+          pdfPath,
+          progressCallback
+        );
+        const textContentData =
+          this.extractTextContentFromLayoutData(layoutData);
+        await this.writeTextContentData(
+          spaceKey,
+          documentPath,
+          textContentData
+        );
+        await this.writeAnalyzedDocumentLayout(
+          spaceKey,
+          documentPath,
+          layoutData
+        );
       } catch (e) {
+        if (e instanceof DocIntelligenceError) {
+          throw new TaskError(e.message, e.code);
+        }
         if (e instanceof Error) {
-          if (e instanceof AuthError || e instanceof DocIntelligenceError) {
-            throw new TaskError(e.message, e.code);
-          }
-          throw new TaskError(e.message);
+          throw new TaskError(e.message + '\n' + e.stack);
         } else {
           throw new TaskError('Unknown error');
         }
@@ -208,74 +176,45 @@ export class IntelligenceService {
     documentPath: string;
   }) {
     const fileManager = await this.fileService.getFileManager(spaceKey);
-    const maxPixelCounts = 1400 * 1400;
     const taskId = this.taskService.addTask(async (progressCallback) => {
       try {
         const docContentPath = fileManager.getDocumentContentPath(documentPath);
-        const content = await fs.readFile(docContentPath, 'utf-8');
-        const webclipData = JSON.parse(content) as WebclipData;
-        const imageDataUrl = webclipData.imageData;
-        const dimension = webclipData.dimension;
-        const slices = await this.imageService.sliceImage(
-          imageDataUrl,
-          dimension,
-          maxPixelCounts
+        const content = await fs.readFile(docContentPath);
+        const arrayBuffer = content.buffer.slice(
+          content.byteOffset,
+          content.byteOffset + content.byteLength
         );
-        const layoutData = {
-          blocks: [],
-          lines: [],
-        } as DocumentTextDetectionData;
+        const { slices } = extractWebclipData(arrayBuffer);
+        const layoutData = [] as Array<DocumentTextDetectionData>;
         for (let i = 0; i < slices.length; i++) {
           const slice = slices[i];
           const processedResponse = await this.intelligenceProxy.analyzeImage(
-            slice.imageDataUrl.split(',')[1]
+            slice.imageDataUrl.split(',')[1],
+            `${documentPath}-slice-${i}.png`
           );
-          const processedBlocks =
-            processedResponse.blocks?.map((block) => {
-              return {
-                ...block,
-                width:
-                  (block.boundingBox.width * slice.width) / dimension.width,
-                height:
-                  (block.boundingBox.height * slice.height) / dimension.height,
-                left: (block.boundingBox.left * slice.width) / dimension.width,
-                top: (block.boundingBox.top * slice.height) / dimension.height,
-              };
-            }) || [];
-          const processedLines =
-            processedResponse.lines?.map((line) => {
-              return {
-                ...line,
-                width: (line.boundingBox.width * slice.width) / dimension.width,
-                height:
-                  (line.boundingBox.height * slice.height) / dimension.height,
-                left: (line.boundingBox.left * slice.width) / dimension.width,
-                top: (line.boundingBox.top * slice.height) / dimension.height,
-              };
-            }) || [];
-          layoutData.blocks = [
-            ...(layoutData.blocks ?? []),
-            ...processedBlocks,
-          ];
-          layoutData.lines = [...(layoutData.lines ?? []), ...processedLines];
+          if (processedResponse) {
+            layoutData.push(processedResponse);
+          }
           progressCallback(i / slices.length);
         }
-        await this.writeAnalyzedDocumentCache(
+        const textContentData =
+          this.extractTextContentFromLayoutData(layoutData);
+        await this.writeTextContentData(
           spaceKey,
           documentPath,
-          1,
-          '1',
+          textContentData
+        );
+        await this.writeAnalyzedDocumentLayout(
+          spaceKey,
+          documentPath,
           layoutData
         );
       } catch (error) {
         if (error instanceof Error) {
-          if (
-            error instanceof AuthError ||
-            error instanceof DocIntelligenceError
-          ) {
+          if (error instanceof DocIntelligenceError) {
             throw new TaskError(error.message, error.code);
           }
-          throw new TaskError(error.message);
+          throw new TaskError(error.message + '\n' + error.stack);
         } else {
           throw new TaskError('Unknown error');
         }
@@ -294,19 +233,14 @@ export class IntelligenceService {
     documentPath: string;
   }) {
     const fileManager = await this.fileService.getFileManager(spaceKey);
-    try {
-      const fileContent = await fileManager.readFile(
-        documentPath,
-        'analyzed-layout-index.json'
-      );
-      const indexMap = JSON.parse(fileContent) as DocLayoutIndex;
-      return indexMap.status || null;
-    } catch (error) {
-      return null;
-    }
+    const exists = await fileManager.fileExists(
+      documentPath,
+      'analyzed-layout.jsonl'
+    );
+    return exists ? 'completed' : null;
   }
 
-  async extractDocTextContent({
+  async getDocTextContent({
     spaceKey,
     documentPath,
   }: {
@@ -314,30 +248,10 @@ export class IntelligenceService {
     documentPath: string;
   }) {
     const fileManager = await this.fileService.getFileManager(spaceKey);
-    const indexFile = await fileManager.readFile(
+    const fileContent = await fileManager.readFile(
       documentPath,
-      'analyzed-layout-index.json'
+      'text-content.json'
     );
-    const indexData = JSON.parse(indexFile) as DocLayoutIndex;
-    if (indexData.status !== 'completed') {
-      throw new Error("Document layout analysis isn't completed yet");
-    }
-    const fileStream = fileManager.createReadStream(
-      documentPath,
-      'analyzed-layout.jsonl'
-    );
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity,
-    });
-    let textContent = '';
-    for await (const line of rl) {
-      const data = JSON.parse(line) as DocumentTextDetectionData;
-      const textBlocks = data.blocks
-        ? data.blocks.map((block) => block.text)
-        : [];
-      textContent += textBlocks.join('\n');
-    }
-    return textContent;
+    return JSON.parse(fileContent) as DocumentTextContent;
   }
 }

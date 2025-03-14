@@ -38,7 +38,7 @@ export const DocLayoutAnalysisToolbar = ({
         icon={<TextEffectsSparkleRegular />}
         disabled={hasRunningTask}
         onClick={() => {
-          if (settings.ocrService === 'remote') {
+          if (settings.ocrService === 'default') {
             if (userInfo) {
               startLayoutTask();
             } else {

@@ -16,6 +16,8 @@ components:
       properties:
         ocrService:
           type: string
-          enum: ['local', 'remote']
+          enum: ['alibaba', 'default']
+        alibabaAccessKeyId:
+          type: string
         chatService:
           $ref: '#/components/schemas/ChatSettings'

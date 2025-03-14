@@ -126,11 +126,10 @@ export class ChatService {
   async createSession(spaceKey: string, documentPath: string, query: string) {
     const sessionId = `chat-${new Date().getTime().toString()}`;
     try {
-      const documentContent =
-        await this.intelligenceService.extractDocTextContent({
-          spaceKey,
-          documentPath,
-        });
+      const documentContent = await this.intelligenceService.getDocTextContent({
+        spaceKey,
+        documentPath,
+      });
       //   const initPrompt = {
       //     role: 'system',
       //     content: `You are an assistant with access to a document. Use the document only if the question can't be answered from prior conversation context.`,
@@ -141,7 +140,7 @@ export class ChatService {
         content: `You are a helpful assistant answering questions about a specific document. 
         Here is the content of the document:
         
-        ${documentContent}
+        ${documentContent.textContent.join('\n')}
 
         When answering questions, only use information from this document. If the answer cannot be 
         found in the document, say so. Maintain consistent answers across the conversation. Only

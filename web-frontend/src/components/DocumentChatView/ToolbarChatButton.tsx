@@ -11,42 +11,34 @@ import {
 import { useTranslation } from 'react-i18next';
 import { IntelligenceDocLayoutStatus200ResponseStatusEnum } from '@inkstain/client-api';
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
-import { useAppContext } from '~/web/app/hooks/useAppContext';
 
 interface ToolbarChatButtonProps {
   showChat: boolean;
   onShowChatChange: (show: boolean) => void;
   docLayoutStatus: IntelligenceDocLayoutStatus200ResponseStatusEnum | undefined;
-  startLayoutTask: () => void;
 }
 
 export const ToolbarChatButton = ({
   showChat,
   docLayoutStatus,
   onShowChatChange,
-  startLayoutTask,
 }: ToolbarChatButtonProps) => {
   const { t } = useTranslation();
-  const { showAuthDialog, userInfo } = useAppContext();
-  const [open, setOpen] = React.useState(false);
+  const [openDialog, setOpenDialog] = React.useState(false);
   const handleClick = () => {
     if (!showChat) {
-      if (userInfo) {
-        if (docLayoutStatus === 'completed') {
-          onShowChatChange(true);
-        } else {
-          setOpen(true);
-        }
+      if (docLayoutStatus === 'completed') {
+        onShowChatChange(true);
       } else {
-        showAuthDialog();
+        setOpenDialog(true);
       }
     }
   };
   return (
     <Dialog
-      open={open}
+      open={openDialog}
       onOpenChange={(e, data) => {
-        setOpen(data.open);
+        setOpenDialog(data.open);
       }}
     >
       <ToolbarButtonWithTooltip
@@ -62,15 +54,14 @@ export const ToolbarChatButton = ({
             <Button
               appearance="primary"
               onClick={() => {
-                setOpen(false);
-                startLayoutTask();
+                setOpenDialog(false);
               }}
             >
               {t('confirm')}
             </Button>
             <Button
               onClick={() => {
-                setOpen(false);
+                setOpenDialog(false);
               }}
             >
               {t('cancel')}

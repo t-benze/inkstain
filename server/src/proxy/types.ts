@@ -6,7 +6,6 @@ import {
   ForgotPasswordRequest,
   ConfirmForgotPasswordRequest,
   DocumentTextDetectionData,
-  CommonHTTPErrorData,
 } from '~/server/types';
 
 export interface AuthInterface {
@@ -44,15 +43,30 @@ export class AuthError extends Error {
 export interface DocIntelligenceInterface {
   /**
    * Analyzes a document image and returns the layout data
-   * @param image - The base64 encoded document image
+   * @param image - The base64 encoded image data
+   * @param fileName - The name of the file, including the file extension (for image type detection)
+   * @param progressCallback - A callback function to report the progress of the analysis
    * @returns The layout data of the document
    */
-  analyzeImage: (image: string) => Promise<DocumentTextDetectionData>;
+  analyzeImage: (
+    imageData: string,
+    fileName: string,
+    progressCallback?: (progress: number) => void
+  ) => Promise<DocumentTextDetectionData | null>;
+
+  /**
+   * Analyzes a document file and returns the layout data
+   */
+  analyzePDF: (
+    fileName: string,
+    progressCallback?: (progress: number) => void
+  ) => Promise<Array<DocumentTextDetectionData>>;
 }
 
 export class DocIntelligenceError extends Error {
   public code: string;
   static readonly CODE_INSUFFICIENT_BALANCE = 'InsufficientBalance';
+  static readonly CODE_AUTH_REQUIRED = 'AuthRequired';
   static readonly CODE_UNKNOWN = 'UnknownError';
 
   constructor(message: string, code: string) {

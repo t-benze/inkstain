@@ -14,6 +14,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  DocumentTextContent,
   ErrorResponseData,
   IntelligenceAnalyzeDocument200Response,
   IntelligenceAnalyzeDocumentRequest,
@@ -21,6 +22,8 @@ import type {
   IntelligenceDocLayoutStatus200Response,
 } from '../models/index';
 import {
+  DocumentTextContentFromJSON,
+  DocumentTextContentToJSON,
   ErrorResponseDataFromJSON,
   ErrorResponseDataToJSON,
   IntelligenceAnalyzeDocument200ResponseFromJSON,
@@ -45,6 +48,11 @@ export interface IntelligenceDocLayoutRequest {
 }
 
 export interface IntelligenceDocLayoutStatusRequest {
+  spaceKey: string;
+  path: string;
+}
+
+export interface IntelligenceDocTextContentRequest {
   spaceKey: string;
   path: string;
 }
@@ -268,6 +276,73 @@ export class IntelligenceApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<IntelligenceDocLayoutStatus200Response> {
     const response = await this.intelligenceDocLayoutStatusRaw(
+      requestParameters,
+      initOverrides
+    );
+    return await response.value();
+  }
+
+  /**
+   * Get the text content of a document
+   */
+  async intelligenceDocTextContentRaw(
+    requestParameters: IntelligenceDocTextContentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<runtime.ApiResponse<DocumentTextContent>> {
+    if (
+      requestParameters.spaceKey === null ||
+      requestParameters.spaceKey === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'spaceKey',
+        'Required parameter requestParameters.spaceKey was null or undefined when calling intelligenceDocTextContent.'
+      );
+    }
+
+    if (
+      requestParameters.path === null ||
+      requestParameters.path === undefined
+    ) {
+      throw new runtime.RequiredError(
+        'path',
+        'Required parameter requestParameters.path was null or undefined when calling intelligenceDocTextContent.'
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters.path !== undefined) {
+      queryParameters['path'] = requestParameters.path;
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/intelligence/{spaceKey}/text-content`.replace(
+          `{${'spaceKey'}}`,
+          encodeURIComponent(String(requestParameters.spaceKey))
+        ),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentTextContentFromJSON(jsonValue)
+    );
+  }
+
+  /**
+   * Get the text content of a document
+   */
+  async intelligenceDocTextContent(
+    requestParameters: IntelligenceDocTextContentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
+  ): Promise<DocumentTextContent> {
+    const response = await this.intelligenceDocTextContentRaw(
       requestParameters,
       initOverrides
     );

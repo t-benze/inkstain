@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getPageCaptureData, addWebclipDocument } from '../utils/document';
 import { CropArea } from './CropArea';
 import { Header } from './Header';
+import { sliceImage } from './utils';
 
 const queryClient = new QueryClient();
 
@@ -25,9 +26,6 @@ const useClasses = makeStyles({
     width: '100vw',
     height: 'calc(100vh - 40px)',
     overflow: 'scroll',
-  },
-  hiddenCanvas: {
-    visibility: 'hidden',
   },
   scene: {
     margin: '20px 20px',
@@ -60,49 +58,52 @@ export const App = () => {
   useEffect(() => {
     getPageCaptureData().then(async (result) => {
       const images = result.screenshotData as string[];
+      const screenDimension = result.screenDimension as {
+        width: number;
+        height: number;
+      };
       const targetRects = result.targetRects as {
         width: number;
         height: number;
         top: number;
         left: number;
       }[];
+      console.log('page data', images, targetRects);
       if (images && images.length > 0) {
-        const imgElements: HTMLImageElement[] = images.map((url) => {
-          const img = new Image();
-          img.src = url;
-          return img;
-        });
-        await Promise.all(
-          imgElements.map(
-            (img) =>
-              new Promise((resolve) => {
-                img.onload = () => resolve(img);
-              })
-          )
-        );
         // Calculate total height of the final image
-        const width = imgElements[0].width * targetRects[0].width;
-        let height = 0;
-        for (let i = 0; i < targetRects.length; i++) {
-          height += imgElements[i].height * targetRects[i].height;
-        }
+        const width = screenDimension.width * targetRects[0].width;
+        const height = targetRects.reduce((acc, rect) => {
+          return acc + rect.height * screenDimension.height;
+        }, 0);
         if (hiddenCanvasRef.current) {
           hiddenCanvasRef.current.width = width;
           hiddenCanvasRef.current.height = height;
-          const ctx = hiddenCanvasRef.current.getContext('2d');
-          if (ctx) {
+          const hiddenCtx = hiddenCanvasRef.current.getContext('2d');
+          if (hiddenCtx) {
             let offsetY = 0;
-            for (let i = 0; i < targetRects.length; i++) {
-              const left = imgElements[i].width * targetRects[i].left;
-              const top = imgElements[i].height * targetRects[i].top;
-              const width = imgElements[i].width * targetRects[i].width;
-              const height = imgElements[i].height * targetRects[i].height;
-              ctx.drawImage(
-                imgElements[i],
-                left,
-                top,
-                width,
-                height,
+            for (let i = 0; i < images.length; i++) {
+              const imgElement: HTMLImageElement = await new Promise(
+                (resolve) => {
+                  const img = new Image();
+                  img.src = images[i];
+                  img.onload = () => {
+                    resolve(img);
+                  };
+                }
+              );
+              const srcLeft = imgElement.width * targetRects[i].left;
+              const srcTop = imgElement.height * targetRects[i].top;
+              const srcWidth = imgElement.width * targetRects[i].width;
+              const srcHeight = imgElement.height * targetRects[i].height;
+
+              const width = screenDimension.width * targetRects[i].width;
+              const height = screenDimension.height * targetRects[i].height;
+              hiddenCtx.drawImage(
+                imgElement,
+                srcLeft,
+                srcTop,
+                srcWidth,
+                srcHeight,
                 0,
                 offsetY,
                 width,
@@ -110,8 +111,9 @@ export const App = () => {
               );
               offsetY += height;
             }
+            const imageDataUrl = hiddenCanvasRef.current.toDataURL();
             setData({
-              screenshot: hiddenCanvasRef.current.toDataURL(),
+              screenshot: imageDataUrl,
               dimension: {
                 width,
                 height,
@@ -205,13 +207,18 @@ export const App = () => {
     async (spaceKey: string, documentPath: string) => {
       if (data) {
         const settings = await getSettings();
+        const slices = await sliceImage(data.screenshot, data.dimension);
+
         addWebclipDocument(
           settings,
           spaceKey,
           documentPath,
           {
-            imageData: data.screenshot,
-            dimension: data.dimension,
+            slices: slices,
+            meta: {
+              width: data.dimension.width,
+              height: data.dimension.height,
+            },
           },
           data.url
         ).then(() => {
@@ -232,10 +239,9 @@ export const App = () => {
             data={{ url: data?.url, title: data?.title }}
           />
           <div className={classes.content}>
-            {!data && (
-              <canvas ref={hiddenCanvasRef} className={classes.hiddenCanvas} />
-            )}
-            {data ? (
+            {!data ? (
+              <canvas id="hidden-canvas" ref={hiddenCanvasRef} />
+            ) : (
               <div
                 className={classes.scene}
                 style={{
@@ -253,7 +259,7 @@ export const App = () => {
                   }}
                 />
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </QueryClientProvider>

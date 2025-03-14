@@ -1,9 +1,6 @@
-import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@fluentui/react-components';
-import { Overlay as DrawingAnnotationOverlay } from '~/web/components/DrawingAnnotationOverlay';
-import { useAnnotations } from '~/web/hooks/useAnnotations';
-import { useDocLayout } from '~/web/hooks/useDocLayout';
+import { ImageSlice } from './ImageSlice';
 
 const useClasses = makeStyles({
   root: {
@@ -14,95 +11,51 @@ const useClasses = makeStyles({
 });
 
 interface ContentViewProps {
-  imageDataUrl: string;
-  onImageLoad?: (image: HTMLImageElement) => void;
+  imageData: Array<{
+    imageDataUrl: string;
+    width: number;
+    height: number;
+  }>;
   dimension: { width: number; height: number } | null;
   scale: number;
   spaceKey: string;
   documentPath: string;
+  onTextBlockSelected?: (blockId: string) => void;
 }
 
 export const ContentView = ({
-  imageDataUrl,
-  onImageLoad,
+  imageData,
   dimension,
   scale,
-  spaceKey,
-  documentPath,
+  onTextBlockSelected,
 }: ContentViewProps) => {
-  const { t } = useTranslation();
   const classes = useClasses();
-  const { annotations, addAnnotation, deleteAnnotations, updateAnnotation } =
-    useAnnotations(spaceKey, documentPath);
-  const drawings = (annotations ? annotations[1] || [] : []).filter(
-    (a) => a.data.type === 'drawing'
-  );
-  const highlights = (annotations ? annotations[1] || [] : []).filter(
-    (a) => a.data.type === 'highlight'
-  );
-
-  const handleAddAnnotation = React.useCallback(
-    (data: object, comment?: string) => {
-      addAnnotation({
-        data,
-        page: 1,
-        comment,
-      });
-    },
-    [addAnnotation]
-  );
-
-  const handleUpdateAnnotation = React.useCallback(
-    (id: string, data: object, comment?: string) => {
-      updateAnnotation({
-        data,
-        id,
-        comment,
-      });
-    },
-    [updateAnnotation]
-  );
-
-  const handleRemoveAnnotation = React.useCallback(
-    (id: string) => {
-      deleteAnnotations([id]);
-    },
-    [deleteAnnotations]
-  );
-
-  const layoutData = useDocLayout({
-    spaceKey,
-    documentPath,
-    pageNum: 1,
-  });
+  const imageWidth = dimension?.width ? scale * dimension.width : 0;
+  const imageHeight = dimension?.height ? scale * dimension.height : 0;
+  const offsetPos = imageData.reduce((acc, data) => {
+    if (acc.length === 0) {
+      return [data.height];
+    }
+    return [...acc, acc[acc.length - 1] + data.height];
+  }, [] as number[]);
 
   return (
-    <div className={classes.root}>
-      <img
-        style={
-          dimension
-            ? { width: dimension.width, height: dimension.height }
-            : undefined
-        }
-        src={imageDataUrl}
-        alt="Document Content"
-        onLoad={(e) => {
-          onImageLoad?.(e.target as HTMLImageElement);
-        }}
-      />
-      {dimension && (
-        <DrawingAnnotationOverlay
-          dimension={dimension}
+    <div
+      className={classes.root}
+      style={{ width: imageWidth, height: imageHeight }}
+    >
+      {imageData.map((data, index) => (
+        <ImageSlice
+          sliceIndex={index}
+          key={index}
+          width={data.width}
+          height={data.height}
           scale={scale}
-          drawings={drawings}
-          highlights={highlights}
-          textLines={layoutData?.lines}
-          textBlocks={layoutData?.blocks}
-          onAddAnnotation={handleAddAnnotation}
-          onUpdateAnnotation={handleUpdateAnnotation}
-          onRemoveAnnotation={handleRemoveAnnotation}
+          imageDataUrl={data.imageDataUrl}
+          offset={index === 0 ? 0 : offsetPos[index - 1]}
+          onTextBlockSelected={onTextBlockSelected}
         />
-      )}
+      ))}
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { makeStyles, tokens, Spinner } from '@fluentui/react-components';
+import { extractWebclipData } from '@inkstain/webclip';
 import { documentsApi } from '~/web/apiClient';
+
 import { DocumentViewProps } from '~/web/types';
 import { ContentView } from './ContentView';
 import { WebclipToolbar } from './Toolbar';
@@ -8,6 +10,7 @@ import { useZoomScale } from '~/web/components/ZoomToolbar';
 import { useStylus } from '~/web/components/DrawingAnnotationOverlay/hooks/useStylus';
 import { DrawingAnnotationOverlayContext } from '~/web/components/DrawingAnnotationOverlay';
 import { ChatView } from '~/web/components/DocumentChatView';
+import { DocumentTextView } from '~/web/components/DocumentTextView';
 
 const useClasses = makeStyles({
   root: {
@@ -20,9 +23,7 @@ const useClasses = makeStyles({
   },
   scene: {
     width: '100%',
-    height: '0px',
-    display: 'flex',
-    flexGrow: 1,
+    height: 'calc(100% - 32px)',
     overflow: 'scroll scroll',
   },
 
@@ -42,10 +43,30 @@ const useClasses = makeStyles({
     top: `20%`,
     backgroundColor: tokens.colorNeutralBackground1,
   },
+  textOverlayMask: {
+    position: 'absolute',
+    top: `32px`,
+    left: 0,
+    width: '20%',
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  textOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: '20%',
+    right: 0,
+    top: '32px',
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
 });
 
 export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
-  const [imageDataUrl, setImageDataUrl] = React.useState<string | null>(null);
+  const [imageData, setImageData] = React.useState<Array<{
+    imageDataUrl: string;
+    width: number;
+    height: number;
+  }> | null>(null);
   const classes = useClasses();
   const sceneRef = React.useRef<HTMLDivElement>(null);
   const [sceneDimension, setSceneDimension] = React.useState<{
@@ -63,30 +84,16 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
         spaceKey,
         path: documentPath,
       })
-      .then((response) => response.text())
-      .then((response) => {
-        const webclipData = JSON.parse(response) as {
-          imageData: string;
-          dimension: { width: number; height: number };
-        };
-        setImageDataUrl(webclipData.imageData);
-        setImageDimension(webclipData.dimension);
-
-        // reader.onloadend = () => {
-        //   console.log('reader.result', reader.result);
-        //   setImageDataUrl(reader.result as string);
-        // };
-        // reader.readAsDataURL(response);
+      .then((response) => response.arrayBuffer())
+      .then((arrayBuffer) => {
+        const { slices, width, height } = extractWebclipData(arrayBuffer);
+        setImageData(slices);
+        setImageDimension({
+          width,
+          height,
+        });
       });
   }, [documentPath, spaceKey]);
-
-  // const handleImageLoaded = React.useCallback((image: HTMLImageElement) => {
-  //   const { naturalWidth, naturalHeight } = image;
-  //   setImageDimension({
-  //     width: naturalWidth,
-  //     height: naturalHeight,
-  //   });
-  // }, []);
 
   React.useLayoutEffect(() => {
     if (sceneRef.current) {
@@ -127,6 +134,12 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
   } = useStylus();
 
   const [showChatOverlay, setShowChatOverlay] = React.useState(false);
+  const [showTextOverlay, setShowTextOverlay] = React.useState(false);
+  const [initBlockId, setInitBlockId] = React.useState<string>();
+  const openTextOverlay = (blockId?: string) => {
+    blockId && setInitBlockId(blockId);
+    setShowTextOverlay(true);
+  };
 
   return (
     <DrawingAnnotationOverlayContext.Provider
@@ -148,26 +161,22 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
           onZoomFitHeight={handleZoomFitHeight}
           showChatOverlay={showChatOverlay}
           onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
+          showTextView={showTextOverlay}
+          onShowTextView={(show) => setShowTextOverlay(show)}
         />
         <div
           className={classes.scene}
           ref={sceneRef}
           onWheel={handleZoomGesture}
         >
-          {imageDataUrl && sceneDimension ? (
+          {imageData && sceneDimension ? (
             <ContentView
               spaceKey={spaceKey}
               documentPath={documentPath}
               scale={scale}
-              dimension={
-                imageDimension
-                  ? {
-                      width: imageDimension.width * scale,
-                      height: imageDimension.height * scale,
-                    }
-                  : null
-              }
-              imageDataUrl={imageDataUrl}
+              dimension={imageDimension}
+              imageData={imageData}
+              onTextBlockSelected={openTextOverlay}
             />
           ) : (
             <Spinner />
@@ -183,6 +192,23 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
             ></div>
             <div className={classes.chatOverlay}>
               <ChatView spaceKey={spaceKey} documentPath={documentPath} />
+            </div>
+          </>
+        )}
+        {showTextOverlay && (
+          <>
+            <div
+              className={classes.textOverlayMask}
+              onClick={() => {
+                setShowTextOverlay(false);
+              }}
+            ></div>
+            <div className={classes.textOverlay}>
+              <DocumentTextView
+                initBlockId={initBlockId}
+                spaceKey={spaceKey}
+                documentPath={documentPath}
+              />
             </div>
           </>
         )}

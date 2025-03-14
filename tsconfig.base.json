@@ -17,6 +17,7 @@
     "types": ["cypress", "node"],
     "paths": {
       "@inkstain/client-api": ["lib/client-api/src/index.ts"],
+      "@inkstain/webclip": ["lib/webclip/src/index.ts"],
       "~/chrome-extension/*": ["browser-extension/chrome/src/*"],
       "~/server/*": ["server/src/*"],
       "~/web/*": ["web-frontend/src/*"]

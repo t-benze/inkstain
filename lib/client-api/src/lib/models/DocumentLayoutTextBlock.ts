@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { DocumentLayoutTextLineBoundingBox } from './DocumentLayoutTextLineBoundingBox';
+import type { DocumentLayoutTextBlockBoundingBox } from './DocumentLayoutTextBlockBoundingBox';
 import {
-  DocumentLayoutTextLineBoundingBoxFromJSON,
-  DocumentLayoutTextLineBoundingBoxFromJSONTyped,
-  DocumentLayoutTextLineBoundingBoxToJSON,
-} from './DocumentLayoutTextLineBoundingBox';
+  DocumentLayoutTextBlockBoundingBoxFromJSON,
+  DocumentLayoutTextBlockBoundingBoxFromJSONTyped,
+  DocumentLayoutTextBlockBoundingBoxToJSON,
+} from './DocumentLayoutTextBlockBoundingBox';
 
 /**
  *
@@ -26,6 +26,12 @@ import {
  * @interface DocumentLayoutTextBlock
  */
 export interface DocumentLayoutTextBlock {
+  /**
+   *
+   * @type {string}
+   * @memberof DocumentLayoutTextBlock
+   */
+  type?: string;
   /**
    *
    * @type {string}
@@ -46,10 +52,10 @@ export interface DocumentLayoutTextBlock {
   childrenIds: Array<string>;
   /**
    *
-   * @type {DocumentLayoutTextLineBoundingBox}
+   * @type {DocumentLayoutTextBlockBoundingBox}
    * @memberof DocumentLayoutTextBlock
    */
-  boundingBox: DocumentLayoutTextLineBoundingBox;
+  boundingBox: DocumentLayoutTextBlockBoundingBox;
 }
 
 /**
@@ -79,10 +85,13 @@ export function DocumentLayoutTextBlockFromJSONTyped(
     return json;
   }
   return {
+    type: !exists(json, 'type') ? undefined : json['type'],
     id: json['id'],
     text: json['text'],
     childrenIds: json['childrenIds'],
-    boundingBox: DocumentLayoutTextLineBoundingBoxFromJSON(json['boundingBox']),
+    boundingBox: DocumentLayoutTextBlockBoundingBoxFromJSON(
+      json['boundingBox']
+    ),
   };
 }
 
@@ -96,9 +105,10 @@ export function DocumentLayoutTextBlockToJSON(
     return null;
   }
   return {
+    type: value.type,
     id: value.id,
     text: value.text,
     childrenIds: value.childrenIds,
-    boundingBox: DocumentLayoutTextLineBoundingBoxToJSON(value.boundingBox),
+    boundingBox: DocumentLayoutTextBlockBoundingBoxToJSON(value.boundingBox),
   };
 }
