@@ -38,6 +38,12 @@ export interface GetChatSession200Response {
    * @memberof GetChatSession200Response
    */
   sessionId: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GetChatSession200Response
+   */
+  withDocument: boolean;
 }
 
 /**
@@ -47,6 +53,7 @@ export function instanceOfGetChatSession200Response(value: object): boolean {
   let isInstance = true;
   isInstance = isInstance && 'data' in value;
   isInstance = isInstance && 'sessionId' in value;
+  isInstance = isInstance && 'withDocument' in value;
 
   return isInstance;
 }
@@ -67,6 +74,7 @@ export function GetChatSession200ResponseFromJSONTyped(
   return {
     data: (json['data'] as Array<any>).map(ChatMessageFromJSON),
     sessionId: json['sessionId'],
+    withDocument: json['withDocument'],
   };
 }
 
@@ -82,5 +90,6 @@ export function GetChatSession200ResponseToJSON(
   return {
     data: (value.data as Array<any>).map(ChatMessageToJSON),
     sessionId: value.sessionId,
+    withDocument: value.withDocument,
   };
 }

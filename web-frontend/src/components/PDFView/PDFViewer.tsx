@@ -236,6 +236,17 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
     );
 
     const [showChatOverlay, setShowChatOverlay] = React.useState(false);
+    const [chatQuote, setChatQuote] = React.useState<string>();
+    const openChatView = (quote?: string) => {
+      quote && setChatQuote(quote);
+      setShowChatOverlay(true);
+    };
+    const toggleShowChatOverlay = (show: boolean) => {
+      if (!show) {
+        setChatQuote(undefined);
+      }
+      setShowChatOverlay(show);
+    };
 
     // for high resolution devices, we need to scale the pdf rendering
     const pdfScale = scale * window.devicePixelRatio;
@@ -288,9 +299,7 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
               onZoomIn={handleZoomIn}
               onZoomOut={handleZoomOut}
               onZoomFitWidth={handleZoomFitWidth}
-              showChatOverlay={showChatOverlay}
-              onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
-              showTextView={showTextOverlay}
+              onShowChatOverlayChange={toggleShowChatOverlay}
               onShowTextView={(show) => setShowTextOverlay(show)}
             />
             {pdfDocument ? (
@@ -333,20 +342,6 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
               )
             ) : null}
 
-            {showChatOverlay && (
-              <>
-                <div
-                  className={styles.chatOverlayMask}
-                  onClick={() => {
-                    setShowChatOverlay(false);
-                  }}
-                ></div>
-                <div className={styles.chatOverlay}>
-                  <ChatView spaceKey={spaceKey} documentPath={documentPath} />
-                </div>
-              </>
-            )}
-
             {showTextOverlay && (
               <>
                 <div
@@ -360,6 +355,24 @@ export const PDFViewer = React.forwardRef<PDFViewHandle, PDFViewerProps>(
                     initBlockId={initBlockId}
                     spaceKey={spaceKey}
                     documentPath={documentPath}
+                    openChatView={openChatView}
+                  />
+                </div>
+              </>
+            )}
+            {showChatOverlay && (
+              <>
+                <div
+                  className={styles.chatOverlayMask}
+                  onClick={() => {
+                    toggleShowChatOverlay(false);
+                  }}
+                ></div>
+                <div className={styles.chatOverlay}>
+                  <ChatView
+                    spaceKey={spaceKey}
+                    documentPath={documentPath}
+                    quote={chatQuote}
                   />
                 </div>
               </>

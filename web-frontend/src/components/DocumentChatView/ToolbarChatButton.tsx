@@ -13,25 +13,21 @@ import { IntelligenceDocLayoutStatus200ResponseStatusEnum } from '@inkstain/clie
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
 
 interface ToolbarChatButtonProps {
-  showChat: boolean;
   onShowChatChange: (show: boolean) => void;
   docLayoutStatus: IntelligenceDocLayoutStatus200ResponseStatusEnum | undefined;
 }
 
 export const ToolbarChatButton = ({
-  showChat,
   docLayoutStatus,
   onShowChatChange,
 }: ToolbarChatButtonProps) => {
   const { t } = useTranslation();
   const [openDialog, setOpenDialog] = React.useState(false);
   const handleClick = () => {
-    if (!showChat) {
-      if (docLayoutStatus === 'completed') {
-        onShowChatChange(true);
-      } else {
-        setOpenDialog(true);
-      }
+    if (docLayoutStatus === 'completed') {
+      onShowChatChange(true);
+    } else {
+      setOpenDialog(true);
     }
   };
   return (

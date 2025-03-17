@@ -14,6 +14,8 @@ import {
   MenuItem,
   Textarea,
   useToastController,
+  Checkbox,
+  Caption1,
 } from '@fluentui/react-components';
 import {
   Send24Regular,
@@ -25,6 +27,11 @@ import { chatApi } from '~/web/apiClient';
 import { ChatMessage, ResponseError } from '@inkstain/client-api';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '~/web/app/hooks/useAppContext';
+
+type ChatSessionData = {
+  withDocument: boolean | null;
+  data: ChatMessage[];
+};
 
 const useClasses = makeStyles({
   chatInterface: {
@@ -86,14 +93,37 @@ const useClasses = makeStyles({
     flexDirection: 'row',
     gap: tokens.spacingHorizontalS,
   },
+
+  quoteBlock: {
+    position: 'absolute',
+    display: 'block',
+    bottom: '90px',
+    width: '960px',
+    minWidth: '640px',
+    maxWidth: '90%',
+    left: `50%`,
+    transform: `translateX(-50%)`,
+    padding: '10px 20px',
+    backgroundColor: tokens.colorNeutralBackground2,
+    borderLeft: `5px solid ${tokens.colorBrandBackground}`,
+    fontStyle: 'italic',
+    '::before': {
+      content: '"“"',
+      fontSize: '2em',
+      lineHeight: '0.1em',
+      marginRight: '10px',
+      verticalAlign: '-0.4em',
+    },
+  },
 });
 
 interface ChatViewProps {
   spaceKey: string;
   documentPath: string;
+  quote?: string;
 }
 
-export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
+export const ChatView = ({ spaceKey, documentPath, quote }: ChatViewProps) => {
   const classes = useClasses();
   const { t } = useTranslation();
   const [message, setMessage] = React.useState('');
@@ -103,6 +133,7 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
   const { dispatchToast } = useToastController(toasterId);
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [withDocument, setWithDocument] = React.useState(false);
   const { data: sessionList } = useQuery({
     queryKey: ['chatSessionList', spaceKey, documentPath],
     queryFn: async () => {
@@ -133,31 +164,30 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
   React.useEffect(() => {
     if (sessionList && sessionList.length > 0) {
       setSessionId(sessionList[0]);
-      // queryClient.invalidateQueries({
-      //   queryKey: ['chatSession', spaceKey, documentPath, sessionList[0]],
-      // });
     }
   }, [sessionList, spaceKey, documentPath, queryClient]);
 
-  const { data: messages } = useQuery({
+  const { data: sessionData } = useQuery({
     queryKey: ['chatSession', spaceKey, documentPath, sessionId],
     queryFn: async () => {
       // const data = await chatApi.intelligenceChatSession
-      if (!sessionId) return [] as ChatMessage[];
+      if (!sessionId) return { data: [] as ChatMessage[], withDocument: null };
       const data = await chatApi.getChatSession({
         spaceKey,
         path: documentPath,
         sessionId,
       });
-      return data.data;
+      return data as ChatSessionData;
     },
   });
+  const messages = sessionData?.data;
 
   const newSessionMutation = useMutation({
     mutationFn: async (message: string) => {
       const response = await chatApi.chatNewSession({
         spaceKey,
         path: documentPath,
+        withDocument: withDocument ? '1' : '0',
         chatNewSessionRequest: {
           message,
         },
@@ -165,24 +195,19 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
       return response;
     },
     onMutate: async (message) => {
-      queryClient.setQueryData(
-        ['chatSession', spaceKey, documentPath, null],
-        [{ content: message, role: 'user' }]
-      );
+      queryClient.setQueryData(['chatSession', spaceKey, documentPath, null], {
+        withDocument,
+        data: [{ content: message, role: 'user' }],
+      });
     },
-    onSuccess: (data) => {
-      const currentMessages = sessionId
-        ? (queryClient.getQueryData([
-            'chatSession',
-            spaceKey,
-            documentPath,
-            sessionId,
-          ]) as ChatMessage[])
-        : [];
+    onSuccess: (data, query) => {
       setSessionId(data.sessionId);
       queryClient.setQueryData(
         ['chatSession', spaceKey, documentPath, data.sessionId],
-        [...currentMessages, data.data]
+        {
+          withDocument,
+          data: [{ content: query, role: 'user' }, data.data],
+        } as ChatSessionData
       );
     },
     onError: async (error) => {
@@ -219,27 +244,33 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
       return response;
     },
     onMutate: async ({ sessionId, message }) => {
-      const currentMessages = queryClient.getQueryData([
+      const currentData = queryClient.getQueryData([
         'chatSession',
         spaceKey,
         documentPath,
         sessionId,
-      ]) as ChatMessage[];
+      ]) as ChatSessionData;
       queryClient.setQueryData(
         ['chatSession', spaceKey, documentPath, sessionId],
-        [...currentMessages, { content: message, role: 'user' }]
+        {
+          ...currentData,
+          data: [...currentData.data, { content: message, role: 'user' }],
+        }
       );
     },
     onSuccess: (data, params) => {
-      const currentMessages = queryClient.getQueryData([
+      const currentData = queryClient.getQueryData([
         'chatSession',
         spaceKey,
         documentPath,
         params.sessionId,
-      ]) as ChatMessage[];
+      ]) as ChatSessionData;
       queryClient.setQueryData(
         ['chatSession', spaceKey, documentPath, params.sessionId],
-        [...currentMessages, data]
+        {
+          ...currentData,
+          data: [...currentData.data, data],
+        }
       );
     },
     onError: async (error) => {
@@ -253,22 +284,34 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
           return;
         }
       }
-      showErrorToast(t('unknown_error'), '');
+      console.error(error);
     },
   });
 
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [quoteState, setQuoteState] = React.useState<string | undefined>(quote);
+
   const handleSend = () => {
+    console.log(
+      'sending',
+      newSessionMutation.isPending,
+      messageMutation.isPending
+    );
     if (newSessionMutation.isPending || messageMutation.isPending) {
       return;
     }
-    const content = message.trim();
+    let content = message.trim();
+    if (quoteState) {
+      content = `> ${quoteState}\n\n${content}`;
+    }
     if (content.length > 0) {
       if (!sessionId) {
         newSessionMutation.mutate(content);
       } else {
         messageMutation.mutate({ sessionId, message: content });
       }
-      setMessage(''); // Clearing input after send
+      setQuoteState(undefined);
+      setMessage('');
     }
   };
 
@@ -278,12 +321,18 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
       handleSend();
     }
   };
-
-  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-
   return (
     <div className={classes.chatInterface}>
       <div className={classes.topButtons}>
+        <Checkbox
+          label={t('chat_with_document_content')}
+          size="large"
+          checked={sessionData?.withDocument ?? withDocument}
+          disabled={sessionData?.withDocument !== null}
+          onChange={(e, data) => {
+            setWithDocument(data.checked as boolean);
+          }}
+        />
         <Button
           icon={<AddSquareRegular />}
           onClick={() => {
@@ -327,6 +376,16 @@ export const ChatView = ({ spaceKey, documentPath }: ChatViewProps) => {
       <div className={classes.messageList}>
         <MessageList messages={messages || []} />
       </div>
+      {quoteState && (
+        <Caption1
+          className={classes.quoteBlock}
+          block={true}
+          truncate={true}
+          wrap={false}
+        >
+          {quoteState}
+        </Caption1>
+      )}
       <div className={classes.inputOverlay} />
       <div className={classes.messageInput}>
         <Textarea

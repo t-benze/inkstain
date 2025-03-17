@@ -22,6 +22,12 @@ import { Context, CommonHTTPErrorData } from '~/server/types';
  *         schema:
  *           type: string
  *         description: The relative path to the document within the space
+ *       - in: query
+ *         name: withDocument
+ *         required: false
+ *         description: Include document content in the chat session, '1' = include, '0' = exclude
+ *         schema:
+ *           type: string
  *     requestBody:
  *       description: The user message to initiate the chat session
  *       required: true
@@ -57,8 +63,9 @@ import { Context, CommonHTTPErrorData } from '~/server/types';
  */
 const newChatSession = async (ctx: Context) => {
   const { spaceKey } = ctx.params;
-  const { path: documentPath } = ctx.query as {
+  const { path: documentPath, withDocument } = ctx.query as {
     path: string;
+    withDocument?: string;
   };
   const { message } = ctx.request.body as {
     message: string;
@@ -68,7 +75,8 @@ const newChatSession = async (ctx: Context) => {
     const { sessionId, response } = await ctx.chatService.createSession(
       spaceKey,
       documentPath,
-      message
+      message,
+      withDocument === '1'
     );
     ctx.status = 200;
     ctx.body = {
@@ -123,9 +131,12 @@ const newChatSession = async (ctx: Context) => {
  *                     $ref: '#/components/schemas/ChatMessage'
  *                 sessionId:
  *                   type: string
+ *                 withDocument:
+ *                   type: boolean
  *               required:
  *                 - data
  *                 - sessionId
+ *                 - withDocument
  *       404:
  *         description: Chat session not found
  *       500:
@@ -138,7 +149,7 @@ const getChatSession = async (ctx: Context) => {
     sessionId: string;
   };
 
-  const messages = await ctx.chatService.loadChatSession(
+  const { messages, withDocument } = await ctx.chatService.loadChatSession(
     spaceKey,
     documentPath,
     sessionId
@@ -146,6 +157,7 @@ const getChatSession = async (ctx: Context) => {
   ctx.status = 200;
   ctx.body = {
     sessionId,
+    withDocument,
     data: messages.filter((m) => m.role === 'user' || m.role === 'assistant'),
   };
 };
@@ -266,7 +278,7 @@ const newChatMessage = async (ctx: Context) => {
 
 export const registerChatRoutes = (router: Router) => {
   router.get('/chat/:spaceKey/sessions', getSessionList);
-  router.post('/chat/:spaceKey/session', newChatSession);
   router.get('/chat/:spaceKey/session', getChatSession);
+  router.post('/chat/:spaceKey/session', newChatSession);
   router.post('/chat/:spaceKey/message', newChatMessage);
 };

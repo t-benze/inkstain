@@ -7,8 +7,9 @@ import {
   Toast,
   ToastBody,
   useId,
+  Button,
 } from '@fluentui/react-components';
-import { WindowTextRegular } from '@fluentui/react-icons';
+import { WindowTextRegular, BotSparkleRegular } from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { IntelligenceDocLayoutStatus200ResponseStatusEnum } from '@inkstain/client-api';
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
@@ -19,7 +20,9 @@ type DocumentTextViewProps = {
   spaceKey: string;
   documentPath: string;
   initBlockId?: string;
+  openChatView: (quote?: string) => void;
 };
+
 type DocumentTextViewHandle = {
   goToBlock: (blockId: string) => void;
 };
@@ -30,17 +33,23 @@ const useClasses = makeStyles({
     overflowY: 'scroll',
     padding: tokens.spacingHorizontalM,
     boxSizing: 'border-box',
+    position: 'relative',
   },
 });
 
 export const DocumentTextView = React.forwardRef<
   DocumentTextViewHandle,
   DocumentTextViewProps
->(({ spaceKey, documentPath, initBlockId }, ref) => {
+>(({ spaceKey, documentPath, initBlockId, openChatView }, ref) => {
   const classes = useClasses();
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const containerId = useId();
   const { data } = useDocumentText(spaceKey, documentPath);
+  const [selection, setSelection] = React.useState<{
+    selectedText: string;
+    positionLeft: number;
+    positionTop: number;
+  }>();
   const timeoutId = React.useRef<NodeJS.Timeout | null>(null);
   React.useImperativeHandle(ref, () => {
     return {
@@ -77,29 +86,87 @@ export const DocumentTextView = React.forwardRef<
     }
   }, [data, initBlockId, containerId]);
 
+  React.useEffect(() => {
+    let debounceTimer: NodeJS.Timeout;
+    const onSelectionChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const selection = window.getSelection();
+        if (
+          containerRef.current &&
+          selection &&
+          selection.rangeCount > 0 &&
+          selection.toString().length > 0
+        ) {
+          const range = selection.getRangeAt(0);
+          // Check if the selection is within the target div
+          const startContainer = range.startContainer;
+          const endContainer = range.endContainer;
+
+          if (
+            containerRef.current.contains(startContainer) &&
+            containerRef.current.contains(endContainer)
+          ) {
+            let anchorNode = startContainer as HTMLElement;
+            if (anchorNode.nodeType === Node.TEXT_NODE) {
+              anchorNode = anchorNode.parentElement as HTMLElement;
+            }
+            const selectedText = selection.toString();
+            const rect = anchorNode.getBoundingClientRect();
+            const containerRect = containerRef.current.getBoundingClientRect();
+            setSelection({
+              selectedText,
+              positionLeft: rect.left - containerRect.left,
+              positionTop:
+                rect.top - containerRect.top + containerRef.current.scrollTop,
+            });
+          }
+        } else {
+          setSelection(undefined);
+        }
+      }, 300); // 300ms debounce delay
+    };
+
+    document.addEventListener('selectionchange', onSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', onSelectionChange);
+      clearTimeout(debounceTimer);
+    };
+  }, []);
+
   return (
     <div className={classes.root} ref={containerRef}>
       {data
         ? data.textContent.map((text, index) => (
-            <>
-              <Body1 key={index} as={'pre'} id={`${containerId}-${index}`}>
-                {text}
-              </Body1>
+            <Body1 key={index} as={'pre'} id={`${containerId}-${index}`}>
+              {text}
               <br />
               <br />
-            </>
+            </Body1>
           ))
         : null}
+      {selection && (
+        <Button
+          style={{
+            position: 'absolute',
+            left: `${selection.positionLeft}px`,
+            top: `${selection.positionTop}px`,
+          }}
+          onClick={() => {
+            setSelection(undefined);
+            openChatView(selection.selectedText);
+          }}
+          icon={<BotSparkleRegular />}
+        ></Button>
+      )}
     </div>
   );
 });
 
 export const ToolbarTextViewButton = ({
   onShowTextView,
-  showTextView,
   docLayoutStatus,
 }: {
-  showTextView: boolean;
   onShowTextView: (show: boolean) => void;
   docLayoutStatus: IntelligenceDocLayoutStatus200ResponseStatusEnum | undefined;
 }) => {
@@ -111,7 +178,7 @@ export const ToolbarTextViewButton = ({
     <ToolbarButtonWithTooltip
       onClick={() => {
         if (docLayoutStatus === 'completed') {
-          onShowTextView(!showTextView);
+          onShowTextView(true);
         } else {
           // show error
           dispatchToast(

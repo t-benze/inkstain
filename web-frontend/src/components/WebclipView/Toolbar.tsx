@@ -18,9 +18,7 @@ import { DocLayoutAnalysisToolbar } from '~/web/components/DocLayoutAnalysisTool
 import { ToolbarChatButton } from '~/web/components/DocumentChatView';
 
 type ToolbarProps = ZoomToolbarProps & {
-  showChatOverlay: boolean;
   onShowChatOverlayChange: (show: boolean) => void;
-  showTextView: boolean;
   onShowTextView: (show: boolean) => void;
 };
 
@@ -75,9 +73,7 @@ export const WebclipToolbar = ({
   onZoomIn,
   onZoomOut,
   onZoomFitHeight,
-  showChatOverlay,
   onShowChatOverlayChange,
-  showTextView,
   onShowTextView,
 }: ToolbarProps) => {
   const styles = useClasses();
@@ -103,12 +99,10 @@ export const WebclipToolbar = ({
 
       <ToolbarChatButton
         docLayoutStatus={docLayoutStatus?.status}
-        showChat={showChatOverlay}
         onShowChatChange={onShowChatOverlayChange}
       />
       <ToolbarTextViewButton
         docLayoutStatus={docLayoutStatus?.status}
-        showTextView={showTextView}
         onShowTextView={onShowTextView}
       />
     </Toolbar>

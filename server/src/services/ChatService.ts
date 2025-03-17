@@ -18,6 +18,7 @@ export class ChatError extends Error {
   }
 }
 
+const INIT_PROMPT_WITHOUT_DOC = `You are a helpful assistant answering the user's questions.`;
 export class ChatService {
   private openai: OpenAI | undefined;
   private model = 'gpt-4o';
@@ -100,7 +101,8 @@ export class ChatService {
       const session = JSON.parse(line) as ChatMessage;
       messages.push(session);
     }
-    return messages;
+    const noDocument = messages[0].content === INIT_PROMPT_WITHOUT_DOC;
+    return { messages, withDocument: !noDocument };
   }
 
   async saveChatSession(
@@ -123,43 +125,33 @@ export class ChatService {
     return files;
   }
 
-  async createSession(spaceKey: string, documentPath: string, query: string) {
+  async createSession(
+    spaceKey: string,
+    documentPath: string,
+    query: string,
+    withDocument = true
+  ) {
     const sessionId = `chat-${new Date().getTime().toString()}`;
     try {
       const documentContent = await this.intelligenceService.getDocTextContent({
         spaceKey,
         documentPath,
       });
-      //   const initPrompt = {
-      //     role: 'system',
-      //     content: `You are an assistant with access to a document. Use the document only if the question can't be answered from prior conversation context.`,
-      //   } as OpenAI.Chat.ChatCompletionMessageParam;
       const initPrompt = {
         role: 'system',
         id: new Date().getTime().toString(),
-        content: `You are a helpful assistant answering questions about a specific document. 
+        content: withDocument
+          ? `You are a helpful assistant answering questions about a specific document. 
         Here is the content of the document:
         
         ${documentContent.textContent.join('\n')}
 
         When answering questions, only use information from this document. If the answer cannot be 
         found in the document, say so. Maintain consistent answers across the conversation. Only
-        use information outside of the document when the user suggests so.`,
+        use information outside of the document when the user suggests so.`
+          : INIT_PROMPT_WITHOUT_DOC,
       };
-      //   const documentContentPrompt = {
-      //     role: 'system',
-      //     content: `Document Content:  \n\n ${documentContent}\n`,
-      //   } as OpenAI.Chat.ChatCompletionMessageParam;
-      const initMessages = [
-        initPrompt,
-        // documentContentPrompt,
-      ];
-      // await this.saveChatSession(
-      //   spaceKey,
-      //   documentPath,
-      //   sessionId,
-      //   initMessages
-      // );
+      const initMessages = [initPrompt];
       const response = await this.handleUserQuery(
         spaceKey,
         documentPath,
@@ -206,17 +198,15 @@ export class ChatService {
   ): Promise<ChatMessage> {
     if (!this.openai) {
       throw new ChatError(
-        'OpenAI API is not initialized',
+        'Chat API is not initialized',
         ChatError.CODE_NOT_INITIALIZED
       );
     }
     let sessionMessages = messageHistory;
     if (!sessionMessages) {
-      sessionMessages = await this.loadChatSession(
-        spaceKey,
-        documePath,
-        sessionId
-      );
+      sessionMessages = (
+        await this.loadChatSession(spaceKey, documePath, sessionId)
+      ).messages;
     }
     sessionMessages = [
       ...sessionMessages,
@@ -254,17 +244,6 @@ export class ChatService {
       id: new Date().getTime().toString(),
     } as ChatMessage;
     sessionMessages = [...sessionMessages, newMessage];
-    //   const summary = await this.summarizeHistory(messageHistory);
-    //   if (!summary) throw new Error('Summary is empty');
-
-    //   logger.debug('Summary:', summary);
-    //   this.sessions[sessionId].messages = [
-    //     messageHistory[0],
-    //     {
-    //       role: 'system',
-    //       content: summary,
-    //     },
-    //   ];
     await this.saveChatSession(
       spaceKey,
       documePath,
