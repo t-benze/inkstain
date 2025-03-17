@@ -43,6 +43,7 @@ export interface ChatNewSessionOperationRequest {
   spaceKey: string;
   path: string;
   chatNewSessionRequest: ChatNewSessionRequest;
+  withDocument?: string;
 }
 
 export interface GetChatSessionRequest {
@@ -183,6 +184,10 @@ export class ChatApi extends runtime.BaseAPI {
 
     if (requestParameters.path !== undefined) {
       queryParameters['path'] = requestParameters.path;
+    }
+
+    if (requestParameters.withDocument !== undefined) {
+      queryParameters['withDocument'] = requestParameters.withDocument;
     }
 
     const headerParameters: runtime.HTTPHeaders = {};

@@ -258,6 +258,7 @@ const StrokeWidthPickerPopover = ({
         <div className={classes.strokeWidthPanel}>
           {[1, 2, 3, 4, 5].map((width) => (
             <Tooltip
+              key={`stroke-width-${width}`}
               relationship="description"
               content={`${width}px`}
               positioning={'after'}

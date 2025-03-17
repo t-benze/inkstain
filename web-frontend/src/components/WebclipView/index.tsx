@@ -159,9 +159,7 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onZoomFitHeight={handleZoomFitHeight}
-          showChatOverlay={showChatOverlay}
           onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
-          showTextView={showTextOverlay}
           onShowTextView={(show) => setShowTextOverlay(show)}
         />
         <div
@@ -182,19 +180,6 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
             <Spinner />
           )}
         </div>
-        {showChatOverlay && (
-          <>
-            <div
-              className={classes.chatOverlayMask}
-              onClick={() => {
-                setShowChatOverlay(false);
-              }}
-            ></div>
-            <div className={classes.chatOverlay}>
-              <ChatView spaceKey={spaceKey} documentPath={documentPath} />
-            </div>
-          </>
-        )}
         {showTextOverlay && (
           <>
             <div
@@ -208,7 +193,23 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
                 initBlockId={initBlockId}
                 spaceKey={spaceKey}
                 documentPath={documentPath}
+                openChatView={() => {
+                  return;
+                }}
               />
+            </div>
+          </>
+        )}
+        {showChatOverlay && (
+          <>
+            <div
+              className={classes.chatOverlayMask}
+              onClick={() => {
+                setShowChatOverlay(false);
+              }}
+            ></div>
+            <div className={classes.chatOverlay}>
+              <ChatView spaceKey={spaceKey} documentPath={documentPath} />
             </div>
           </>
         )}
