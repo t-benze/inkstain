@@ -9,8 +9,11 @@ import { WebclipToolbar } from './Toolbar';
 import { useZoomScale } from '~/web/components/ZoomToolbar';
 import { useStylus } from '~/web/components/DrawingAnnotationOverlay/hooks/useStylus';
 import { DrawingAnnotationOverlayContext } from '~/web/components/DrawingAnnotationOverlay';
-import { ChatView } from '~/web/components/DocumentChatView';
-import { DocumentTextView } from '~/web/components/DocumentTextView';
+import { ChatOverlay, useChatOverlay } from '~/web/components/DocumentChatView';
+import {
+  useDocumentTextOverlay,
+  DocumentTextViewOverlay,
+} from '~/web/components/DocumentTextView';
 
 const useClasses = makeStyles({
   root: {
@@ -133,13 +136,10 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
     handleStylusChange,
   } = useStylus();
 
-  const [showChatOverlay, setShowChatOverlay] = React.useState(false);
-  const [showTextOverlay, setShowTextOverlay] = React.useState(false);
-  const [initBlockId, setInitBlockId] = React.useState<string>();
-  const openTextOverlay = (blockId?: string) => {
-    blockId && setInitBlockId(blockId);
-    setShowTextOverlay(true);
-  };
+  const { showChat, openChatOverlay, closeChatOverlay, chatQuote } =
+    useChatOverlay();
+  const { showTextOverlay, openTextOverlay, initBlockId, closeTextOverlay } =
+    useDocumentTextOverlay();
 
   return (
     <DrawingAnnotationOverlayContext.Provider
@@ -159,8 +159,8 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onZoomFitHeight={handleZoomFitHeight}
-          onShowChatOverlayChange={(show) => setShowChatOverlay(show)}
-          onShowTextView={(show) => setShowTextOverlay(show)}
+          onShowChatOverlayChange={openChatOverlay}
+          onShowTextView={openTextOverlay}
         />
         <div
           className={classes.scene}
@@ -180,39 +180,18 @@ export function WebclipView({ documentPath, spaceKey }: DocumentViewProps) {
             <Spinner />
           )}
         </div>
-        {showTextOverlay && (
-          <>
-            <div
-              className={classes.textOverlayMask}
-              onClick={() => {
-                setShowTextOverlay(false);
-              }}
-            ></div>
-            <div className={classes.textOverlay}>
-              <DocumentTextView
-                initBlockId={initBlockId}
-                spaceKey={spaceKey}
-                documentPath={documentPath}
-                openChatView={() => {
-                  return;
-                }}
-              />
-            </div>
-          </>
-        )}
-        {showChatOverlay && (
-          <>
-            <div
-              className={classes.chatOverlayMask}
-              onClick={() => {
-                setShowChatOverlay(false);
-              }}
-            ></div>
-            <div className={classes.chatOverlay}>
-              <ChatView spaceKey={spaceKey} documentPath={documentPath} />
-            </div>
-          </>
-        )}
+        <DocumentTextViewOverlay
+          show={showTextOverlay}
+          initBlockId={initBlockId}
+          openChatView={openChatOverlay}
+          closeTextOverlay={closeTextOverlay}
+        />
+
+        <ChatOverlay
+          show={showChat}
+          closeChatOverlay={closeChatOverlay}
+          chatQuote={chatQuote}
+        />
       </div>
     </DrawingAnnotationOverlayContext.Provider>
   );

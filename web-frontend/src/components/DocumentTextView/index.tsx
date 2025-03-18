@@ -15,6 +15,7 @@ import { IntelligenceDocLayoutStatus200ResponseStatusEnum } from '@inkstain/clie
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
 import { useAppContext } from '~/web/app/hooks/useAppContext';
 import { useDocumentText } from './hooks';
+import { useDocumentContext } from '../DocumentView/hooks';
 
 type DocumentTextViewProps = {
   spaceKey: string;
@@ -34,6 +35,22 @@ const useClasses = makeStyles({
     padding: tokens.spacingHorizontalM,
     boxSizing: 'border-box',
     position: 'relative',
+  },
+  textOverlayMask: {
+    position: 'absolute',
+    top: `32px`,
+    left: 0,
+    width: '20%',
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  textOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: '20%',
+    right: 0,
+    top: '32px',
+    backgroundColor: tokens.colorNeutralBackground1,
   },
 });
 
@@ -198,3 +215,33 @@ export const ToolbarTextViewButton = ({
     />
   );
 };
+
+export const DocumentTextViewOverlay = ({
+  show,
+  closeTextOverlay,
+  initBlockId,
+  openChatView,
+}: {
+  show: boolean;
+  initBlockId?: string;
+  openChatView: (quote?: string) => void;
+  closeTextOverlay: () => void;
+}) => {
+  const classes = useClasses();
+  const { space, document } = useDocumentContext();
+  return show ? (
+    <>
+      <div className={classes.textOverlayMask} onClick={closeTextOverlay} />
+      <div className={classes.textOverlay}>
+        <DocumentTextView
+          initBlockId={initBlockId}
+          spaceKey={space.key}
+          documentPath={document.name}
+          openChatView={openChatView}
+        />
+      </div>
+    </>
+  ) : null;
+};
+
+export { useDocumentText, useDocumentTextOverlay } from './hooks';

@@ -27,6 +27,7 @@ import { chatApi } from '~/web/apiClient';
 import { ChatMessage, ResponseError } from '@inkstain/client-api';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '~/web/app/hooks/useAppContext';
+import { useDocumentContext } from '../DocumentView/hooks';
 
 type ChatSessionData = {
   withDocument: boolean | null;
@@ -115,12 +116,28 @@ const useClasses = makeStyles({
       verticalAlign: '-0.4em',
     },
   },
+  chatOverlayMask: {
+    position: 'absolute',
+    top: `32px`,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  chatOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: `20%`,
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
 });
 
 interface ChatViewProps {
   spaceKey: string;
   documentPath: string;
-  quote?: string;
+  quote: string | null;
 }
 
 export const ChatView = ({ spaceKey, documentPath, quote }: ChatViewProps) => {
@@ -289,20 +306,15 @@ export const ChatView = ({ spaceKey, documentPath, quote }: ChatViewProps) => {
   });
 
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-  const [quoteState, setQuoteState] = React.useState<string | undefined>(quote);
+  const [quoteState, setQuoteState] = React.useState<string | null>(quote);
 
   const handleSend = () => {
-    console.log(
-      'sending',
-      newSessionMutation.isPending,
-      messageMutation.isPending
-    );
     if (newSessionMutation.isPending || messageMutation.isPending) {
       return;
     }
     let content = message.trim();
     if (quoteState) {
-      content = `> ${quoteState}\n\n${content}`;
+      content = `---\n ${quoteState} \n --- \n${content}`;
     }
     if (content.length > 0) {
       if (!sessionId) {
@@ -310,7 +322,7 @@ export const ChatView = ({ spaceKey, documentPath, quote }: ChatViewProps) => {
       } else {
         messageMutation.mutate({ sessionId, message: content });
       }
-      setQuoteState(undefined);
+      setQuoteState(null);
       setMessage('');
     }
   };
@@ -409,4 +421,30 @@ export const ChatView = ({ spaceKey, documentPath, quote }: ChatViewProps) => {
   );
 };
 
+export const ChatOverlay = ({
+  show,
+  closeChatOverlay,
+  chatQuote,
+}: {
+  show: boolean;
+  closeChatOverlay: () => void;
+  chatQuote: string | null;
+}) => {
+  const classes = useClasses();
+  const { space, document } = useDocumentContext();
+  return show ? (
+    <>
+      <div className={classes.chatOverlayMask} onClick={closeChatOverlay}></div>
+      <div className={classes.chatOverlay}>
+        <ChatView
+          spaceKey={space.key}
+          documentPath={document.name}
+          quote={chatQuote}
+        />
+      </div>
+    </>
+  ) : null;
+};
 export { ToolbarChatButton } from './ToolbarChatButton';
+
+export { useChatOverlay } from './hooks';

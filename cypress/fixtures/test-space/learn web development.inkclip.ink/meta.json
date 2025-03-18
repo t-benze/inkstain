@@ -1,4 +1,7 @@
 {
   "mimetype": "application/inkclip",
-  "attributes": { "url": "https://developer.mozilla.org/en-US/docs/Learn" }
+  "attributes": {
+    "title": "webclip",
+    "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development"
+  }
 }

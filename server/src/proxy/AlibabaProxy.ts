@@ -62,17 +62,16 @@ export class AlibabaProxy implements DocIntelligenceInterface {
 
   public async initClient(keyId: string) {
     const secret = await this.secretService.getSecret(keyId);
-    if (!secret) {
-      throw new Error('Secret not found');
+    if (secret) {
+      this.client = new Client(
+        new $OpenApiUtil.Config({
+          endpoint: 'docmind-api.cn-hangzhou.aliyuncs.com',
+          accessKeyId: keyId,
+          accessKeySecret: secret,
+          type: 'access_key',
+        })
+      );
     }
-    this.client = new Client(
-      new $OpenApiUtil.Config({
-        endpoint: 'docmind-api.cn-hangzhou.aliyuncs.com',
-        accessKeyId: keyId,
-        accessKeySecret: secret,
-        type: 'access_key',
-      })
-    );
   }
 
   private processLayoutData(data: {
