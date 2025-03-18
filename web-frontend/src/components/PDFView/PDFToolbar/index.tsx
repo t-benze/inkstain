@@ -32,8 +32,8 @@ interface PDFToolbarProps extends ZoomToolbarProps {
   onPageChange: (pageNum: number) => void;
   enableScroll: boolean;
   onEnableScrollChange: (enableScroll: boolean) => void;
-  onShowChatOverlayChange: (show: boolean) => void;
-  onShowTextView: (show: boolean) => void;
+  onShowChatOverlayChange: () => void;
+  onShowTextView: () => void;
 }
 
 const useClasses = makeStyles({
@@ -186,7 +186,7 @@ export const PDFToolbar = ({
       />
       <ToolbarChatButton
         docLayoutStatus={docLayoutStatus?.status}
-        onShowChatChange={onShowChatOverlayChange}
+        onOpenChatOverlay={onShowChatOverlayChange}
       />
       <ToolbarTextViewButton
         docLayoutStatus={docLayoutStatus?.status}
