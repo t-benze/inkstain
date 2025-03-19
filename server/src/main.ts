@@ -188,16 +188,20 @@ async function initServices(
     app.context.imageService,
     proxy
   );
-  const chatAssistantAPIKey = await app.context.secretService.getSecret(
-    'chat-assistant'
-  );
-  const chatServiceOptions = chatAssistantAPIKey
-    ? {
+  let chatServiceOptions;
+  const chatAPIKey = settings.chatService?.apiKeySecretKey;
+  if (chatAPIKey) {
+    const chatAssistantAPIKey = await app.context.secretService.getSecret(
+      chatAPIKey
+    );
+    if (chatAssistantAPIKey) {
+      chatServiceOptions = {
         baseUrl: settings.chatService?.baseUrl,
         model: settings.chatService?.model,
         apiKey: chatAssistantAPIKey,
-      }
-    : undefined;
+      };
+    }
+  }
   app.context.chatService = new ChatService(
     app.context.intelligenceService,
     app.context.fileService,
