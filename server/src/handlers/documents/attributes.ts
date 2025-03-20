@@ -93,7 +93,16 @@ export const addUpdateDocumentAttributes = async (ctx: Context) => {
   const fileContent = await fileManager.readMetaFile(documentPath);
   const meta = JSON.parse(fileContent) as MetaData;
 
-  const updates = (ctx.request.body as { attributes: object }).attributes;
+  const updates = (ctx.request.body as { attributes: Record<string, string> })
+    .attributes;
+  Object.keys(updates).forEach((key) => {
+    if (!key || !updates[key]) {
+      delete updates[key];
+    }
+  });
+  if (Object.keys(updates).length === 0) {
+    ctx.throw(400, 'No valid attributes provided');
+  }
   meta.attributes = { ...meta.attributes, ...updates };
 
   await fileManager.writeMetaFile(documentPath, JSON.stringify(meta));
