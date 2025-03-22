@@ -34,11 +34,17 @@ const useClasses = makeStyles({
     },
   },
   tab: {
-    '& .fui-Button': {
-      visibility: 'hidden',
+    paddingRight: '20px',
+    position: 'relative',
+    '& .tab-close-button': {
+      position: 'absolute',
+      right: '2px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      display: 'none',
     },
-    '&:hover .fui-Button': {
-      visibility: 'visible',
+    '&:hover .tab-close-button': {
+      display: 'block',
     },
   },
   panel: {
@@ -75,6 +81,7 @@ export const MainArea = ({
 }) => {
   const { closeDocument, documentsAlive, platform, activeDocument } =
     React.useContext(AppContext);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
   const classes = useClasses();
   const { t } = useTranslation();
 
@@ -85,8 +92,20 @@ export const MainArea = ({
     }
   };
 
+  React.useEffect(() => {
+    if (containerRef.current) {
+      // find the active tab element using attribute value, and scroll it into view
+      const activeTab = containerRef.current.querySelector(
+        `[value="${activeDocument}"]`
+      );
+      if (activeTab) {
+        activeTab.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeDocument]);
+
   return (
-    <div className={classes.root}>
+    <div className={classes.root} ref={containerRef}>
       <TabList
         className={classes.tabList}
         onTabSelect={onTabSelect}
@@ -107,10 +126,9 @@ export const MainArea = ({
               {displayName?.length > 20
                 ? `${displayName.slice(0, 20)}...`
                 : displayName}
-              <Button
-                appearance="transparent"
-                size="small"
-                icon={<DismissRegular fontSize={'16px'} />}
+              <DismissRegular
+                className="tab-close-button"
+                fontSize={'16px'}
                 onClick={() => {
                   closeDocument(document.name);
                 }}

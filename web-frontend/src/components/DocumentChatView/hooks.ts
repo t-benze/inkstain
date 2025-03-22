@@ -11,7 +11,6 @@ export const useChatOverlay = () => {
     setChatQuote(null);
     setShowChat(false);
   };
-  console.log('chat overlya', chatQuote);
   return {
     showChat,
     openChatOverlay,

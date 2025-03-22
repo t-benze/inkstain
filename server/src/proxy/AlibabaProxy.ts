@@ -78,8 +78,14 @@ export class AlibabaProxy implements DocIntelligenceInterface {
     docInfo: DocInfo;
     layouts: Array<Layout>;
   }): Array<DocumentTextDetectionData> {
-    const layoutData: Array<DocumentTextDetectionData> = [];
     const pageInfo = data.docInfo.pages;
+    const layoutData: Array<DocumentTextDetectionData> = Array.from(
+      { length: pageInfo.length },
+      () => ({
+        blocks: [],
+        lines: [],
+      })
+    );
     data.layouts.forEach((layout) => {
       if (!LAYOUT_WHITELIST.includes(layout.type)) {
         return;

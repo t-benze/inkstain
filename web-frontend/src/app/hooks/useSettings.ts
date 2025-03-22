@@ -12,6 +12,7 @@ export const useSettings = () => {
   });
   const { mutate: updateSettings } = useMutation({
     mutationFn: async (settings: Partial<Settings>) => {
+      // @ts-expect-error allow partial settings update
       return await systemApi.updateSettings({ settings });
     },
     onMutate: async (newSettings) => {

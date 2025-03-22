@@ -195,6 +195,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         positioning={'below'}
       >
         <Button
+          as="a"
           data-test="fileExplorer-searchDocuments"
           appearance="subtle"
           size="small"
@@ -211,6 +212,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         positioning={'below'}
       >
         <Button
+          as="a"
           data-test="fileExplorer-addDocumentBtn"
           appearance="subtle"
           size="small"
@@ -227,6 +229,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         positioning={'below'}
       >
         <Button
+          as="a"
           data-test="fileExplorer-addFolderBtn"
           appearance="subtle"
           size="small"
@@ -243,6 +246,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         positioning={'below'}
       >
         <Button
+          as="a"
           data-test="fileExplorer-refreshFolderBtn"
           appearance="subtle"
           size="small"
@@ -271,6 +275,7 @@ export const FileExplorer = ({ space }: FileExplorerProps) => {
         positioning={'below'}
       >
         <Button
+          as="a"
           data-test="fileExplorer-collapseAllBtn"
           appearance="subtle"
           size="small"

@@ -9,29 +9,33 @@ import {
   Button,
   MenuProps,
 } from '@fluentui/react-components';
-import { AppContext } from '~/web/app/context';
-import { Appearance, AppearanceKey } from '~/web/app/types';
+import { useAppContext } from '../hooks/useAppContext';
+import { Settings } from '@inkstain/client-api';
 
 export const ViewMenu = () => {
   const { t } = useTranslation();
-  const { appearance, setAppearance } = React.useContext(AppContext);
+  const { settings, updateSettings } = useAppContext();
+  // const { appearance, setAppearance } = React.useContext(AppContext);
 
   const checkedValues = {
     view: [
-      appearance.showPrimarySidebar ? 'showPrimarySidebar' : null,
-      appearance.showSecondarySidebar ? 'showSecondarySidebar' : null,
+      settings.layout.primarySidebar ? 'primarySidebar' : null,
+      settings.layout.secondarySidebar ? 'secondarySidebar' : null,
     ].filter(Boolean) as string[],
   };
 
   const onChange: MenuProps['onCheckedValueChange'] = (_, { checkedItems }) => {
-    const appearance: Appearance = {
-      showPrimarySidebar: false,
-      showSecondarySidebar: false,
+    const layout = {
+      primarySidebar: false,
+      secondarySidebar: false,
     };
     checkedItems.forEach((item) => {
-      appearance[item as AppearanceKey] = true;
+      layout[item as keyof Settings['layout']] = true;
     });
-    setAppearance(appearance);
+
+    updateSettings({
+      layout,
+    });
   };
 
   return (
@@ -45,14 +49,14 @@ export const ViewMenu = () => {
         <MenuList>
           <MenuItemCheckbox
             name="view"
-            value="showPrimarySidebar"
+            value="primarySidebar"
             data-test="menubar-togglePrimarySidebar"
           >
             {t('view_primary_sidebar')}
           </MenuItemCheckbox>
           <MenuItemCheckbox
             name="view"
-            value="showSecondarySidebar"
+            value="secondarySidebar"
             data-test="menubar-toggleSecondarySidebar"
           >
             {t('view_secondary_sidebar')}

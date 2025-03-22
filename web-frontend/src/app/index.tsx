@@ -23,7 +23,6 @@ import { spacesApi, systemApi } from '~/web/apiClient';
 import { AppContext } from './context';
 import { PrimarySidebar } from './PrimarySidebar';
 import { SecondarySidebar } from './SecondarySidebar';
-import { useAppearance } from './hooks/useAppearance';
 import { useDocuments } from './hooks/useDocuments';
 import { useSpace } from './hooks/useSpace';
 import { useShortcuts } from './hooks/useShortcuts';
@@ -92,7 +91,7 @@ const InkStain = () => {
   }, [spaces, openSpace, activeSpace, openSystemDocument]);
 
   const toasterId = useId('toaster');
-  const { appearance, setAppearance } = useAppearance();
+  // const { appearance, setAppearance } = useAppearance();
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
   const { pressedKeys } = useShortcuts();
   const { userInfo } = useUser();
@@ -101,8 +100,6 @@ const InkStain = () => {
     <AppContext.Provider
       value={{
         toasterId,
-        appearance,
-        setAppearance,
         showAuthDialog: (show = true) => setShowAuthDialog(show),
         userInfo: userInfo,
         platform,
@@ -125,9 +122,9 @@ const InkStain = () => {
         <Toaster toasterId={toasterId} />
         <MenuBar />
         <div className={classes.body}>
-          <PrimarySidebar display={appearance.showPrimarySidebar} />
+          <PrimarySidebar display={settings.layout.primarySidebar} />
           <MainArea onActiveDocumentChange={setActiveDocument} />
-          <SecondarySidebar display={appearance.showSecondarySidebar} />
+          <SecondarySidebar display={settings.layout.secondarySidebar} />
         </div>
         <AuthenticationDialog
           open={showAuthDialog}

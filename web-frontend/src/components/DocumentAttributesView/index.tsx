@@ -24,7 +24,6 @@ import {
   createTableColumn,
 } from '@fluentui/react-components';
 import { DocumentAttribute } from './types';
-import { useNewAttributes } from './useNewAttributes';
 
 const useClasses = makeStyles({
   grid: {
@@ -60,10 +59,8 @@ interface DocumentAttributeItem {
   onRemove: () => void;
 }
 
-const isValidUrl = (value: string) => {
-  const urlRegex =
-    /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-  return urlRegex.test(value);
+const isUrl = (value: string) => {
+  return value.startsWith('http://') || value.startsWith('https://');
 };
 
 const NewAttributeNameDropdown = ({
@@ -120,7 +117,7 @@ const columns: TableColumnDefinition<DocumentAttributeItem>[] = [
     columnId: 'value',
     compare: (a, b) => a.value.localeCompare(b.value),
     renderCell: (attribute) => {
-      return isValidUrl(attribute.value) ? (
+      return isUrl(attribute.value) ? (
         <Link href={attribute.value} target="_blank" rel="noopener noreferrer">
           {attribute.value}
         </Link>
@@ -200,20 +197,167 @@ const columnSizingOptions = {
     idealWidth: 100,
   },
 };
+
+const ContentView = ({
+  attributes,
+  onSaveAttributes,
+}: {
+  attributes: DocumentAttribute[] | undefined;
+  onSaveAttributes: (params: {
+    delete: Array<string>;
+    addOrUpdate: Array<DocumentAttribute>;
+  }) => void;
+}) => {
+  const classes = useClasses();
+  const { t } = useTranslation();
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [updates, setUpdates] = React.useState<Record<string, string>>({});
+  const [newAttributes, setNewAttributes] = React.useState<
+    Array<DocumentAttribute>
+  >([]);
+  const [deleteAttributes, setDeleteAttributes] = React.useState<Array<string>>(
+    []
+  );
+  if (!attributes) return null;
+
+  const existingItems: DocumentAttributeItem[] = attributes.map(
+    (item, index) => ({
+      ...item,
+      isNew: false,
+      onUpdate: (attr: { name: string; value: string }) =>
+        setUpdates({ ...updates, [attr.name]: attr.value }),
+      onRemove: () => {
+        setDeleteAttributes([...deleteAttributes, item.name]);
+      },
+    })
+  );
+  const newItems: DocumentAttributeItem[] = newAttributes.map(
+    (item, index) => ({
+      ...item,
+      isNew: true,
+      onUpdate: (newAttr: { name: string; value: string }) => {
+        setNewAttributes(
+          newAttributes.map((attr, i) => (i === index ? newAttr : attr))
+        );
+      },
+      onRemove: () => {
+        setNewAttributes(newAttributes.filter((_, i) => i !== index));
+      },
+    })
+  );
+
+  const clearState = () => {
+    setUpdates({});
+    setDeleteAttributes([]);
+    setNewAttributes([]);
+    setIsEditing(false);
+  };
+
+  const handleEditAttributes = () => {
+    const attributesToUpdateOrAdd: DocumentAttribute[] = Object.keys(updates)
+      .map((key) => ({
+        name: key,
+        value: updates[key],
+      }))
+      .concat(newAttributes);
+    onSaveAttributes({
+      delete: deleteAttributes,
+      addOrUpdate: attributesToUpdateOrAdd,
+    });
+  };
+
+  return (
+    <>
+      <DataGrid
+        className={classes.grid}
+        size="small"
+        items={[
+          ...existingItems.filter(
+            (item) => !deleteAttributes.includes(item.name)
+          ),
+          ...newItems,
+        ]}
+        columns={isEditing ? columnsEditMode : columns}
+        columnSizingOptions={columnSizingOptions}
+        resizableColumns
+      >
+        <DataGridBody<DocumentAttribute>>
+          {({ item, rowId }) => (
+            <DataGridRow<DocumentAttribute>
+              key={rowId}
+              className={classes.gridRow}
+              data-test="documentAttributesView-attribute"
+            >
+              {({ renderCell }) => (
+                <DataGridCell>{renderCell(item)}</DataGridCell>
+              )}
+            </DataGridRow>
+          )}
+        </DataGridBody>
+      </DataGrid>
+
+      {isEditing && (
+        <div className={classes.editButton}>
+          <Button
+            data-test="documentAttributesView-addAttributeButton"
+            style={{ flexGrow: 1 }}
+            onClick={() => {
+              setNewAttributes([
+                ...newAttributes,
+                {
+                  name: '',
+                  value: '',
+                },
+              ]);
+            }}
+          >
+            {t('add')}
+          </Button>
+        </div>
+      )}
+      {isEditing && (
+        <div className={classes.editButton}>
+          <Button
+            data-test="documentAttributesView-saveButton"
+            onClick={() => {
+              handleEditAttributes();
+              clearState();
+            }}
+          >
+            {t('save')}
+          </Button>
+          <Button
+            data-test="documentAttributesView-cancelButton"
+            onClick={() => {
+              clearState();
+            }}
+          >
+            {t('cancel')}
+          </Button>
+        </div>
+      )}
+      {!isEditing && (
+        <div className={classes.editButton}>
+          <Button
+            data-test="documentAttributesView-editButton"
+            style={{ flexGrow: 1 }}
+            onClick={() => {
+              setIsEditing(true);
+            }}
+          >
+            {t('edit')}
+          </Button>
+        </div>
+      )}
+    </>
+  );
+};
 export const DocumentAttributesView = ({
   document,
 }: DocumentAttributesViewProps) => {
   const appContext = React.useContext(AppContext);
-  const classes = useClasses();
   const { t } = useTranslation();
-  const [isEditing, setIsEditing] = React.useState(false);
-  const {
-    newAttributes,
-    addAttribute,
-    removeAttribute,
-    clearNewAttributes,
-    updateAttribute,
-  } = useNewAttributes();
+
   const { data: attributes } = useQuery<Array<DocumentAttribute>>({
     queryKey: ['document-attributes', document.name],
     queryFn: async () => {
@@ -249,45 +393,19 @@ export const DocumentAttributesView = ({
     },
   });
 
-  const [items, setItems] = React.useState<
-    Array<DocumentAttribute> | undefined
-  >(undefined);
-
-  React.useEffect(() => {
-    setItems(attributes);
-  }, [attributes]);
-
   const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: async (attributes: Array<DocumentAttribute>) => {
+  const addOrUpdateMutation = useMutation({
+    mutationFn: async (addOrUpdates: Array<DocumentAttribute>) => {
       if (!appContext.activeSpace) throw new Error('Active space is not set');
-
-      const newAttributes = attributes.reduce(
-        (acc: Record<string, string | string[]>, item) => {
-          if (acc[item.name]) {
-            if (Array.isArray(acc[item.name])) {
-              return {
-                ...acc,
-                [item.name]: [...acc[item.name], item.value],
-              };
-            }
-            return {
-              ...acc,
-              [item.name]: [acc[item.name] as string, item.value],
-            };
-          }
-          return {
-            ...acc,
-            [item.name]: item.value,
-          };
-        },
-        {} as Record<string, string | string[]>
-      );
+      const updates: Record<string, string> = {};
+      addOrUpdates.forEach((attr) => {
+        updates[attr.name] = attr.value;
+      });
       await documentsApi.addUpdateDocumentAttributes({
         spaceKey: appContext.activeSpace.key,
         path: document.name,
         addUpdateDocumentAttributesRequest: {
-          attributes: newAttributes,
+          attributes: updates,
         },
       });
     },
@@ -298,128 +416,47 @@ export const DocumentAttributesView = ({
     },
   });
 
-  const handleUpdateAttributes = React.useCallback(() => {
-    if (items) {
-      if (newAttributes && newAttributes.length > 0) {
-        mutation.mutate([
-          ...items,
-          ...newAttributes.filter(
-            (attr) => attr.name !== '' && attr.value !== ''
-          ),
-        ]);
-      } else {
-        mutation.mutate(items);
+  const deleteMutation = useMutation({
+    mutationFn: async (deleteAttributes: Array<string>) => {
+      if (!appContext.activeSpace) throw new Error('Active space is not set');
+      await documentsApi.deleteDocumentAttributes({
+        requestBody: deleteAttributes,
+        spaceKey: appContext.activeSpace.key,
+        path: document.name,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['document-attributes', document.name],
+      });
+    },
+  });
+
+  const handleSaveAttributes = React.useCallback(
+    ({
+      delete: deleteAttributes,
+      addOrUpdate,
+    }: {
+      delete: Array<string>;
+      addOrUpdate: Array<DocumentAttribute>;
+    }) => {
+      addOrUpdateMutation.mutate(addOrUpdate);
+      if (deleteAttributes.length > 0) {
+        deleteMutation.mutate(deleteAttributes);
       }
-    }
-  }, [mutation, items, newAttributes]);
-
-  const renderPanel = () => {
-    if (!items) return null;
-    const existingItems: DocumentAttributeItem[] = items.map((item, index) => ({
-      ...item,
-      isNew: false,
-      onUpdate: (attr: { name: string; value: string }) =>
-        setItems(
-          items.map((item, i) => (i === index ? { ...item, ...attr } : item))
-        ),
-      onRemove: () => setItems(items.filter((_, i) => i !== index)),
-    }));
-    const newItems: DocumentAttributeItem[] = newAttributes.map(
-      (item, index) => ({
-        ...item,
-        isNew: true,
-        onUpdate: (attr: { name: string; value: string }) =>
-          updateAttribute(index, { ...item, ...attr }),
-        onRemove: () => removeAttribute(index),
-      })
-    );
-
-    return (
-      <>
-        <DataGrid
-          className={classes.grid}
-          size="small"
-          items={[...existingItems, ...newItems]}
-          columns={isEditing ? columnsEditMode : columns}
-          columnSizingOptions={columnSizingOptions}
-          resizableColumns
-        >
-          <DataGridBody<DocumentAttribute>>
-            {({ item, rowId }) => (
-              <DataGridRow<DocumentAttribute>
-                key={rowId}
-                className={classes.gridRow}
-                data-test="documentAttributesView-attribute"
-              >
-                {({ renderCell }) => (
-                  <DataGridCell>{renderCell(item)}</DataGridCell>
-                )}
-              </DataGridRow>
-            )}
-          </DataGridBody>
-        </DataGrid>
-
-        {isEditing && (
-          <div className={classes.editButton}>
-            <Button
-              data-test="documentAttributesView-addAttributeButton"
-              style={{ flexGrow: 1 }}
-              onClick={() => {
-                addAttribute({
-                  name: '',
-                  value: '',
-                });
-              }}
-            >
-              {t('add')}
-            </Button>
-          </div>
-        )}
-        {isEditing && (
-          <div className={classes.editButton}>
-            <Button
-              data-test="documentAttributesView-saveButton"
-              onClick={() => {
-                handleUpdateAttributes();
-                clearNewAttributes();
-                setIsEditing(false);
-              }}
-            >
-              {t('save')}
-            </Button>
-            <Button
-              data-test="documentAttributesView-cancelButton"
-              onClick={() => {
-                setItems(attributes);
-                clearNewAttributes();
-                setIsEditing(false);
-              }}
-            >
-              {t('cancel')}
-            </Button>
-          </div>
-        )}
-        {!isEditing && (
-          <div className={classes.editButton}>
-            <Button
-              data-test="documentAttributesView-editButton"
-              style={{ flexGrow: 1 }}
-              onClick={() => {
-                setIsEditing(true);
-              }}
-            >
-              {t('edit')}
-            </Button>
-          </div>
-        )}
-      </>
-    );
-  };
+    },
+    [addOrUpdateMutation, deleteMutation]
+  );
 
   return (
     <SidebarAccordionItem
       headerText={t('document_attributes')}
-      panel={renderPanel()}
+      panel={
+        <ContentView
+          attributes={attributes}
+          onSaveAttributes={handleSaveAttributes}
+        />
+      }
     ></SidebarAccordionItem>
   );
 };
