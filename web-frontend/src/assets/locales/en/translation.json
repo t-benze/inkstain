@@ -78,6 +78,8 @@
   "chat_service_need_api_key": "Please provide your API Key in the settings.",
   "text_content": "Text content",
   "chat_with_document_content": "Include document",
+  "toggle_primary_sidebar": "Toggle Primary Sidebar",
+  "toggle_secondary_sidebar": "Toggle Secondary Sidebar",
   "unknown_error": "Unknown error",
   "system": {
     "@inkstain/space-management": "Spaces",

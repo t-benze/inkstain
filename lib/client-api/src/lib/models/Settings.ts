@@ -19,6 +19,12 @@ import {
   ChatSettingsFromJSONTyped,
   ChatSettingsToJSON,
 } from './ChatSettings';
+import type { LayoutSettings } from './LayoutSettings';
+import {
+  LayoutSettingsFromJSON,
+  LayoutSettingsFromJSONTyped,
+  LayoutSettingsToJSON,
+} from './LayoutSettings';
 
 /**
  *
@@ -31,7 +37,7 @@ export interface Settings {
    * @type {string}
    * @memberof Settings
    */
-  ocrService?: SettingsOcrServiceEnum;
+  ocrService: SettingsOcrServiceEnum;
   /**
    *
    * @type {string}
@@ -44,6 +50,12 @@ export interface Settings {
    * @memberof Settings
    */
   chatService?: ChatSettings;
+  /**
+   *
+   * @type {LayoutSettings}
+   * @memberof Settings
+   */
+  layout: LayoutSettings;
 }
 
 /**
@@ -61,6 +73,8 @@ export type SettingsOcrServiceEnum =
  */
 export function instanceOfSettings(value: object): boolean {
   let isInstance = true;
+  isInstance = isInstance && 'ocrService' in value;
+  isInstance = isInstance && 'layout' in value;
 
   return isInstance;
 }
@@ -77,13 +91,14 @@ export function SettingsFromJSONTyped(
     return json;
   }
   return {
-    ocrService: !exists(json, 'ocrService') ? undefined : json['ocrService'],
+    ocrService: json['ocrService'],
     alibabaAccessKeyId: !exists(json, 'alibabaAccessKeyId')
       ? undefined
       : json['alibabaAccessKeyId'],
     chatService: !exists(json, 'chatService')
       ? undefined
       : ChatSettingsFromJSON(json['chatService']),
+    layout: LayoutSettingsFromJSON(json['layout']),
   };
 }
 
@@ -98,5 +113,6 @@ export function SettingsToJSON(value?: Settings | null): any {
     ocrService: value.ocrService,
     alibabaAccessKeyId: value.alibabaAccessKeyId,
     chatService: ChatSettingsToJSON(value.chatService),
+    layout: LayoutSettingsToJSON(value.layout),
   };
 }

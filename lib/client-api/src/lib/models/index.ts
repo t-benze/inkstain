@@ -39,6 +39,7 @@ export * from './IntelligenceAnalyzeDocument200Response';
 export * from './IntelligenceAnalyzeDocumentRequest';
 export * from './IntelligenceDocLayout200Response';
 export * from './IntelligenceDocLayoutStatus200Response';
+export * from './LayoutSettings';
 export * from './ListDirectories200ResponseInner';
 export * from './PlatformInfo200Response';
 export * from './PlatformInfo200ResponseAttributes';
