@@ -47,6 +47,7 @@ models/IntelligenceAnalyzeDocument200Response.ts
 models/IntelligenceAnalyzeDocumentRequest.ts
 models/IntelligenceDocLayout200Response.ts
 models/IntelligenceDocLayoutStatus200Response.ts
+models/LayoutSettings.ts
 models/ListDirectories200ResponseInner.ts
 models/PlatformInfo200Response.ts
 models/PlatformInfo200ResponseAttributes.ts

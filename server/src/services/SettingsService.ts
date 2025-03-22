@@ -5,6 +5,10 @@ import { directories } from '../settings';
 
 const DEFAULT_SETTINGS: Settings = {
   ocrService: 'default',
+  layout: {
+    primarySidebar: true,
+    secondarySidebar: true,
+  },
 };
 type SettingsCallback = (settings: Partial<Settings>) => Promise<void>;
 
@@ -24,6 +28,7 @@ export class SettingsService {
       await callback(settings);
     }
   }
+
   public async getSettings(): Promise<Settings> {
     if (this.settingsData) {
       return this.settingsData;
@@ -42,12 +47,13 @@ export class SettingsService {
   }
 
   public async updateSettings(updates: Partial<Settings>): Promise<Settings> {
-    await this.notifyCallbacks(updates);
+    if (!this.settingsData) throw new Error('no settings data');
     this.settingsData = { ...this.settingsData, ...updates };
     await fs.writeFile(
       settingsFile,
       JSON.stringify(this.settingsData, null, 2)
     );
+    await this.notifyCallbacks(updates);
     return this.settingsData;
   }
 }

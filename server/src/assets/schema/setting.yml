@@ -11,6 +11,16 @@ components:
           type: string
       required:
         - apiKeySecretKey
+    LayoutSettings:
+      type: object
+      properties:
+        primarySidebar:
+          type: boolean
+        secondarySidebar:
+          type: boolean
+      required:
+        - primarySidebar
+        - secondarySidebar
     Settings:
       type: object
       properties:
@@ -21,3 +31,8 @@ components:
           type: string
         chatService:
           $ref: '#/components/schemas/ChatSettings'
+        layout:
+          $ref: '#/components/schemas/LayoutSettings'
+      required:
+        - ocrService
+        - layout

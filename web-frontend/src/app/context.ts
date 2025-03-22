@@ -5,12 +5,9 @@ import {
   Settings,
 } from '@inkstain/client-api';
 import { Space, Document, SystemDocumentType } from '~/web/types';
-import { Appearance } from './types';
 
 export type ContextType = {
   platform: PlatformData;
-  appearance: Appearance;
-  setAppearance: (appearance: Appearance) => void;
   toasterId: string;
   documentsAlive: Document[];
   openSystemDocument: (type: SystemDocumentType) => void;

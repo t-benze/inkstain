@@ -272,9 +272,11 @@ const ContentView = ({
         className={classes.grid}
         size="small"
         items={[
-          ...existingItems.filter(
-            (item) => !deleteAttributes.includes(item.name)
-          ),
+          ...existingItems
+            .filter((item) => !deleteAttributes.includes(item.name))
+            .map((item) =>
+              updates[item.name] ? { ...item, value: updates[item.name] } : item
+            ),
           ...newItems,
         ]}
         columns={isEditing ? columnsEditMode : columns}
