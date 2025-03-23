@@ -117,7 +117,7 @@ export class IntelligenceService {
     for (const data of layoutData) {
       for (const textBlock of data.blocks) {
         textBlockToOffset[textBlock.id] = textContent.length;
-        textContent.push(textBlock.text);
+        textContent.push(textBlock.text.replace(/<br>/g, ' '));
       }
     }
     return {
