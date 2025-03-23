@@ -9,7 +9,11 @@ import {
   useId,
   Button,
 } from '@fluentui/react-components';
-import { WindowTextRegular, BotSparkleRegular } from '@fluentui/react-icons';
+import {
+  WindowTextRegular,
+  BotSparkleRegular,
+  CopyRegular,
+} from '@fluentui/react-icons';
 import { useTranslation } from 'react-i18next';
 import { IntelligenceDocLayoutStatus200ResponseStatusEnum } from '@inkstain/client-api';
 import { ToolbarButtonWithTooltip } from '~/web/components/Toolbar/Button';
@@ -35,6 +39,10 @@ const useClasses = makeStyles({
     padding: tokens.spacingHorizontalM,
     boxSizing: 'border-box',
     position: 'relative',
+
+    '& pre': {
+      whiteSpace: 'pre-line',
+    },
   },
   textOverlayMask: {
     position: 'absolute',
@@ -163,18 +171,27 @@ export const DocumentTextView = React.forwardRef<
           ))
         : null}
       {selection && (
-        <Button
+        <div
           style={{
             position: 'absolute',
             left: `${selection.positionLeft}px`,
             top: `${selection.positionTop}px`,
           }}
-          onClick={() => {
-            setSelection(undefined);
-            openChatView(selection.selectedText);
-          }}
-          icon={<BotSparkleRegular />}
-        ></Button>
+        >
+          <Button
+            onClick={() => {
+              setSelection(undefined);
+              openChatView(selection.selectedText);
+            }}
+            icon={<BotSparkleRegular />}
+          />
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(selection.selectedText);
+            }}
+            icon={<CopyRegular />}
+          />
+        </div>
       )}
     </div>
   );

@@ -46,6 +46,7 @@ if (!existsSync(cacheDir)) {
 const LAYOUT_WHITELIST = [
   'head',
   'title',
+  'table',
   'multicolumn',
   'foot',
   'corner_note',
